@@ -5,487 +5,490 @@
  * Shattered Pixel Dungeon
  * Copyright (C) 2014-2026 Evan Debenham
  *
+ * Echoes of Yendor modifications Copyright (C) 2026
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Badges;
-import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
-import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
-import com.shatteredpixel.shatteredpixeldungeon.effects.BannerSprites;
-import com.shatteredpixel.shatteredpixeldungeon.effects.Fireball;
-import com.shatteredpixel.shatteredpixeldungeon.messages.Languages;
-import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.services.news.News;
-import com.shatteredpixel.shatteredpixeldungeon.services.updates.AvailableUpdateData;
-import com.shatteredpixel.shatteredpixeldungeon.services.updates.Updates;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Button;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ExitButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.IconButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
-import com.shatteredpixel.shatteredpixeldungeon.ui.StyledButton;
-import com.shatteredpixel.shatteredpixeldungeon.ui.TitleBackground;
-import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
-import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
+import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndSettings;
-import com.shatteredpixel.shatteredpixeldungeon.windows.WndVictoryCongrats;
-import com.watabou.glwrap.Blending;
 import com.watabou.input.PointerEvent;
-import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Camera;
+import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Game;
+import com.watabou.noosa.Group;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.PointerArea;
 import com.watabou.noosa.audio.Music;
+import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.tweeners.Tweener;
-import com.watabou.utils.ColorMath;
 import com.watabou.utils.DeviceCompat;
-import com.watabou.utils.GameMath;
 import com.watabou.utils.RectF;
 
-import java.util.Date;
+import java.util.ArrayList;
 
+/**
+ * Echoes of Yendor title flow.
+ *
+ * The title screen is intentionally treated as an object in the world rather than
+ * a conventional menu: the player first sees the closed inn ledger, clicks it,
+ * and then uses the opened ledger to access existing records or register a new
+ * dungeon delver. The original save-slot and six-hero selection scenes remain
+ * responsible for their mature game logic.
+ */
 public class TitleScene extends PixelScene {
 
-	private Image title;
-	private Fireball leftFB;
-	private Fireball rightFB;
-	private Image signs;
+    private static final String LEDGER_CLOSED = "interfaces/echoes/ledger_closed.png";
+    private static final String LEDGER_OPEN = "interfaces/echoes/ledger_open.png";
 
-	private StyledButton btnPlay;
-	private StyledButton btnSupport;
-	private StyledButton btnRankings;
-	private StyledButton btnJournal;
-	private StyledButton btnNews;
-	private StyledButton btnChanges;
-	private StyledButton btnSettings;
-	private StyledButton btnAbout;
+    private static final int DESK_BASE = 0xFF5A3B29;
+    private static final int DESK_SEAM = 0xFF352219;
+    private static final int DESK_GRAIN = 0xFF74513A;
+    private static final int INK = 0xFF2A211B;
+    private static final int INK_SOFT = 0xFF5B5047;
+    private static final int GOLD = 0xFFE8C98D;
+    private static final int CREAM = 0xFFF3E2BD;
+    private static final int STAMP_RED = 0xFF8E2B2B;
 
-	private BitmapText version;
-	private IconButton btnFade;
-	private ExitButton btnExit;
+    // Keeps the book open when the player returns from the save list / hero picker.
+    // A fresh process still starts with the cover closed.
+    private static boolean returnToOpenLedger = false;
 
-	@Override
-	public void create() {
-		
-		super.create();
+    private Image ledgerClosed;
+    private Image ledgerOpen;
+    private PointerArea ledgerHotArea;
+    private Group ledgerUI;
 
-		Music.INSTANCE.playTracks(
-				new String[]{Assets.Music.THEME_1, Assets.Music.THEME_2},
-				new float[]{1, 1},
-				false);
+    private RenderedTextBlock title;
+    private RenderedTextBlock subtitle;
+    private RenderedTextBlock hint;
 
-		uiCamera.visible = false;
-		
-		int w = Camera.main.width;
-		int h = Camera.main.height;
+    private boolean opened;
+    private boolean animating;
 
-		RectF insets = getCommonInsets();
+    private RectF insets;
+    private float contentLeft;
+    private float contentTop;
+    private float contentWidth;
+    private float contentHeight;
 
-		TitleBackground BG = new TitleBackground( w, h );
-		add( BG );
+    private float closedScale;
+    private float openScale;
 
-		w -= insets.left + insets.right;
-		h -= insets.top + insets.bottom;
+    @Override
+    public void create() {
+        super.create();
 
-		title = BannerSprites.get( landscape() ? BannerSprites.Type.TITLE_LAND : BannerSprites.Type.TITLE_PORT);
-		add( title );
+        Music.INSTANCE.playTracks(
+                new String[]{Assets.Music.THEME_1, Assets.Music.THEME_2},
+                new float[]{1, 1},
+                false);
 
-		float topRegion = Math.max(title.height - 6, h*0.45f);
+        uiCamera.visible = false;
 
-		title.x = insets.left + (w - title.width()) / 2f;
-		title.y = insets.top + 2 + (topRegion - title.height()) / 2f;
+        insets = getCommonInsets();
+        contentLeft = insets.left;
+        contentTop = insets.top;
+        contentWidth = Camera.main.width - insets.left - insets.right;
+        contentHeight = Camera.main.height - insets.top - insets.bottom;
 
-		align(title);
+        createDeskBackground();
+        createLedgerImages();
+        createIntroText();
+        createLedgerUI();
+        createUtilityButtons();
 
-		if (landscape()){
-			leftFB = placeTorch(title.x + 30, title.y + 35);
-			rightFB = placeTorch(title.x + title.width - 30, title.y + 35);
-		} else {
-			leftFB = placeTorch(title.x + 16, title.y + 70);
-			rightFB = placeTorch(title.x + title.width - 16, title.y + 70);
-		}
+        if (returnToOpenLedger) {
+            showOpenImmediately();
+        }
 
-		signs = new Image(BannerSprites.get( landscape() ? BannerSprites.Type.TITLE_GLOW_LAND : BannerSprites.Type.TITLE_GLOW_PORT)){
-			private float time = 0;
-			@Override
-			public void update() {
-				super.update();
-				am = Math.max(0f, (float)Math.sin( time += Game.elapsed ));
-				am = Math.min(am, title.am);
-				if (time >= 1.5f*Math.PI) time = 0;
-			}
-			@Override
-			public void draw() {
-				Blending.setLightMode();
-				super.draw();
-				Blending.setNormalMode();
-			}
-		};
-		signs.x = title.x + (title.width() - signs.width())/2f;
-		signs.y = title.y;
-		add( signs );
+        fadeIn();
+    }
 
-		final Chrome.Type GREY_TR = Chrome.Type.GREY_BUTTON_TR;
-		
-		btnPlay = new StyledButton(GREY_TR, Messages.get(this, "enter")){
-			@Override
-			protected void onClick() {
-				if (GamesInProgress.checkAll().size() == 0){
-					GamesInProgress.selectedClass = null;
-					GamesInProgress.curSlot = 1;
-					ShatteredPixelDungeon.switchScene(HeroSelectScene.class);
-				} else {
-					ShatteredPixelDungeon.switchNoFade( StartScene.class );
-				}
-			}
-			
-			@Override
-			protected boolean onLongClick() {
-				//making it easier to start runs quickly while debugging
-				if (DeviceCompat.isDebug()) {
-					GamesInProgress.selectedClass = null;
-					GamesInProgress.curSlot = 1;
-					ShatteredPixelDungeon.switchScene(HeroSelectScene.class);
-					return true;
-				}
-				return super.onLongClick();
-			}
-		};
-		btnPlay.icon(Icons.get(Icons.ENTER));
-		add(btnPlay);
+    /**
+     * Temporary code-built desk. This gives the existing transparent ledger art a
+     * readable home without reusing SPD's dungeon title background. It will later
+     * be replaced by the dedicated candlelit desk texture.
+     */
+    private void createDeskBackground() {
+        ColorBlock base = new ColorBlock(Camera.main.width, Camera.main.height, DESK_BASE);
+        add(base);
 
-		btnSupport = new SupportButton(GREY_TR, Messages.get(this, "support"));
-		add(btnSupport);
+        int plankHeight = landscape() ? 34 : 42;
+        for (int y = 0; y < Camera.main.height; y += plankHeight) {
+            ColorBlock seam = new ColorBlock(Camera.main.width, 1, DESK_SEAM);
+            seam.y = y;
+            add(seam);
 
-		btnRankings = new StyledButton(GREY_TR,Messages.get(this, "rankings")){
-			@Override
-			protected void onClick() {
-				ShatteredPixelDungeon.switchNoFade( RankingsScene.class );
-			}
-		};
-		btnRankings.icon(Icons.get(Icons.RANKINGS));
-		add(btnRankings);
-		Dungeon.daily = Dungeon.dailyReplay = false;
+            if (y + 4 < Camera.main.height) {
+                ColorBlock grain = new ColorBlock(Camera.main.width, 1, DESK_GRAIN);
+                grain.y = y + 4;
+                grain.alpha(0.28f);
+                add(grain);
+            }
+        }
+    }
 
-		btnJournal = new StyledButton(GREY_TR, Messages.get(this, "journal")){
-			@Override
-			protected void onClick() {
-				ShatteredPixelDungeon.switchNoFade( JournalScene.class );
-			}
-		};
-		btnJournal.icon(Icons.get(Icons.JOURNAL));
-		add(btnJournal);
+    private void createLedgerImages() {
+        ledgerClosed = new Image(LEDGER_CLOSED);
+        closedScale = Math.min(
+                (contentWidth * (landscape() ? 0.48f : 0.56f)) / ledgerClosed.width,
+                (contentHeight * 0.52f) / ledgerClosed.height);
+        closedScale = Math.max(1f, Math.min(closedScale, 2.25f));
+        ledgerClosed.scale.set(closedScale);
+        centerInContent(ledgerClosed, -2f);
+        add(ledgerClosed);
 
-		btnNews = new NewsButton(GREY_TR, Messages.get(this, "news"));
-		btnNews.icon(Icons.get(Icons.NEWS));
-		add(btnNews);
+        ledgerOpen = new Image(LEDGER_OPEN);
+        openScale = Math.min(
+                (contentWidth - 12f) / ledgerOpen.width,
+                (contentHeight - (landscape() ? 30f : 54f)) / ledgerOpen.height);
+        openScale = Math.max(1f, Math.min(openScale, 2.1f));
+        ledgerOpen.scale.set(openScale);
+        centerInContent(ledgerOpen, landscape() ? 1f : 7f);
+        ledgerOpen.visible = false;
+        ledgerOpen.am = 0f;
+        add(ledgerOpen);
 
-		btnChanges = new ChangesButton(GREY_TR, Messages.get(this, "changes"));
-		btnChanges.icon(Icons.get(Icons.CHANGES));
-		add(btnChanges);
+        ledgerHotArea = new PointerArea(ledgerClosed) {
+            @Override
+            protected void onClick(PointerEvent event) {
+                openLedger();
+            }
 
-		btnSettings = new SettingsButton(GREY_TR, Messages.get(this, "settings"));
-		add(btnSettings);
+            @Override
+            protected void onPointerDown(PointerEvent event) {
+                ledgerClosed.brightness(0.86f);
+            }
 
-		btnAbout = new StyledButton(GREY_TR, Messages.get(this, "about")){
-			@Override
-			protected void onClick() {
-				ShatteredPixelDungeon.switchScene( AboutScene.class );
-			}
-		};
-		btnAbout.icon(Icons.get(Icons.SHPX));
-		add(btnAbout);
-		
-		final int BTN_HEIGHT = 20;
-		int GAP = (int)(h - topRegion - (landscape() ? 3 : 4)*BTN_HEIGHT)/3;
-		GAP /= landscape() ? 3 : 5;
-		GAP = Math.max(GAP, 2);
+            @Override
+            protected void onPointerUp(PointerEvent event) {
+                ledgerClosed.resetColor();
+            }
 
-		float buttonAreaWidth = landscape() ? PixelScene.MIN_WIDTH_L-6 : PixelScene.MIN_WIDTH_P-2;
-		float btnAreaLeft = insets.left + (w - buttonAreaWidth) / 2f;
-		if (landscape()) {
-			btnPlay.setRect(btnAreaLeft, insets.top + topRegion+GAP, (buttonAreaWidth/2)-1, BTN_HEIGHT);
-			align(btnPlay);
-			btnSupport.setRect(btnPlay.right()+2, btnPlay.top(), btnPlay.width(), BTN_HEIGHT);
-			btnRankings.setRect(btnPlay.left(), btnPlay.bottom()+ GAP, (float) (Math.floor(buttonAreaWidth/3f)-1), BTN_HEIGHT);
-			btnJournal.setRect(btnRankings.right()+2, btnRankings.top(), btnRankings.width(), BTN_HEIGHT);
-			btnNews.setRect(btnJournal.right()+2, btnJournal.top(), btnRankings.width(), BTN_HEIGHT);
-			btnSettings.setRect(btnRankings.left(), btnRankings.bottom() + GAP, btnRankings.width(), BTN_HEIGHT);
-			btnChanges.setRect(btnSettings.right()+2, btnSettings.top(), btnRankings.width(), BTN_HEIGHT);
-			btnAbout.setRect(btnChanges.right()+2, btnSettings.top(), btnRankings.width(), BTN_HEIGHT);
-		} else {
-			btnPlay.setRect(btnAreaLeft, insets.top + topRegion+GAP, buttonAreaWidth, BTN_HEIGHT);
-			align(btnPlay);
-			btnSupport.setRect(btnPlay.left(), btnPlay.bottom()+ GAP, btnPlay.width(), BTN_HEIGHT);
-			btnRankings.setRect(btnPlay.left(), btnSupport.bottom()+ GAP, (btnPlay.width()/2)-1, BTN_HEIGHT);
-			btnJournal.setRect(btnRankings.right()+2, btnRankings.top(), btnRankings.width(), BTN_HEIGHT);
-			btnNews.setRect(btnRankings.left(), btnRankings.bottom()+ GAP, btnRankings.width(), BTN_HEIGHT);
-			btnChanges.setRect(btnNews.right()+2, btnNews.top(), btnNews.width(), BTN_HEIGHT);
-			btnSettings.setRect(btnNews.left(), btnNews.bottom()+GAP, btnRankings.width(), BTN_HEIGHT);
-			btnAbout.setRect(btnSettings.right()+2, btnSettings.top(), btnSettings.width(), BTN_HEIGHT);
-		}
+            @Override
+            protected void onHoverStart(PointerEvent event) {
+                ledgerClosed.brightness(1.12f);
+            }
 
-		version = new BitmapText( "v" + Game.version, pixelFont);
-		version.measure();
-		version.hardlight( 0x888888 );
-		version.x = insets.left + w - version.width() - (DeviceCompat.isDesktop() ? 4 : 8);
-		version.y = insets.top + h - version.height() - (DeviceCompat.isDesktop() ? 2 : 4);
-		add( version );
+            @Override
+            protected void onHoverEnd(PointerEvent event) {
+                ledgerClosed.resetColor();
+            }
+        };
+        add(ledgerHotArea);
+    }
 
-		btnFade = new IconButton(Icons.CHEVRON.get()){
-			@Override
-			protected void onClick() {
-				enable(false);
-				parent.add(new Tweener(parent, 0.5f) {
-					@Override
-					protected void updateValues(float progress) {
-						if (!btnFade.active) {
-							uiAlpha = 1 - progress;
-							updateFade();
-						}
-					}
-				});
-			}
-		};
-		btnFade.icon().originToCenter();
-		btnFade.icon().angle = 180f;
-		btnFade.setRect(btnAreaLeft + (buttonAreaWidth-16)/2, camera.main.height - 16 - insets.bottom, 16, 16);
-		add(btnFade);
+    private void createIntroText() {
+        title = PixelScene.renderTextBlock("ECHOES OF YENDOR", landscape() ? 14 : 12);
+        title.hardlight(GOLD);
+        title.setPos(contentLeft + (contentWidth - title.width()) / 2f, contentTop + 10f);
+        add(title);
 
-		PointerArea fadeResetter = new PointerArea(0, 0, Camera.main.width, Camera.main.height){
-			@Override
-			public boolean onSignal(PointerEvent event) {
-				if (event != null && event.type == PointerEvent.Type.UP && !btnPlay.active){
-					parent.add(new Tweener(parent, 0.5f) {
-						@Override
-						protected void updateValues(float progress) {
-							uiAlpha = progress;
-							updateFade();
-							if (progress >= 1){
-								btnFade.enable(true);
-							}
-						}
-					});
-				}
-				return false;
-			}
-		};
-		add(fadeResetter);
+        subtitle = PixelScene.renderTextBlock("遗迹下行者登记簿", 8);
+        subtitle.hardlight(CREAM);
+        subtitle.setPos(contentLeft + (contentWidth - subtitle.width()) / 2f, title.bottom() + 3f);
+        add(subtitle);
 
-		if (DeviceCompat.isDesktop()) {
-			btnExit = new ExitButton();
-			btnExit.setPos( w - btnExit.width(), 0 );
-			add( btnExit );
-		}
+        hint = PixelScene.renderTextBlock("点击登记簿", 7);
+        hint.hardlight(CREAM);
+        hint.setPos(
+                contentLeft + (contentWidth - hint.width()) / 2f,
+                Math.min(contentTop + contentHeight - hint.height() - 22f, ledgerClosed.y + ledgerClosed.height() + 10f));
+        add(hint);
+    }
 
-		Badges.loadGlobal();
-		if (Badges.isUnlocked(Badges.Badge.VICTORY) && !SPDSettings.victoryNagged()) {
-			SPDSettings.victoryNagged(true);
-			add(new WndVictoryCongrats());
-		}
+    private void createLedgerUI() {
+        ledgerUI = new Group();
+        ledgerUI.visible = false;
+        ledgerUI.active = false;
+        add(ledgerUI);
 
-		fadeIn();
-	}
+        float s = openScale;
+        float leftX = ledgerOpen.x + 12f * s;
+        float rightX = ledgerOpen.x + 86f * s;
+        float pageTop = ledgerOpen.y + 10f * s;
+        float pageWidth = 62f * s;
 
-	private float uiAlpha;
+        int headingSize = openScale >= 1.65f ? 8 : 7;
+        int bodySize = openScale >= 1.65f ? 7 : 6;
 
-	public void updateFade() {
-		float alpha = GameMath.gate(0f, uiAlpha, 1f);
+        RenderedTextBlock leftHeading = PixelScene.renderTextBlock("遗迹下行者登记簿", headingSize);
+        leftHeading.hardlight(INK);
+        leftHeading.setPos(leftX, pageTop);
+        ledgerUI.add(leftHeading);
 
-		title.am = alpha;
-		leftFB.am = alpha;
-		rightFB.am = alpha;
-		//signs.am = alpha; handles this itself
+        RenderedTextBlock body = PixelScene.renderTextBlock(bodySize);
+        body.text("这里记录着踏入地下遗迹的冒险者们。\n有人再也没有归来，\n有人带着荣耀与故事返回。", Math.max(42, (int) pageWidth));
+        body.hardlight(INK_SOFT);
+        body.setPos(leftX, leftHeading.bottom() + 5f);
+        ledgerUI.add(body);
 
-		btnPlay.enable(alpha != 0);
-		btnSupport.enable(alpha != 0);
-		btnRankings.enable(alpha != 0);
-		btnJournal.enable(alpha != 0);
-		btnNews.enable(alpha != 0);
-		btnChanges.enable(alpha != 0);
-		btnSettings.enable(alpha != 0);
-		btnAbout.enable(alpha != 0);
+        RenderedTextBlock rightHeading = PixelScene.renderTextBlock("登记记录", headingSize);
+        rightHeading.hardlight(INK);
+        rightHeading.setPos(rightX, pageTop);
+        ledgerUI.add(rightHeading);
 
-		btnPlay.alpha(alpha);
-		btnSupport.alpha(alpha);
-		btnRankings.alpha(alpha);
-		btnJournal.alpha(alpha);
-		btnNews.alpha(alpha);
-		btnChanges.alpha(alpha);
-		btnSettings.alpha(alpha);
-		btnAbout.alpha(alpha);
+        ArrayList<GamesInProgress.Info> games = GamesInProgress.checkAll();
 
-		version.alpha(alpha);
-		btnFade.icon().alpha(alpha);
-		if (btnExit != null){
-			btnExit.enable(alpha != 0);
-			btnExit.icon().alpha(alpha);
-		}
+        RenderedTextBlock status = PixelScene.renderTextBlock(bodySize);
+        if (games.isEmpty()) {
+            status.text("尚无下行者记录。", Math.max(42, (int) pageWidth));
+        } else if (games.size() >= GamesInProgress.MAX_SLOTS) {
+            status.text("已有 " + games.size() + " 份记录。\n名册已满，请先整理旧记录。", Math.max(42, (int) pageWidth));
+        } else {
+            status.text("已有 " + games.size() + " 份记录。", Math.max(42, (int) pageWidth));
+        }
+        status.hardlight(INK_SOFT);
+        status.setPos(rightX, rightHeading.bottom() + 5f);
+        ledgerUI.add(status);
 
-	}
+        float buttonWidth = Math.max(48f, pageWidth - 4f);
+        float buttonY = status.bottom() + 5f;
 
-	private Fireball placeTorch(float x, float y ) {
-		Fireball fb = new Fireball();
-		fb.x = x - fb.width()/2f;
-		fb.y = y - fb.height();
+        if (!games.isEmpty()) {
+            LedgerButton records = new LedgerButton("查看 / 整理登记记录") {
+                @Override
+                protected void onClick() {
+                    Sample.INSTANCE.play(Assets.Sounds.CLICK);
+                    returnToOpenLedger = true;
+                    ShatteredPixelDungeon.switchNoFade(StartScene.class);
+                }
+            };
+            records.setRect(rightX, buttonY, buttonWidth, 14f);
+            ledgerUI.add(records);
+            buttonY = records.bottom() + 3f;
+        }
 
-		align(fb);
-		add( fb );
-		return fb;
-	}
+        if (games.size() < GamesInProgress.MAX_SLOTS) {
+            LedgerButton register = new LedgerButton("登记新的下行者") {
+                @Override
+                protected void onClick() {
+                    Sample.INSTANCE.play(Assets.Sounds.CLICK);
+                    returnToOpenLedger = true;
+                    Dungeon.daily = Dungeon.dailyReplay = false;
+                    GamesInProgress.selectedClass = null;
+                    GamesInProgress.curSlot = GamesInProgress.firstEmpty();
+                    ShatteredPixelDungeon.switchScene(HeroSelectScene.class);
+                }
+            };
+            register.setRect(rightX, buttonY, buttonWidth, 14f);
+            ledgerUI.add(register);
+        }
+    }
 
-	private static class NewsButton extends StyledButton {
+    private void createUtilityButtons() {
+        IconButton settings = new IconButton(Icons.get(Icons.PREFS)) {
+            @Override
+            protected void onClick() {
+                Sample.INSTANCE.play(Assets.Sounds.CLICK);
+                TitleScene.this.add(new WndSettings());
+            }
+        };
+        settings.setRect(
+                contentLeft + contentWidth - 38f,
+                contentTop + contentHeight - 18f,
+                16f,
+                16f);
+        add(settings);
 
-		public NewsButton(Chrome.Type type, String label ){
-			super(type, label);
-			if (SPDSettings.news()) News.checkForNews();
-		}
+        IconButton about = new IconButton(Icons.get(Icons.SHPX)) {
+            @Override
+            protected void onClick() {
+                Sample.INSTANCE.play(Assets.Sounds.CLICK);
+                returnToOpenLedger = opened;
+                ShatteredPixelDungeon.switchScene(AboutScene.class);
+            }
+        };
+        about.setRect(
+                contentLeft + contentWidth - 20f,
+                contentTop + contentHeight - 18f,
+                16f,
+                16f);
+        add(about);
 
-		int unreadCount = -1;
+        RenderedTextBlock version = PixelScene.renderTextBlock("v" + Game.version, 6);
+        version.hardlight(0xFFCFB98E);
+        version.setPos(contentLeft + 4f, contentTop + contentHeight - version.height() - 5f);
+        add(version);
 
-		@Override
-		public void update() {
-			super.update();
+        if (DeviceCompat.isDesktop()) {
+            ExitButton exit = new ExitButton();
+            exit.setPos(contentLeft + contentWidth - exit.width(), contentTop);
+            add(exit);
+        }
+    }
 
-			if (unreadCount == -1 && News.articlesAvailable()){
-				long lastRead = SPDSettings.newsLastRead();
-				if (lastRead == 0){
-					if (News.articles().get(0) != null) {
-						SPDSettings.newsLastRead(News.articles().get(0).date.getTime());
-					}
-				} else {
-					unreadCount = News.unreadArticles(new Date(SPDSettings.newsLastRead()));
-					if (unreadCount > 0) {
-						unreadCount = Math.min(unreadCount, 9);
-						text(text() + "(" + unreadCount + ")");
-					}
-				}
-			}
+    private void openLedger() {
+        if (opened || animating) return;
 
-			if (unreadCount > 0){
-				textColor(ColorMath.interpolate( 0xFFFFFF, Window.SHPX_COLOR, 0.5f + (float)Math.sin(Game.timeTotal*5)/2f));
-			}
-		}
+        animating = true;
+        ledgerHotArea.active = false;
+        ledgerOpen.visible = true;
+        ledgerOpen.am = 0f;
+        Sample.INSTANCE.play(Assets.Sounds.READ);
 
-		@Override
-		protected void onClick() {
-			super.onClick();
-			ShatteredPixelDungeon.switchNoFade( NewsScene.class );
-		}
-	}
+        add(new Tweener(this, 0.24f) {
+            @Override
+            protected void updateValues(float progress) {
+                ledgerClosed.am = 1f - progress;
+                ledgerOpen.am = progress;
+                title.alpha(1f - progress);
+                subtitle.alpha(1f - progress);
+                hint.alpha(1f - progress);
+            }
 
-	private static class ChangesButton extends StyledButton {
+            @Override
+            protected void onComplete() {
+                super.onComplete();
+                ledgerClosed.visible = false;
+                ledgerClosed.am = 0f;
+                title.visible = false;
+                subtitle.visible = false;
+                hint.visible = false;
+                ledgerOpen.am = 1f;
+                ledgerUI.visible = true;
+                ledgerUI.active = true;
+                opened = true;
+                animating = false;
+            }
+        });
+    }
 
-		public ChangesButton( Chrome.Type type, String label ){
-			super(type, label);
-			if (SPDSettings.updates()) Updates.checkForUpdate();
-		}
+    private void closeLedger() {
+        if (!opened || animating) return;
 
-		boolean updateShown = false;
+        animating = true;
+        returnToOpenLedger = false;
+        ledgerUI.visible = false;
+        ledgerUI.active = false;
 
-		@Override
-		public void update() {
-			super.update();
+        ledgerClosed.visible = true;
+        ledgerClosed.am = 0f;
+        title.visible = true;
+        subtitle.visible = true;
+        hint.visible = true;
+        title.alpha(0f);
+        subtitle.alpha(0f);
+        hint.alpha(0f);
+        Sample.INSTANCE.play(Assets.Sounds.READ);
 
-			if (!updateShown && Updates.updateAvailable()){
-				updateShown = true;
-				text(Messages.get(TitleScene.class, "update"));
-			}
+        add(new Tweener(this, 0.22f) {
+            @Override
+            protected void updateValues(float progress) {
+                ledgerOpen.am = 1f - progress;
+                ledgerClosed.am = progress;
+                title.alpha(progress);
+                subtitle.alpha(progress);
+                hint.alpha(progress);
+            }
 
-			if (updateShown){
-				textColor(ColorMath.interpolate( 0xFFFFFF, Window.SHPX_COLOR, 0.5f + (float)Math.sin(Game.timeTotal*5)/2f));
-			}
-		}
+            @Override
+            protected void onComplete() {
+                super.onComplete();
+                ledgerOpen.visible = false;
+                ledgerOpen.am = 0f;
+                ledgerClosed.am = 1f;
+                ledgerHotArea.active = true;
+                opened = false;
+                animating = false;
+            }
+        });
+    }
 
-		@Override
-		protected void onClick() {
-			if (Updates.updateAvailable()){
-				AvailableUpdateData update = Updates.updateData();
+    private void showOpenImmediately() {
+        opened = true;
+        animating = false;
 
-				ShatteredPixelDungeon.scene().addToFront( new WndOptions(
-						Icons.get(Icons.CHANGES),
-						update.versionName == null ? Messages.get(this,"title") : Messages.get(this,"versioned_title", update.versionName),
-						update.desc == null ? Messages.get(this,"desc") : update.desc,
-						Messages.get(this,"update"),
-						Messages.get(this,"changes")
-				) {
-					@Override
-					protected void onSelect(int index) {
-						if (index == 0) {
-							Updates.launchUpdate(Updates.updateData());
-						} else if (index == 1){
-							ChangesScene.changesSelected = 0;
-							ShatteredPixelDungeon.switchNoFade( ChangesScene.class );
-						}
-					}
-				});
+        ledgerClosed.visible = false;
+        ledgerClosed.am = 0f;
+        ledgerHotArea.active = false;
 
-			} else {
-				ChangesScene.changesSelected = 0;
-				ShatteredPixelDungeon.switchNoFade( ChangesScene.class );
-			}
-		}
+        ledgerOpen.visible = true;
+        ledgerOpen.am = 1f;
 
-	}
+        title.visible = false;
+        subtitle.visible = false;
+        hint.visible = false;
 
-	private static class SettingsButton extends StyledButton {
+        ledgerUI.visible = true;
+        ledgerUI.active = true;
+    }
 
-		public SettingsButton( Chrome.Type type, String label ){
-			super(type, label);
-			if (Messages.lang().status() == Languages.Status.X_UNFINISH){
-				icon(Icons.get(Icons.LANGS));
-				icon.hardlight(1.5f, 0, 0);
-			} else {
-				icon(Icons.get(Icons.PREFS));
-			}
-		}
+    private void centerInContent(Image image, float yOffset) {
+        image.x = contentLeft + (contentWidth - image.width()) / 2f;
+        image.y = contentTop + (contentHeight - image.height()) / 2f + yOffset;
+        align(image);
+    }
 
-		@Override
-		public void update() {
-			super.update();
+    @Override
+    protected void onBackPressed() {
+        if (animating) return;
+        if (opened) {
+            closeLedger();
+        } else {
+            super.onBackPressed();
+        }
+    }
 
-			if (Messages.lang().status() == Languages.Status.X_UNFINISH){
-				textColor(ColorMath.interpolate( 0xFFFFFF, CharSprite.NEGATIVE, 0.5f + (float)Math.sin(Game.timeTotal*5)/2f));
-			}
-		}
+    /**
+     * A parchment-native action: no chrome panel, just ink text and a red rule.
+     * This avoids dropping SPD's grey menu buttons on top of the ledger art.
+     */
+    private static class LedgerButton extends Button {
 
-		@Override
-		protected void onClick() {
-			if (Messages.lang().status() == Languages.Status.X_UNFINISH){
-				WndSettings.last_index = 5;
-			}
-			ShatteredPixelDungeon.scene().add(new WndSettings());
-		}
-	}
+        private final RenderedTextBlock label;
+        private final ColorBlock underline;
 
-	private static class SupportButton extends StyledButton{
+        LedgerButton(String text) {
+            super();
+            label = PixelScene.renderTextBlock(text, 7);
+            label.hardlight(INK);
+            add(label);
 
-		public SupportButton( Chrome.Type type, String label ){
-			super(type, label);
-			icon(Icons.get(Icons.GOLD));
-			textColor(Window.TITLE_COLOR);
-		}
+            underline = new ColorBlock(1f, 1f, STAMP_RED);
+            underline.alpha(0.38f);
+            add(underline);
+        }
 
-		@Override
-		protected void onClick() {
-			ShatteredPixelDungeon.switchNoFade(SupporterScene.class);
-		}
-	}
+        @Override
+        protected void onPointerDown() {
+            label.hardlight(STAMP_RED);
+            underline.alpha(0.95f);
+        }
+
+        @Override
+        protected void onPointerUp() {
+            label.hardlight(INK);
+            underline.alpha(0.38f);
+        }
+
+        @Override
+        protected void layout() {
+            super.layout();
+            if (label == null || underline == null) return;
+
+            label.setPos(
+                    x + (width - label.width()) / 2f,
+                    y + (height - label.height()) / 2f - 1f);
+
+            float lineWidth = Math.min(width - 6f, Math.max(24f, label.width() + 4f));
+            underline.size(lineWidth, 1f);
+            underline.x = x + (width - lineWidth) / 2f;
+            underline.y = Math.min(y + height - 2f, label.bottom() + 1f);
+        }
+    }
 }
