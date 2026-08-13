@@ -14,14 +14,14 @@ allprojects {
         appName = 'Echoes of Yendor'
         appPackageName = 'com.yul527496.echoesofyendor'
 
-        appVersionCode = 896
-        appVersionName = '0.0.4-dev'
+        appVersionCode = 897
+        appVersionName = '0.0.5-dev'
 
         appJavaCompatibility = JavaVersion.VERSION_11
 
         appAndroidCompileSDK = 36   //Android 15
         appAndroidMinSDK = 21       //Android 5.0
-        appAndroidTargetSDK = 36    //Android 15
+        appAndroidTargetSDK = 36   //Android 15
 
         gdxVersion = '1.14.0'
         gdxControllersVersion = '2.2.4'
