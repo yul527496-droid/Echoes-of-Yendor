@@ -78,11 +78,11 @@ public class RoadDonkey extends NPC {
 
     @Override
     public String name() {
-        return "farmer's donkey";
+        return "农夫的驴";
     }
 
     @Override
     public String description() {
-        return "A patient little pack animal harnessed to the farmer's road cart. Its current sprite is a prototype placeholder.";
+        return "一头很有耐心的小驴，身后拖着农夫那辆旧木车。";
     }
 }
