@@ -34,6 +34,10 @@ public final class SequelGame {
         SPDSettings.challenges(0);
         SPDSettings.customSeed("");
 
+        // The sequel starts with a veteran hero. The original first-run tutorial
+        // deliberately disables the status pane, toolbar and desktop inventory.
+        SPDSettings.intro(false);
+
         GamesInProgress.curSlot = GamesInProgress.firstEmpty();
         Dungeon.initSeed();
         Dungeon.init();
