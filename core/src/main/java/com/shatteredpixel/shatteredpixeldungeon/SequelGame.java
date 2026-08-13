@@ -29,21 +29,32 @@ public final class SequelGame {
     private SequelGame() {
     }
 
+    /** Compatibility entry used by older prototype screens. */
     public static void start() {
+        ReturningHeroProfile profile = new ReturningHeroProfile();
+        if (GamesInProgress.selectedClass != null) profile.heroClass = GamesInProgress.selectedClass;
+        start(profile);
+    }
+
+    public static void start(ReturningHeroProfile profile) {
+        if (profile == null) profile = new ReturningHeroProfile();
+
         Dungeon.daily = false;
         Dungeon.dailyReplay = false;
         SPDSettings.challenges(0);
         SPDSettings.customSeed("");
-
-        // The sequel starts with a veteran hero. The original first-run tutorial
-        // deliberately disables the status pane, toolbar and desktop inventory.
         SPDSettings.intro(false);
 
         GamesInProgress.curSlot = GamesInProgress.firstEmpty();
+        if (GamesInProgress.curSlot < 0) return;
+
+        GamesInProgress.selectedClass = profile.heroClass;
+        profile.saveToSlot(GamesInProgress.curSlot);
+
         Dungeon.initSeed();
         Dungeon.init();
 
-        ReturningHero.apply(Dungeon.hero);
+        ReturningHero.apply(Dungeon.hero, profile);
         SequelState.get();
         new Amulet().collect();
         Statistics.amuletObtained = true;
