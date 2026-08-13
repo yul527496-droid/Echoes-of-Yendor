@@ -1,1 +1,0 @@
-The previous surface terrain PNG was present in the build but had a bad PNG IDAT checksum; replace it with a verified re-encoded PNG and add CI validation.
