@@ -14,6 +14,7 @@
 package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.HeroSelectScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.LedgerIntroScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.TitleScene;
@@ -87,7 +88,7 @@ public class ShatteredPixelDungeon extends Game {
 	
 	@Override
 	protected void switchScene() {
-		if (requestedScene instanceof WelcomeScene || requestedScene instanceof TitleScene) {
+		if (requestedScene instanceof WelcomeScene || requestedScene instanceof TitleScene || requestedScene instanceof HeroSelectScene) {
 			requestedScene = new LedgerIntroScene();
 			sceneClass = LedgerIntroScene.class;
 		}
