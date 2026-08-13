@@ -16,13 +16,19 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SequelGame;
+import com.shatteredpixel.shatteredpixeldungeon.SequelState;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RoadWolf;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.RoadFarmer;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.YendorBird;
+import com.shatteredpixel.shatteredpixeldungeon.items.RoadsideNote;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.watabou.noosa.audio.Music;
 
 /** First outdoor area immediately beyond the dungeon exit. */
@@ -74,6 +80,7 @@ public class SurfaceEntranceLevel extends Level {
         paintRoad();
         paintStream();
         paintForest();
+        paintCamp();
         paintDungeonMouth();
         paintDetails();
 
@@ -161,6 +168,18 @@ public class SurfaceEntranceLevel extends Level {
         map[cell(35, 12)] = Terrain.WALL;
     }
 
+    private void paintCamp() {
+        // A small optional clearing off the west side of the road.
+        for (int y = 10; y <= 13; y++) {
+            for (int x = 7; x <= 11; x++) {
+                if ((x + y) % 4 != 0) map[cell(x, y)] = Terrain.EMPTY_SP;
+            }
+        }
+        map[cell(8, 11)] = Terrain.EMBERS;
+        map[cell(7, 13)] = Terrain.HIGH_GRASS;
+        map[cell(11, 10)] = Terrain.HIGH_GRASS;
+    }
+
     private void paintDungeonMouth() {
         // Mossy flagstones make the transition from the old road to the buried stair.
         for (int y = 27; y <= 29; y++) {
@@ -204,8 +223,8 @@ public class SurfaceEntranceLevel extends Level {
             return true;
         }
         if (transition.type == LevelTransition.Type.REGULAR_EXIT) {
-            GLog.p("The old road continues toward Morningcreek. This route opens in the next prototype step.");
-            return false;
+            SequelGame.enterMorningcreekOutskirts();
+            return true;
         }
         return super.activateTransition(hero, transition);
     }
@@ -217,10 +236,59 @@ public class SurfaceEntranceLevel extends Level {
 
     @Override
     protected void createMobs() {
+        SequelState story = SequelState.get();
+        if (story == null) return;
+
+        if (!story.farmerMet) {
+            RoadFarmer farmer = new RoadFarmer();
+            farmer.pos = cell(26, 5);
+            mobs.add(farmer);
+        } else if (!story.wolvesDefeated) {
+            addRoadWolvesToLevel(this);
+        }
+
+        if (!story.birdGone) {
+            YendorBird bird = new YendorBird();
+            bird.pos = cell(29, 9);
+            mobs.add(bird);
+        }
     }
 
     @Override
     protected void createItems() {
+        SequelState story = SequelState.get();
+        if (story != null && !story.campRead) {
+            drop(new RoadsideNote(), cell(9, 12));
+        }
+    }
+
+    /** Called by the farmer when he clears the road so the first wildlife encounter can begin. */
+    public static void releaseRoadWolves() {
+        if (!(Dungeon.level instanceof SurfaceEntranceLevel)) return;
+
+        SequelState story = SequelState.get();
+        if (story == null || story.wolvesDefeated) return;
+
+        for (Mob mob : Dungeon.level.mobs) {
+            if (mob instanceof RoadWolf) return;
+        }
+
+        SurfaceEntranceLevel level = (SurfaceEntranceLevel) Dungeon.level;
+        RoadWolf first = roadWolf(level.cell(23, 12));
+        RoadWolf second = roadWolf(level.cell(26, 11));
+        GameScene.add(first);
+        GameScene.add(second, 0.5f);
+    }
+
+    private static void addRoadWolvesToLevel(SurfaceEntranceLevel level) {
+        level.mobs.add(roadWolf(level.cell(23, 12)));
+        level.mobs.add(roadWolf(level.cell(26, 11)));
+    }
+
+    private static RoadWolf roadWolf(int pos) {
+        RoadWolf wolf = new RoadWolf();
+        wolf.pos = pos;
+        return wolf;
     }
 
     @Override
