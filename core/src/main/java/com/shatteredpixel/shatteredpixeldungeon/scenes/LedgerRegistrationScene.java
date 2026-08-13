@@ -11,7 +11,7 @@ public class LedgerRegistrationScene extends PixelScene {
             @Override public void onSelect(boolean ok,String value){
                 if(ok&&value!=null&&!value.trim().isEmpty()){
                     LedgerFlow.draft().name=value.trim();
-                    Game.switchScene(LedgerSealScene.class);
+                    Game.switchScene(LedgerWeaponScene.class);
                 }else Game.switchScene(LedgerHeroScene.class);
             }
         });
