@@ -18,11 +18,13 @@ package com.shatteredpixel.shatteredpixeldungeon;
 import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
 import com.shatteredpixel.shatteredpixeldungeon.levels.FinalStairLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.SurfaceEntranceLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
 import com.watabou.noosa.Game;
 
-/** Starts the sequel without coupling the prototype to the original dungeon flow. */
+/** Small entry/switching helper for the sequel prototype. */
 public final class SequelGame {
 
     private SequelGame() {
@@ -38,19 +40,42 @@ public final class SequelGame {
         Dungeon.initSeed();
         Dungeon.init();
 
+        ReturningHero.apply(Dungeon.hero);
         new Amulet().collect();
         Statistics.amuletObtained = true;
 
         Dungeon.depth = 0;
         Dungeon.branch = 0;
 
-        // GameScene expects a non-null transition mode even when we enter a level directly.
+        enter(new FinalStairLevel(), -1);
+    }
+
+    public static void enterSurfaceEntrance() {
+        enter(new SurfaceEntranceLevel(), -1);
+    }
+
+    public static void enterFinalStairFromSurface() {
+        FinalStairLevel level = new FinalStairLevel();
+        level.create();
+        LevelTransition surface = level.getTransition(LevelTransition.Type.SURFACE);
+        enterCreated(level, surface == null ? -1 : surface.cell());
+    }
+
+    private static void enter(Level level, int pos) {
+        level.create();
+        enterCreated(level, pos);
+    }
+
+    private static void enterCreated(Level level, int pos) {
+        if (Dungeon.level != null) {
+            Level.beforeTransition();
+        }
+
+        // Direct prototype map switches do not represent descending/ascending a dungeon floor.
         InterlevelScene.mode = InterlevelScene.Mode.NONE;
         InterlevelScene.curTransition = null;
 
-        Level level = new FinalStairLevel();
-        level.create();
-        Dungeon.switchLevel(level, -1);
+        Dungeon.switchLevel(level, pos);
         Game.switchScene(GameScene.class);
     }
 }
