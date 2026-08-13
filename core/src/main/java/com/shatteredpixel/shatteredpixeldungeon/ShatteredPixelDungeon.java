@@ -14,7 +14,7 @@
 package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.LedgerScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.LedgerIntroScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.TitleScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.WelcomeScene;
@@ -34,8 +34,7 @@ public class ShatteredPixelDungeon extends Game {
 	public static final int v3_3_0 = 883;
 	
 	public ShatteredPixelDungeon( PlatformSupport platform ) {
-		// Echoes of Yendor now has its own in-world front door instead of Shattered's title flow.
-		super( sceneClass == null ? LedgerScene.class : sceneClass, platform );
+		super( sceneClass == null ? LedgerIntroScene.class : sceneClass, platform );
 
 		com.watabou.utils.Bundle.addAlias(
 				com.shatteredpixel.shatteredpixeldungeon.items.keys.WornKey.class,
@@ -48,12 +47,10 @@ public class ShatteredPixelDungeon extends Game {
 
 		updateSystemUI();
 		SPDAction.loadBindings();
-		
 		Music.INSTANCE.enable( SPDSettings.music() );
 		Music.INSTANCE.volume( SPDSettings.musicVol()*SPDSettings.musicVol()/100f );
 		Sample.INSTANCE.enable( SPDSettings.soundFx() );
 		Sample.INSTANCE.volume( SPDSettings.SFXVol()*SPDSettings.SFXVol()/100f );
-
 		Sample.INSTANCE.load( Assets.Sounds.all );
 	}
 
@@ -62,8 +59,7 @@ public class ShatteredPixelDungeon extends Game {
 		if (!DeviceCompat.isiOS()) {
 			super.finish();
 		} else {
-			// iOS cannot quit to desktop, so close back to the ledger instead.
-			switchScene(LedgerScene.class);
+			switchScene(LedgerIntroScene.class);
 		}
 	}
 
@@ -91,12 +87,9 @@ public class ShatteredPixelDungeon extends Game {
 	
 	@Override
 	protected void switchScene() {
-		// Some inherited Shattered flows still request WelcomeScene/TitleScene directly.
-		// Treat both as legacy aliases for Echoes' ledger so no exit/save/death path can
-		// expose the original front end again, regardless of which class made the request.
 		if (requestedScene instanceof WelcomeScene || requestedScene instanceof TitleScene) {
-			requestedScene = new LedgerScene();
-			sceneClass = LedgerScene.class;
+			requestedScene = new LedgerIntroScene();
+			sceneClass = LedgerIntroScene.class;
 		}
 
 		super.switchScene();
@@ -107,16 +100,11 @@ public class ShatteredPixelDungeon extends Game {
 	
 	@Override
 	public void resize( int width, int height ) {
-		if (width == 0 || height == 0){
-			return;
-		}
-
-		if (scene instanceof PixelScene &&
-				(height != Game.height || width != Game.width)) {
+		if (width == 0 || height == 0) return;
+		if (scene instanceof PixelScene && (height != Game.height || width != Game.width)) {
 			PixelScene.noFade = true;
 			((PixelScene) scene).saveWindows();
 		}
-
 		super.resize( width, height );
 		updateDisplaySize();
 	}
