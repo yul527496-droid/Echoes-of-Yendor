@@ -64,7 +64,6 @@ public class SurfaceEntranceLevel extends Level {
 
     @Override
     public void playLevelMusic() {
-        // Temporary music only; the surface will get its own theme later.
         Music.INSTANCE.play(Assets.Music.THEME_1, true);
     }
 
@@ -99,10 +98,6 @@ public class SurfaceEntranceLevel extends Level {
     @Override
     public void buildFlagMaps() {
         super.buildFlagMaps();
-
-        // Dungeon water is normally shallow and walkable. This outdoor stream is a
-        // deliberate route barrier: characters must use the bridge, while sight and
-        // projectiles can still cross the water normally.
         for (int i = 0; i < length(); i++) {
             if (map[i] == Terrain.WATER) {
                 passable[i] = false;
@@ -141,7 +136,6 @@ public class SurfaceEntranceLevel extends Level {
             }
         }
 
-        // A short three-tile-wide timber bridge crosses the stream.
         for (int y = 14; y <= 19; y++) {
             for (int x = 20; x <= 22; x++) {
                 map[cell(x, y)] = Terrain.EMPTY_DECO;
@@ -170,7 +164,6 @@ public class SurfaceEntranceLevel extends Level {
     }
 
     private void paintCamp() {
-        // A small optional clearing off the west side of the road.
         for (int y = 10; y <= 13; y++) {
             for (int x = 7; x <= 11; x++) {
                 if ((x + y) % 4 != 0) map[cell(x, y)] = Terrain.EMPTY_SP;
@@ -182,7 +175,6 @@ public class SurfaceEntranceLevel extends Level {
     }
 
     private void paintDungeonMouth() {
-        // Mossy flagstones make the transition from the old road to the buried stair.
         for (int y = 27; y <= 29; y++) {
             for (int x = 16; x <= 20; x++) {
                 if (!(y == 27 && (x == 16 || x == 20))) {
@@ -190,8 +182,6 @@ public class SurfaceEntranceLevel extends Level {
                 }
             }
         }
-
-        // Break the apron edges so the ruin feels swallowed by the hillside rather than rectangular.
         map[cell(16, 28)] = Terrain.GRASS;
         map[cell(20, 29)] = Terrain.GRASS;
     }
@@ -206,7 +196,6 @@ public class SurfaceEntranceLevel extends Level {
             map[cell(p[0], p[1])] = Terrain.HIGH_GRASS;
         }
 
-        // A few worn patches keep the road and clearing from reading as a tiled rectangle.
         map[cell(17, 25)] = Terrain.EMPTY;
         map[cell(20, 24)] = Terrain.EMPTY;
         map[cell(23, 10)] = Terrain.EMPTY;
@@ -241,15 +230,20 @@ public class SurfaceEntranceLevel extends Level {
         if (story == null) return;
 
         if (!story.farmerMet) {
+            // Both actors begin beyond the northern fog and only start travelling once
+            // the player has left the dungeon apron. They should enter vision by walking.
             RoadFarmer farmer = new RoadFarmer();
-            farmer.pos = cell(26, 5);
+            farmer.pos = cell(26, 2);
             mobs.add(farmer);
 
             RoadDonkey donkey = new RoadDonkey();
-            donkey.pos = cell(27, 5);
+            donkey.pos = cell(27, 2);
             mobs.add(donkey);
         } else if (!story.wolvesDefeated) {
-            addRoadWolvesToLevel(this);
+            // A recreated map still needs the encounter. These southern staging cells are
+            // deliberately far from a hero returning from Morningcreek to avoid pop-in.
+            mobs.add(roadWolf(cell(12, 26)));
+            mobs.add(roadWolf(cell(27, 26)));
         }
 
         if (!story.birdGone) {
@@ -267,7 +261,7 @@ public class SurfaceEntranceLevel extends Level {
         }
     }
 
-    /** Called by the farmer when he clears the road so the first wildlife encounter can begin. */
+    /** Called by the farmer after he has left. New wildlife must never pop into the hero's FOV. */
     public static void releaseRoadWolves() {
         if (!(Dungeon.level instanceof SurfaceEntranceLevel)) return;
 
@@ -279,15 +273,14 @@ public class SurfaceEntranceLevel extends Level {
         }
 
         SurfaceEntranceLevel level = (SurfaceEntranceLevel) Dungeon.level;
-        RoadWolf first = roadWolf(level.cell(23, 12));
-        RoadWolf second = roadWolf(level.cell(26, 11));
+        RoadWolf first = new RoadWolf();
+        first.pos = level.randomRespawnCell(first);
+        if (first.pos == -1) return;
         GameScene.add(first);
-        GameScene.add(second, 0.5f);
-    }
 
-    private static void addRoadWolvesToLevel(SurfaceEntranceLevel level) {
-        level.mobs.add(roadWolf(level.cell(23, 12)));
-        level.mobs.add(roadWolf(level.cell(26, 11)));
+        RoadWolf second = new RoadWolf();
+        second.pos = level.randomRespawnCell(second);
+        if (second.pos != -1) GameScene.add(second, 0.5f);
     }
 
     private static RoadWolf roadWolf(int pos) {
@@ -303,6 +296,16 @@ public class SurfaceEntranceLevel extends Level {
 
     @Override
     public int randomRespawnCell(Char ch) {
-        return cell(ENTRANCE_X, ENTRANCE_Y);
+        int cell;
+        int tries = 0;
+        do {
+            cell = com.watabou.utils.Random.Int(length());
+            tries++;
+        } while (tries < 80 && (
+                (Dungeon.level == this && heroFOV[cell])
+                        || !passable[cell]
+                        || Actor.findChar(cell) != null
+                        || distance(cell, Dungeon.hero.pos) < 10));
+        return tries >= 80 ? -1 : cell;
     }
 }
