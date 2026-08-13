@@ -28,6 +28,8 @@ public class RoadFarmer extends NPC {
 
     @Override
     protected boolean act() {
+        ensurePathfindingFov();
+
         SequelState story = SequelState.get();
         if (story == null) {
             spend(TICK);
@@ -69,6 +71,18 @@ public class RoadFarmer extends NPC {
             spend(TICK);
         }
         return true;
+    }
+
+    /**
+     * Mob.getCloser() uses this character's FOV as the visibility mask for pathfinding.
+     * Normal mobs get that array from Char.act(), but this scripted NPC owns its entire
+     * act loop and therefore must keep the FOV initialized itself before moving.
+     */
+    private void ensurePathfindingFov() {
+        if (fieldOfView == null || fieldOfView.length != Dungeon.level.length()) {
+            fieldOfView = new boolean[Dungeon.level.length()];
+        }
+        Dungeon.level.updateFieldOfView(this, fieldOfView);
     }
 
     @Override
