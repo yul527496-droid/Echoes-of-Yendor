@@ -11,9 +11,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Music;
 
-/**
- * First look at settled surface land. The town proper is intentionally left for 0.0.6.
- */
+/** First look at settled surface land; the town proper is reserved for the next milestone. */
 public class MorningcreekOutskirtsLevel extends Level {
 
     private static final int WIDTH = 34;
@@ -80,7 +78,6 @@ public class MorningcreekOutskirtsLevel extends Level {
             if (y % 4 != 0) map[cell(center - 1, y)] = Terrain.EMPTY;
         }
 
-        // A little widened verge suggests the road is nearing inhabited land.
         for (int x = 13; x <= 19; x++) {
             map[cell(x, 8)] = Terrain.EMPTY_SP;
             map[cell(x, 9)] = Terrain.EMPTY_SP;
@@ -88,23 +85,16 @@ public class MorningcreekOutskirtsLevel extends Level {
     }
 
     private void paintFields() {
-        // Simple furrow-like strips made from the existing outdoor palette.
         for (int y = 5; y <= 20; y += 3) {
-            for (int x = 3; x <= 11; x++) {
-                map[cell(x, y)] = Terrain.HIGH_GRASS;
-            }
-            for (int x = 22; x <= 30; x++) {
-                map[cell(x, y + 1)] = Terrain.HIGH_GRASS;
-            }
+            for (int x = 3; x <= 11; x++) map[cell(x, y)] = Terrain.HIGH_GRASS;
+            for (int x = 22; x <= 30; x++) map[cell(x, y + 1)] = Terrain.HIGH_GRASS;
         }
 
-        // Small work clearings among the fields.
         for (int x = 5; x <= 9; x++) map[cell(x, 13)] = Terrain.EMPTY_SP;
         for (int x = 24; x <= 28; x++) map[cell(x, 15)] = Terrain.EMPTY_SP;
     }
 
     private void paintHedges() {
-        // Darker solid edges read as hedges/woodland while also keeping the prototype compact.
         for (int y = 3; y <= 22; y++) {
             if (y == 10 || y == 18) continue;
             map[cell(2, y)] = Terrain.WALL;
@@ -126,7 +116,7 @@ public class MorningcreekOutskirtsLevel extends Level {
             return true;
         }
         if (transition.type == LevelTransition.Type.REGULAR_EXIT) {
-            GLog.p("Morningcreek lies just beyond the fields. The town proper opens in 0.0.6.");
+            GLog.p("晨溪镇已经近在眼前。前方的城镇区域将在下一阶段开放。");
             return false;
         }
         return super.activateTransition(hero, transition);
