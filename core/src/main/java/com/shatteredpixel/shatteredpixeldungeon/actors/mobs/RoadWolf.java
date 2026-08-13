@@ -7,10 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RatSprite;
 import com.watabou.utils.Random;
 
-/**
- * Low-threat surface wildlife used to establish that the returning hero is still powerful.
- * RatSprite is a temporary prototype sprite until the surface creature sheet is drawn.
- */
+/** Low-threat surface wildlife. RatSprite is temporary prototype art. */
 public class RoadWolf extends Mob {
 
     {
@@ -59,11 +56,11 @@ public class RoadWolf extends Mob {
 
     @Override
     public String name() {
-        return "grey wolf";
+        return "灰狼";
     }
 
     @Override
     public String description() {
-        return "A lean roadside wolf. Dangerous to an unprepared traveller, but hardly a match for someone who returned from the dungeon alive.";
+        return "一只沿旧王道觅食的瘦狼。对毫无准备的旅人很危险，但对一个从地下城活着回来的人来说，算不上真正的威胁。";
     }
 }
