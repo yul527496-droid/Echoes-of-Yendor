@@ -16,13 +16,12 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.SequelGame;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.SurfaceScene;
-import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Music;
 
 /** First playable map in Echoes of Yendor: the last climb out of the dungeon. */
@@ -99,7 +98,7 @@ public class FinalStairLevel extends Level {
     @Override
     public boolean activateTransition(Hero hero, LevelTransition transition) {
         if (transition.type == LevelTransition.Type.SURFACE) {
-            Game.switchScene(SurfaceScene.class);
+            SequelGame.enterSurfaceEntrance();
             return true;
         }
         // The sequel begins after the old adventure; there is no need to walk back down.
