@@ -21,6 +21,8 @@ public class RoadDonkey extends NPC {
 
     @Override
     protected boolean act() {
+        ensurePathfindingFov();
+
         RoadFarmer farmer = null;
         for (Mob mob : Dungeon.level.mobs) {
             if (mob instanceof RoadFarmer) {
@@ -54,6 +56,14 @@ public class RoadDonkey extends NPC {
         if (getCloser(leave)) spend(1f / speed());
         else spend(TICK);
         return true;
+    }
+
+    /** Scripted movement still relies on Mob.getCloser(), which requires a valid FOV mask. */
+    private void ensurePathfindingFov() {
+        if (fieldOfView == null || fieldOfView.length != Dungeon.level.length()) {
+            fieldOfView = new boolean[Dungeon.level.length()];
+        }
+        Dungeon.level.updateFieldOfView(this, fieldOfView);
     }
 
     @Override
