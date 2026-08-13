@@ -57,11 +57,11 @@ public class YendorBird extends NPC {
 
     @Override
     public String name() {
-        return "small roadside bird";
+        return "路边的小鸟";
     }
 
     @Override
     public String description() {
-        return "A perfectly ordinary-looking bird. It seems much more interested in your pack than in you.";
+        return "看起来再普通不过。可它似乎对你的背包，比对你本人更感兴趣。";
     }
 }
