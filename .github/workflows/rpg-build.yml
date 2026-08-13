@@ -35,3 +35,4 @@ jobs:
           name: Echoes-of-Yendor-Windows
           path: desktop/build/jpackage/**
           if-no-files-found: error
+          retention-days: 14
