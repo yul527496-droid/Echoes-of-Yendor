@@ -42,7 +42,7 @@ public class LedgerIntroScene extends PixelScene {
         Sample.INSTANCE.play(Assets.Sounds.OPEN, 0.5f, 0.9f);
         add(new Tweener(this, 0.55f){
             @Override protected void updateValues(float p){ cover.alpha(1f-p); }
-            @Override protected void onComplete(){ Game.switchScene(LedgerScene.class); }
+            @Override protected void onComplete(){ Game.switchScene(LedgerHeroScene.class); }
         });
     }
 }
