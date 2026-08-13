@@ -71,28 +71,28 @@ public class ReturningHeroProfile {
     }
 
     public void saveToSlot(int slot) {
-        SPDSettings.ledgerName(slot, name);
-        SPDSettings.ledgerClass(slot, heroClass.ordinal());
-        SPDSettings.ledgerSubclass(slot, subclassIndex);
-        SPDSettings.ledgerAbility(slot, abilityIndex);
-        SPDSettings.ledgerWeapon(slot, weaponIndex);
-        SPDSettings.ledgerGrowth(slot, growthPreset.ordinal());
+        LedgerSettings.name(slot, name);
+        LedgerSettings.heroClass(slot, heroClass.ordinal());
+        LedgerSettings.subclass(slot, subclassIndex);
+        LedgerSettings.ability(slot, abilityIndex);
+        LedgerSettings.weapon(slot, weaponIndex);
+        LedgerSettings.growth(slot, growthPreset.ordinal());
     }
 
     public static ReturningHeroProfile loadFromSlot(int slot) {
         ReturningHeroProfile profile = new ReturningHeroProfile();
-        profile.name = SPDSettings.ledgerName(slot);
+        profile.name = LedgerSettings.name(slot);
 
         HeroClass[] classes = HeroClass.values();
-        int classIndex = SPDSettings.ledgerClass(slot);
+        int classIndex = LedgerSettings.heroClass(slot);
         profile.heroClass = classes[Math.max(0, Math.min(classIndex, classes.length - 1))];
 
-        profile.subclassIndex = SPDSettings.ledgerSubclass(slot);
-        profile.abilityIndex = SPDSettings.ledgerAbility(slot);
-        profile.weaponIndex = SPDSettings.ledgerWeapon(slot);
+        profile.subclassIndex = LedgerSettings.subclass(slot);
+        profile.abilityIndex = LedgerSettings.ability(slot);
+        profile.weaponIndex = LedgerSettings.weapon(slot);
 
         GrowthPreset[] presets = GrowthPreset.values();
-        int growthIndex = SPDSettings.ledgerGrowth(slot);
+        int growthIndex = LedgerSettings.growth(slot);
         profile.growthPreset = presets[Math.max(0, Math.min(growthIndex, presets.length - 1))];
         return profile;
     }
