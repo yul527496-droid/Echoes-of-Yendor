@@ -4,10 +4,12 @@ on:
   push:
     branches:
       - "rpg-development"
-      - "ui-*"
-  pull_request:
-    branches: [ "rpg-development" ]
+      - "build-test"
   workflow_dispatch:
+
+concurrency:
+  group: echoes-windows-exe-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   windows-native-build:
@@ -47,7 +49,8 @@ jobs:
         shell: pwsh
         run: |
           $launchers = Get-ChildItem -Path "desktop/build/jpackage" -Recurse -Filter "*.exe" |
-            Where-Object { $_.FullName -notmatch '[\\/]runtime[\\/]' }
+            Where-Object { $_.FullName -notmatch '[\\/]runtime[\\/]'
+            }
 
           if (-not $launchers) {
             Write-Error "jpackage completed but no application .exe launcher was found."
