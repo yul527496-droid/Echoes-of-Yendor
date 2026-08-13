@@ -6,7 +6,6 @@ import com.shatteredpixel.shatteredpixeldungeon.SequelState;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.BatSprite;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 /** First deliberately unexplained reaction to the Amulet on the surface. */
 public class YendorBird extends NPC {
@@ -32,7 +31,7 @@ public class YendorBird extends NPC {
 
         if (Dungeon.level.distance(pos, Dungeon.hero.pos) <= 2) {
             if (story != null) story.birdGone = true;
-            GLog.i("The little bird watches your pack for one last second, then abruptly takes flight.");
+            // No log, no quest popup, no explanation: the oddness should be noticed visually.
             destroy();
             if (sprite != null) sprite.die();
             return true;
