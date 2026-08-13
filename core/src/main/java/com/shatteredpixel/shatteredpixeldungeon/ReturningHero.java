@@ -17,10 +17,8 @@ package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal;
-import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClericArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.DuelistArmor;
@@ -29,6 +27,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.MageArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.RogueArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.WarriorArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfFrost;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLightning;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.AssassinsBlade;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Greatsword;
@@ -38,9 +38,12 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.RunicBlade;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scimitar;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WarHammer;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 
-/** Builds a stable, representative post-Yog hero without pretending to import a real old save. */
+/** Builds a stable, representative post-Yog hero from the player's ledger entry. */
 public final class ReturningHero {
 
     private static final int RETURNING_STRENGTH = 20;
@@ -50,25 +53,27 @@ public final class ReturningHero {
     }
 
     public static void apply(Hero hero) {
+        ReturningHeroProfile profile = new ReturningHeroProfile();
+        if (hero != null && hero.heroClass != null) profile.heroClass = hero.heroClass;
+        apply(hero, profile);
+    }
+
+    public static void apply(Hero hero, ReturningHeroProfile profile) {
         if (hero == null) return;
+        if (profile == null) profile = new ReturningHeroProfile();
 
         hero.lvl = Hero.MAX_LEVEL;
         hero.exp = 0;
         hero.STR = RETURNING_STRENGTH;
 
-        // Until legacy choices are exposed in the sequel character screen, use the
-        // first subclass and first armor ability as a deterministic development baseline.
-        if (hero.subClass == null || hero.subClass == HeroSubClass.NONE) {
-            hero.subClass = hero.heroClass.subClasses()[0];
-            Talent.initSubclassTalents(hero);
-        }
-        if (hero.armorAbility == null) {
-            hero.armorAbility = hero.heroClass.armorAbilities()[0];
-            Talent.initArmorTalents(hero);
-        }
+        // The ledger now owns these choices; no more silently picking the first option.
+        hero.subClass = profile.subClass();
+        Talent.initSubclassTalents(hero);
+        hero.armorAbility = profile.armorAbility();
+        Talent.initArmorTalents(hero);
 
-        equipRepresentativeGear(hero);
-        spendAvailableTalents(hero);
+        equipRepresentativeGear(hero, profile);
+        spendAvailableTalents(hero, profile.growthPreset);
 
         hero.updateHT(true);
         hero.HP = hero.HT;
@@ -79,35 +84,29 @@ public final class ReturningHero {
         healing.collect();
     }
 
-    private static void equipRepresentativeGear(Hero hero) {
-        MeleeWeapon weapon;
+    private static void equipRepresentativeGear(Hero hero, ReturningHeroProfile profile) {
+        MeleeWeapon weapon = selectedWeapon(profile);
         ClassArmor armor;
 
         switch (hero.heroClass) {
             case WARRIOR:
-                weapon = new Greatsword();
                 armor = new WarriorArmor();
                 armor.affixSeal(new BrokenSeal());
                 break;
             case MAGE:
-                weapon = new MagesStaff(new WandOfMagicMissile());
                 armor = new MageArmor();
                 break;
             case ROGUE:
-                weapon = new AssassinsBlade();
                 armor = new RogueArmor();
                 break;
             case HUNTRESS:
-                weapon = new Scimitar();
                 armor = new HuntressArmor();
                 break;
             case DUELIST:
-                weapon = new RunicBlade();
                 armor = new DuelistArmor();
                 break;
             case CLERIC:
             default:
-                weapon = new WarHammer();
                 armor = new ClericArmor();
                 break;
         }
@@ -122,22 +121,60 @@ public final class ReturningHero {
         hero.belongings.armor = armor;
         armor.activate(hero);
 
-        // These classes have weapon-specific active systems that must be rebound after replacement.
         if (hero.heroClass == HeroClass.MAGE || hero.heroClass == HeroClass.DUELIST) {
             weapon.activate(hero);
             Dungeon.quickslot.setSlot(0, weapon);
         }
     }
 
-    private static void spendAvailableTalents(Hero hero) {
-        // Fill each unlocked tier round-robin so a level-30 returning hero does not
-        // open with a screen full of unspent tutorial-era talent points.
+    private static MeleeWeapon selectedWeapon(ReturningHeroProfile profile) {
+        int choice = Math.max(0, Math.min(profile.weaponIndex, 2));
+        switch (profile.heroClass) {
+            case WARRIOR:
+                if (choice == 1) return new WarHammer();
+                if (choice == 2) return new RunicBlade();
+                return new Greatsword();
+            case MAGE:
+                if (choice == 1) return new MagesStaff(new WandOfLightning());
+                if (choice == 2) return new MagesStaff(new WandOfFrost());
+                return new MagesStaff(new WandOfMagicMissile());
+            case ROGUE:
+                if (choice == 1) return new RunicBlade();
+                if (choice == 2) return new Scimitar();
+                return new AssassinsBlade();
+            case HUNTRESS:
+                if (choice == 1) return new RunicBlade();
+                if (choice == 2) return new Greatsword();
+                return new Scimitar();
+            case DUELIST:
+                if (choice == 1) return new Scimitar();
+                if (choice == 2) return new AssassinsBlade();
+                return new RunicBlade();
+            case CLERIC:
+            default:
+                if (choice == 1) return new RunicBlade();
+                if (choice == 2) return new Greatsword();
+                return new WarHammer();
+        }
+    }
+
+    private static void spendAvailableTalents(Hero hero, ReturningHeroProfile.GrowthPreset preset) {
+        // The underlying budgets remain Shattered's tier budgets. These three presets are intentionally
+        // conservative first-pass starting points; the ledger's detailed +/- editor will manipulate
+        // the same maps directly once the new front-end has survived playtesting.
         for (int tier = 1; tier <= hero.talents.size(); tier++) {
             int safety = 64;
             while (hero.talentPointsAvailable(tier) > 0 && safety-- > 0) {
-                boolean spent = false;
                 LinkedHashMap<Talent, Integer> talents = hero.talents.get(tier - 1);
-                for (Talent talent : talents.keySet()) {
+                List<Talent> order = new ArrayList<>(talents.keySet());
+                if (preset == ReturningHeroProfile.GrowthPreset.OFFENSE) {
+                    Collections.reverse(order);
+                } else if (preset == ReturningHeroProfile.GrowthPreset.BALANCED && order.size() > 2) {
+                    Collections.rotate(order, tier % order.size());
+                }
+
+                boolean spent = false;
+                for (Talent talent : order) {
                     if (talents.get(talent) < talent.maxPoints() && hero.talentPointsAvailable(tier) > 0) {
                         hero.upgradeTalent(talent);
                         spent = true;
