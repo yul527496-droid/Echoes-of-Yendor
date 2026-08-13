@@ -29,7 +29,7 @@ public class RoadsideNote extends Item {
 
     @Override
     public String actionName(String action, Hero hero) {
-        if (AC_READ.equals(action)) return "Read";
+        if (AC_READ.equals(action)) return "阅读";
         return super.actionName(action, hero);
     }
 
@@ -50,21 +50,21 @@ public class RoadsideNote extends Item {
             SequelState state = SequelState.get();
             if (state != null) state.campRead = true;
             GameScene.show(new WndMessage(
-                    "Most of the page has gone soft with rain. One line is still legible:\n\n"
-                    + "‘The map says the fifth floor opens into a straight passage. If it is real, three days should be enough.’\n\n"
-                    + "There is nothing written beneath it."
+                    "纸页大半已经被雨水泡软，只剩下一小段还能辨认：\n\n"
+                    + "「地图上说，第五层之后应该有一条直路。如果是真的，三天应该够。」\n\n"
+                    + "下面没有后文。"
             ));
         }
     }
 
     @Override
     public String name() {
-        return "weathered expedition note";
+        return "风雨侵蚀的远征笔记";
     }
 
     @Override
     public String info() {
-        return "A torn page recovered from an abandoned camp near the old road.";
+        return "从旧王道旁一处废弃营地里找到的残破纸页。";
     }
 
     @Override
