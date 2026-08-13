@@ -16,6 +16,8 @@ package com.shatteredpixel.shatteredpixeldungeon;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.LedgerScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.TitleScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.WelcomeScene;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
@@ -89,6 +91,14 @@ public class ShatteredPixelDungeon extends Game {
 	
 	@Override
 	protected void switchScene() {
+		// Some inherited Shattered flows still request WelcomeScene/TitleScene directly.
+		// Treat both as legacy aliases for Echoes' ledger so no exit/save/death path can
+		// expose the original front end again, regardless of which class made the request.
+		if (requestedScene instanceof WelcomeScene || requestedScene instanceof TitleScene) {
+			requestedScene = new LedgerScene();
+			sceneClass = LedgerScene.class;
+		}
+
 		super.switchScene();
 		if (scene instanceof PixelScene){
 			((PixelScene) scene).restoreWindows();
