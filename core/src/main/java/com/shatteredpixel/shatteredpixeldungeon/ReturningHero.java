@@ -176,12 +176,35 @@ public final class ReturningHero {
                 boolean spent = false;
                 for (Talent talent : order) {
                     if (talents.get(talent) < talent.maxPoints() && hero.talentPointsAvailable(tier) > 0) {
-                        hero.upgradeTalent(talent);
+                        upgradeReturningTalent(hero, talent, talents);
                         spent = true;
                     }
                 }
                 if (!spent) break;
             }
+        }
+    }
+
+    /**
+     * Returning heroes are configured before SequelTransitionScene places them on FinalStairLevel.
+     * Shattered normally upgrades talents while the hero already occupies a valid map cell, but
+     * sensory talents immediately call Dungeon.observe(). During sequel setup hero.pos is not yet
+     * a legal cell, so that callback would index outside the level arrays. For these three passive
+     * vision talents we can safely record the point directly; their behaviour is read from the
+     * talent map once the hero is actually on a level.
+     */
+    private static void upgradeReturningTalent(Hero hero, Talent talent, LinkedHashMap<Talent, Integer> talents) {
+        boolean sensoryTalent = talent == Talent.HEIGHTENED_SENSES
+                || talent == Talent.FARSIGHT
+                || talent == Talent.DIVINE_SENSE;
+        boolean heroNotPlaced = Dungeon.level == null
+                || hero.pos < 0
+                || hero.pos >= Dungeon.level.length();
+
+        if (sensoryTalent && heroNotPlaced) {
+            talents.put(talent, talents.get(talent) + 1);
+        } else {
+            hero.upgradeTalent(talent);
         }
     }
 }
