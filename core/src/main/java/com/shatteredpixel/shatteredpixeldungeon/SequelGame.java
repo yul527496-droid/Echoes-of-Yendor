@@ -20,9 +20,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.FinalStairLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SurfaceEntranceLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
-import com.watabou.noosa.Game;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.SequelTransitionScene;
 
 /** Small entry/switching helper for the sequel prototype. */
 public final class SequelGame {
@@ -71,11 +69,6 @@ public final class SequelGame {
             Level.beforeTransition();
         }
 
-        // Direct prototype map switches do not represent descending/ascending a dungeon floor.
-        InterlevelScene.mode = InterlevelScene.Mode.NONE;
-        InterlevelScene.curTransition = null;
-
-        Dungeon.switchLevel(level, pos);
-        Game.switchScene(GameScene.class);
+        SequelTransitionScene.enter(level, pos);
     }
 }
