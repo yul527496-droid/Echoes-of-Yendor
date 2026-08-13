@@ -9,22 +9,13 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.LedgerScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.ReturnHeroScene;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.TitleScene;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
@@ -33,27 +24,20 @@ import com.watabou.utils.PlatformSupport;
 
 public class ShatteredPixelDungeon extends Game {
 
-	//rankings from v1.2.3 and older use a different score formula, so this reference is kept
 	public static final int v1_2_3 = 628;
-
-	//savegames from versions older than v2.5.4 are no longer supported, and data from them is ignored
 	public static final int v2_5_4 = 802;
-
 	public static final int v3_0_2 = 833;
 	public static final int v3_1_1 = 850;
 	public static final int v3_2_5 = 877;
 	public static final int v3_3_0 = 883;
 	
 	public ShatteredPixelDungeon( PlatformSupport platform ) {
-		// Echoes of Yendor development builds enter the sequel flow directly.
-		// The original title/welcome flow remains in the source and can be restored later.
-		super( sceneClass == null ? ReturnHeroScene.class : sceneClass, platform );
+		// Echoes of Yendor now has its own in-world front door instead of Shattered's title flow.
+		super( sceneClass == null ? LedgerScene.class : sceneClass, platform );
 
-		//pre-v3.3.0
 		com.watabou.utils.Bundle.addAlias(
 				com.shatteredpixel.shatteredpixeldungeon.items.keys.WornKey.class,
 				"com.shatteredpixel.shatteredpixeldungeon.items.keys.SkeletonKey" );
-
 	}
 	
 	@Override
@@ -69,7 +53,6 @@ public class ShatteredPixelDungeon extends Game {
 		Sample.INSTANCE.volume( SPDSettings.SFXVol()*SPDSettings.SFXVol()/100f );
 
 		Sample.INSTANCE.load( Assets.Sounds.all );
-		
 	}
 
 	@Override
@@ -77,8 +60,8 @@ public class ShatteredPixelDungeon extends Game {
 		if (!DeviceCompat.isiOS()) {
 			super.finish();
 		} else {
-			//can't exit on iOS (Apple guidelines), so just go to title screen
-			switchScene(TitleScene.class);
+			// iOS cannot quit to desktop, so close back to the ledger instead.
+			switchScene(LedgerScene.class);
 		}
 	}
 
@@ -125,9 +108,7 @@ public class ShatteredPixelDungeon extends Game {
 		}
 
 		super.resize( width, height );
-
 		updateDisplaySize();
-
 	}
 	
 	@Override
