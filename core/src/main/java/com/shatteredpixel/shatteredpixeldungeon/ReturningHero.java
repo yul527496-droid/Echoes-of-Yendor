@@ -16,11 +16,18 @@
 package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
-import com.shatteredpixel.shatteredpixeldungeon.items.armor.PlateArmor;
-import com.shatteredpixel.shatteredpixeldungeon.items.armor.ScaleArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClericArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.DuelistArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.HuntressArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.MageArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.RogueArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.WarriorArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.AssassinsBlade;
@@ -50,10 +57,14 @@ public final class ReturningHero {
         hero.STR = RETURNING_STRENGTH;
 
         // Until legacy choices are exposed in the sequel character screen, use the
-        // first subclass as a deterministic development baseline.
-        if (hero.subClass == null || hero.subClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass.NONE) {
+        // first subclass and first armor ability as a deterministic development baseline.
+        if (hero.subClass == null || hero.subClass == HeroSubClass.NONE) {
             hero.subClass = hero.heroClass.subClasses()[0];
             Talent.initSubclassTalents(hero);
+        }
+        if (hero.armorAbility == null) {
+            hero.armorAbility = hero.heroClass.armorAbilities()[0];
+            Talent.initArmorTalents(hero);
         }
 
         equipRepresentativeGear(hero);
@@ -70,34 +81,34 @@ public final class ReturningHero {
 
     private static void equipRepresentativeGear(Hero hero) {
         MeleeWeapon weapon;
-        Armor armor;
+        ClassArmor armor;
 
         switch (hero.heroClass) {
             case WARRIOR:
                 weapon = new Greatsword();
-                armor = new PlateArmor();
+                armor = new WarriorArmor();
                 armor.affixSeal(new BrokenSeal());
                 break;
             case MAGE:
                 weapon = new MagesStaff(new WandOfMagicMissile());
-                armor = new ScaleArmor();
+                armor = new MageArmor();
                 break;
             case ROGUE:
                 weapon = new AssassinsBlade();
-                armor = new ScaleArmor();
+                armor = new RogueArmor();
                 break;
             case HUNTRESS:
                 weapon = new Scimitar();
-                armor = new ScaleArmor();
+                armor = new HuntressArmor();
                 break;
             case DUELIST:
                 weapon = new RunicBlade();
-                armor = new PlateArmor();
+                armor = new DuelistArmor();
                 break;
             case CLERIC:
             default:
                 weapon = new WarHammer();
-                armor = new PlateArmor();
+                armor = new ClericArmor();
                 break;
         }
 
@@ -105,13 +116,14 @@ public final class ReturningHero {
         weapon.identify();
         armor.upgrade(GEAR_UPGRADE);
         armor.identify();
+        armor.charge = 100f;
 
         hero.belongings.weapon = weapon;
         hero.belongings.armor = armor;
+        armor.activate(hero);
 
-        // Mage and Duelist weapon mechanics need their equipped weapon activated.
-        if (hero.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.MAGE
-                || hero.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.DUELIST) {
+        // These classes have weapon-specific active systems that must be rebound after replacement.
+        if (hero.heroClass == HeroClass.MAGE || hero.heroClass == HeroClass.DUELIST) {
             weapon.activate(hero);
             Dungeon.quickslot.setSlot(0, weapon);
         }
