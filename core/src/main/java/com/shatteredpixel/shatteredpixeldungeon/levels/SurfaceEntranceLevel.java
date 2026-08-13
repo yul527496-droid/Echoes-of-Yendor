@@ -24,6 +24,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RoadWolf;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.RoadDonkey;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.RoadFarmer;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.YendorBird;
 import com.shatteredpixel.shatteredpixeldungeon.items.RoadsideNote;
@@ -243,6 +244,10 @@ public class SurfaceEntranceLevel extends Level {
             RoadFarmer farmer = new RoadFarmer();
             farmer.pos = cell(26, 5);
             mobs.add(farmer);
+
+            RoadDonkey donkey = new RoadDonkey();
+            donkey.pos = cell(27, 5);
+            mobs.add(donkey);
         } else if (!story.wolvesDefeated) {
             addRoadWolvesToLevel(this);
         }
