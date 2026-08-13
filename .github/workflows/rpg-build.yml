@@ -1,4 +1,4 @@
-name: Echoes of Yendor Build
+name: Echoes of Yendor Windows Build
 
 on:
   push:
@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  desktop-build:
-    runs-on: ubuntu-latest
+  windows-native-build:
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repository
@@ -22,13 +22,13 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@017a9effdb900e5b5b2fddfb590a105619dca3c3 # v4.4.2
 
-      - name: Build desktop release
-        run: ./gradlew desktop:release
+      - name: Build Windows native image
+        run: .\gradlew.bat desktop:jpackageimage
 
-      - name: Upload desktop JAR
+      - name: Upload Windows build
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Echoes-of-Yendor-desktop
-          path: desktop/build/libs/*.jar
+          name: Echoes-of-Yendor-Windows
+          path: desktop/build/jpackage/**
           if-no-files-found: error
