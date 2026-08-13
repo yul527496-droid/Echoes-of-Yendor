@@ -20,6 +20,6 @@ public class LedgerSealScene extends PixelScene {
     }
     @Override public void update(){
         super.update(); time+=Game.elapsed;
-        if(time>0.65f) Game.switchScene(LedgerLegacyScene.class);
+        if(time>0.65f) Game.switchScene(LedgerSubclassScene.class);
     }
 }
