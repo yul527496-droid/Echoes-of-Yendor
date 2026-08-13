@@ -34,6 +34,16 @@ public class RoadsideNote extends Item {
     }
 
     @Override
+    public boolean doPickUp(Hero hero, int pos) {
+        boolean pickedUp = super.doPickUp(hero, pos);
+        if (pickedUp) {
+            SequelState state = SequelState.get();
+            if (state != null) state.campRead = true;
+        }
+        return pickedUp;
+    }
+
+    @Override
     public void execute(Hero hero, String action) {
         super.execute(hero, action);
         if (AC_READ.equals(action)) {
