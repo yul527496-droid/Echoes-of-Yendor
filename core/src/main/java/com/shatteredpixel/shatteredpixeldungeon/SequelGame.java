@@ -19,6 +19,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
 import com.shatteredpixel.shatteredpixeldungeon.levels.FinalStairLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
 import com.watabou.noosa.Game;
 
 /** Starts the sequel without coupling the prototype to the original dungeon flow. */
@@ -42,6 +43,10 @@ public final class SequelGame {
 
         Dungeon.depth = 0;
         Dungeon.branch = 0;
+
+        // GameScene expects a non-null transition mode even when we enter a level directly.
+        InterlevelScene.mode = InterlevelScene.Mode.NONE;
+        InterlevelScene.curTransition = null;
 
         Level level = new FinalStairLevel();
         level.create();
