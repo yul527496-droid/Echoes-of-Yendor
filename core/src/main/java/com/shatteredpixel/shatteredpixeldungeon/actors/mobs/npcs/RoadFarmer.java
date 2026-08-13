@@ -24,7 +24,6 @@ public class RoadFarmer extends NPC {
 
     {
         spriteClass = WandmakerSprite.class;
-        properties.add(Property.IMMOVABLE); // combat effects must not push the scripted traveller around
     }
 
     @Override
@@ -60,7 +59,7 @@ public class RoadFarmer extends NPC {
         if (pos == leave || !Dungeon.level.insideMap(leave)) {
             SurfaceEntranceLevel.releaseRoadWolves();
             destroy();
-            if (sprite != null) sprite.killAndErase();
+            if (sprite != null) sprite.die();
             return true;
         }
 
