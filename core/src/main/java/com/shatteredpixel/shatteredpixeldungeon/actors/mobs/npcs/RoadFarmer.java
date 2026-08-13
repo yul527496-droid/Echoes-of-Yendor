@@ -83,12 +83,12 @@ public class RoadFarmer extends NPC {
         if (sprite != null) sprite.turnTo(pos, Dungeon.hero.pos);
 
         Game.runOnRenderThread(() -> GameScene.show(new WndOptions(
-                "Roadside farmer",
-                "The old man looks at you, then at the buried stair behind you.\n\n‘You came out of there?’",
-                "As you can see.",
-                "Nearly didn't.",
-                "You know that place?",
-                "..."
+                "路边的老农",
+                "老人先看了看你，又越过你的肩膀看向那座半埋在坡地里的石阶入口。\n\n「你是从那里面出来的？」",
+                "「如你所见。」",
+                "「差一点就不是了。」",
+                "「你知道那里？」",
+                "「……」"
         ) {
             @Override
             protected void onSelect(int index) {
@@ -99,23 +99,22 @@ public class RoadFarmer extends NPC {
                 String reply;
                 switch (index) {
                     case 0:
-                        reply = "‘Alive, too. That's the unusual part.’";
+                        reply = "「还活着。这才是稀奇的地方。」";
                         break;
                     case 1:
-                        reply = "‘Aye. That's closer to what I usually hear.’";
+                        reply = "「嗯，这就更像我平时听到的故事了。」";
                         break;
                     case 2:
-                        reply = "‘Only enough to stay out of it.’";
+                        reply = "「只知道得够让我不往里走。」";
                         break;
                     default:
-                        reply = "The farmer waits a moment, decides silence is answer enough, and nods.";
+                        reply = "老人等了一会儿，最后把你的沉默当成了回答，只点了点头。";
                         break;
                 }
 
                 GameScene.show(new WndMessage(
-                        reply + "\n\n‘Follow this road north and you'll reach Morningcreek before dark. "
-                                + "If you really came from the ruins, stop at the old inn. The keeper has a ledger.’\n\n"
-                                + "‘A ledger?’\n\n‘Names of the ones who went down. Someone ought to remember them.’"
+                        reply + "\n\n「沿着这条旧路一直往北走，天黑前能到晨溪镇。你要真是从遗迹里出来的，就去老鸦旅店看看。老板娘那儿有一本名册。」\n\n"
+                                + "「名册？」\n\n「下去的人。没回来的人。总得有人记着。」"
                 ));
             }
         }));
@@ -149,11 +148,11 @@ public class RoadFarmer extends NPC {
 
     @Override
     public String name() {
-        return "roadside farmer";
+        return "路边的老农";
     }
 
     @Override
     public String description() {
-        return "An older farmer guiding a small cart along the old road. He looks far more interested in the dungeon entrance than in your equipment.";
+        return "一位沿旧王道赶车的年长农夫。比起你的装备，他显然更在意你身后那座地下遗迹的入口。";
     }
 }
