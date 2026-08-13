@@ -18,7 +18,7 @@ package com.shatteredpixel.shatteredpixeldungeon.scenes;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
-import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
+import com.shatteredpixel.shatteredpixeldungeon.SequelGame;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
@@ -29,12 +29,7 @@ import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Game;
 import com.watabou.utils.RectF;
 
-/**
- * Temporary sequel entry flow for early Echoes of Yendor development.
- * This intentionally lives beside the original HeroSelectScene so the
- * upstream character selection code remains untouched while the RPG flow
- * is still being prototyped.
- */
+/** Lightweight sequel entry flow kept separate from Shattered's original hero-select scene. */
 public class ReturnHeroScene extends PixelScene {
 
     @Override
@@ -43,7 +38,6 @@ public class ReturnHeroScene extends PixelScene {
 
         Dungeon.hero = null;
         GamesInProgress.selectedClass = null;
-
         uiCamera.visible = false;
 
         int screenW = Camera.main.width;
@@ -133,22 +127,11 @@ public class ReturnHeroScene extends PixelScene {
             text.setPos(insets.left + (usableW - text.width()) / 2f, title.bottom() + 18);
             add(text);
 
-            StyledButton continueButton = new StyledButton(Chrome.Type.GREY_BUTTON_TR, "Step into the sunlight") {
+            StyledButton continueButton = new StyledButton(Chrome.Type.GREY_BUTTON_TR, "Climb the final stair") {
                 @Override
                 protected void onClick() {
                     super.onClick();
-
-                    Dungeon.daily = false;
-                    Dungeon.dailyReplay = false;
-                    SPDSettings.challenges(0);
-                    SPDSettings.customSeed("");
-                    Dungeon.initSeed();
-                    Dungeon.init();
-
-                    // v0.0.2 uses Shattered's existing surface scene as a temporary
-                    // proof that the selected returning hero can enter the sequel flow.
-                    // v0.0.3 will replace this with the playable final staircase map.
-                    Game.switchScene(SurfaceScene.class);
+                    SequelGame.start();
                 }
             };
             continueButton.setSize(Math.min(130, usableW - 28), 22);
