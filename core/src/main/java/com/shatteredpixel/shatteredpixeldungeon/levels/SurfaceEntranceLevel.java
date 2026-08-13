@@ -25,7 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Music;
 
-/** Graybox for the first outdoor area immediately beyond the dungeon exit. */
+/** First outdoor area immediately beyond the dungeon exit. */
 public class SurfaceEntranceLevel extends Level {
 
     private static final int WIDTH = 38;
@@ -36,6 +36,9 @@ public class SurfaceEntranceLevel extends Level {
     private static final int NORTH_X = 26;
     private static final int NORTH_Y = 1;
 
+    private static final String SURFACE_TILES = "environment/tiles_surface.png";
+    private static final String SURFACE_WATER = "environment/water_surface.png";
+
     {
         color1 = 0x6a8a4f;
         color2 = 0x8cab62;
@@ -44,17 +47,17 @@ public class SurfaceEntranceLevel extends Level {
 
     @Override
     public String tilesTex() {
-        return Assets.Environment.TILES_SEWERS;
+        return SURFACE_TILES;
     }
 
     @Override
     public String waterTex() {
-        return Assets.Environment.WATER_SEWERS;
+        return SURFACE_WATER;
     }
 
     @Override
     public void playLevelMusic() {
-        // Temporary outdoor placeholder until Echoes of Yendor gets its own surface theme.
+        // Temporary music only; the surface will get its own theme later.
         Music.INSTANCE.play(Assets.Music.THEME_1, true);
     }
 
@@ -62,7 +65,7 @@ public class SurfaceEntranceLevel extends Level {
     protected boolean build() {
         setSize(WIDTH, HEIGHT);
 
-        // Open grassy field inside a solid map border.
+        // Open meadow inside a solid forest/rock border.
         for (int y = 1; y < HEIGHT - 1; y++) {
             for (int x = 1; x < WIDTH - 1; x++) {
                 map[cell(x, y)] = Terrain.GRASS;
@@ -77,7 +80,7 @@ public class SurfaceEntranceLevel extends Level {
         paintRoad(19, 21, 25);
         paintRoad(18, 26, 29);
 
-        // A shallow stream cuts across the road; three dry tiles form the bridge graybox.
+        // A shallow stream cuts across the road; the dry gap is the bridge footprint.
         for (int y = 16; y <= 17; y++) {
             for (int x = 1; x < WIDTH - 1; x++) {
                 map[cell(x, y)] = Terrain.WATER;
@@ -87,7 +90,7 @@ public class SurfaceEntranceLevel extends Level {
             }
         }
 
-        // Crumbling stone around the dungeon mouth. The gap at the top opens onto the road.
+        // Crumbling stone/overgrowth around the dungeon mouth.
         for (int x = 14; x <= 22; x++) {
             map[cell(x, 24)] = Terrain.WALL;
             map[cell(x, 30)] = Terrain.WALL;
@@ -100,7 +103,7 @@ public class SurfaceEntranceLevel extends Level {
             map[cell(x, 24)] = Terrain.EMPTY;
         }
 
-        // Rough forest/rock masses keep the graybox from feeling like a giant empty rectangle.
+        // Dense tree masses keep the area readable and create a natural boundary.
         fillWalls(2, 3, 8, 7);
         fillWalls(30, 4, 35, 9);
         fillWalls(3, 21, 8, 27);
@@ -114,7 +117,7 @@ public class SurfaceEntranceLevel extends Level {
         map[north] = Terrain.EXIT;
         transitions.add(new LevelTransition(this, north, LevelTransition.Type.REGULAR_EXIT));
 
-        // A few texture breaks for the first graybox pass.
+        // Small vegetation and road variations prevent large repeated patches.
         map[cell(11, 12)] = Terrain.HIGH_GRASS;
         map[cell(12, 12)] = Terrain.HIGH_GRASS;
         map[cell(28, 8)] = Terrain.HIGH_GRASS;
