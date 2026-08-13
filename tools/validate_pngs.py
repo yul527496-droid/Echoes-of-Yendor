@@ -6,6 +6,7 @@ PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 FILES = [
     Path("core/src/main/assets/environment/tiles_surface.png"),
     Path("core/src/main/assets/environment/water_surface.png"),
+    Path("core/src/main/assets/interfaces/echoes/ledger_open.png"),
 ]
 
 
