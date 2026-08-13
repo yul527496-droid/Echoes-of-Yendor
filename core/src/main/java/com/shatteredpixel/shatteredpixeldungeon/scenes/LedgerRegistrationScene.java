@@ -42,14 +42,15 @@ public class LedgerRegistrationScene extends PixelScene {
         hero.x = leftX + 12;
         hero.y = header.bottom() + 12;
         add(hero);
+        float heroRight = hero.x + hero.width();
 
         RenderedTextBlock idealLabel = text("理想职业", 6, LedgerEnvironment.FADED_INK, 80);
-        idealLabel.setPos(hero.right() + 8, hero.y + 1);
+        idealLabel.setPos(heroRight + 8, hero.y + 1);
         add(idealLabel);
 
         RenderedTextBlock ideal = text(Messages.titleCase(LedgerFlow.draft().heroClass.title()), 8,
                 LedgerEnvironment.INK, 90);
-        ideal.setPos(hero.right() + 8, idealLabel.bottom() + 2);
+        ideal.setPos(heroRight + 8, idealLabel.bottom() + 2);
         add(ideal);
 
         float formY = hero.y + 42;
@@ -69,9 +70,10 @@ public class LedgerRegistrationScene extends PixelScene {
             @Override
             protected void onClick() {
                 super.onClick();
+                String existing = LedgerFlow.draft().name;
                 LedgerRegistrationScene.this.add(new WndTextInput(
                         "登记姓名", "写下当年进入遗迹前留下的名字。",
-                        LedgerFlow.draft().name.equals("无名者") ? "" : LedgerFlow.draft().name,
+                        existing == null || existing.equals("无名者") ? "" : existing,
                         20, false, "写入名册", "取消") {
                     @Override
                     public void onSelect(boolean ok, String value) {
