@@ -18,6 +18,7 @@ package com.shatteredpixel.shatteredpixeldungeon;
 import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
 import com.shatteredpixel.shatteredpixeldungeon.levels.FinalStairLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekOutskirtsLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SurfaceEntranceLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.SequelTransitionScene;
@@ -43,6 +44,7 @@ public final class SequelGame {
         Dungeon.init();
 
         ReturningHero.apply(Dungeon.hero);
+        SequelState.get();
         new Amulet().collect();
         Statistics.amuletObtained = true;
 
@@ -61,6 +63,18 @@ public final class SequelGame {
         level.create();
         LevelTransition surface = level.getTransition(LevelTransition.Type.SURFACE);
         enterCreated(level, surface == null ? -1 : surface.cell());
+    }
+
+    public static void enterMorningcreekOutskirts() {
+        enter(new MorningcreekOutskirtsLevel(), -1);
+    }
+
+    public static void enterSurfaceFromOutskirts() {
+        SurfaceEntranceLevel level = new SurfaceEntranceLevel();
+        level.create();
+        LevelTransition north = level.getTransition(LevelTransition.Type.REGULAR_EXIT);
+        int pos = north == null ? -1 : north.cell() + level.width();
+        enterCreated(level, pos);
     }
 
     private static void enter(Level level, int pos) {
