@@ -14,14 +14,12 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.HeroSelectScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.LedgerScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.LedgerIntroScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.RankingsScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
@@ -35,9 +33,9 @@ public class WndGame extends Window {
 	private static final int WIDTH		= 120;
 	private static final int BTN_HEIGHT	= 20;
 	private static final int GAP		= 2;
-	
+
 	private int pos;
-	
+
 	public WndGame() {
 		super();
 
@@ -57,7 +55,7 @@ public class WndGame extends Window {
 				protected void onClick() {
 					hide();
 					GameScene.show( new WndChallenges( Dungeon.challenges, false ) );
-			}
+				}
 			} );
 			curBtn.icon(Icons.get(Icons.CHALLENGE_COLOR));
 		}
@@ -66,14 +64,12 @@ public class WndGame extends Window {
 			addButton( curBtn = new RedButton( Messages.get(this, "start") ) {
 				@Override
 				protected void onClick() {
-					GamesInProgress.selectedClass = Dungeon.hero.heroClass;
-					GamesInProgress.curSlot = GamesInProgress.firstEmpty();
-					ShatteredPixelDungeon.switchScene(HeroSelectScene.class);
+					ShatteredPixelDungeon.switchScene(LedgerIntroScene.class);
 				}
 			} );
 			curBtn.icon(Icons.get(Icons.ENTER));
 			curBtn.textColor(Window.TITLE_COLOR);
-			
+
 			addButton( curBtn = new RedButton( Messages.get(this, "rankings") ) {
 				@Override
 				protected void onClick() {
@@ -84,7 +80,7 @@ public class WndGame extends Window {
 			curBtn.icon(Icons.get(Icons.RANKINGS));
 		}
 
-		// Echoes returns to the in-world ledger, never to Shattered's original title menu.
+		// All Echoes menu exits return through the closed ledger.
 		addButton(curBtn = new RedButton(Messages.get(this, "menu")) {
 			@Override
 			protected void onClick() {
@@ -93,7 +89,7 @@ public class WndGame extends Window {
 				} catch (IOException e) {
 					ShatteredPixelDungeon.reportException(e);
 				}
-				Game.switchScene(LedgerScene.class);
+				Game.switchScene(LedgerIntroScene.class);
 			}
 		});
 		curBtn.icon(Icons.get(Icons.DISPLAY));
@@ -101,7 +97,7 @@ public class WndGame extends Window {
 
 		resize( WIDTH, pos );
 	}
-	
+
 	private void addButton( RedButton btn ) {
 		add( btn );
 		btn.setRect( 0, pos > 0 ? pos += GAP : 0, WIDTH, BTN_HEIGHT );
