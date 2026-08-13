@@ -88,6 +88,21 @@ public class SurfaceEntranceLevel extends Level {
         return true;
     }
 
+    @Override
+    public void buildFlagMaps() {
+        super.buildFlagMaps();
+
+        // Dungeon water is normally shallow and walkable. This outdoor stream is a
+        // deliberate route barrier: characters must use the bridge, while sight and
+        // projectiles can still cross the water normally.
+        for (int i = 0; i < length(); i++) {
+            if (map[i] == Terrain.WATER) {
+                passable[i] = false;
+                avoid[i] = true;
+            }
+        }
+    }
+
     private void paintRoad() {
         for (int y = 1; y <= 29; y++) {
             int center;
