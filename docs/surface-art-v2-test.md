@@ -1,0 +1,1 @@
+Test checklist: surface loads; road/grass contrast readable; stream banks feel less linear; timber bridge is visible; dungeon entrance is recognizable; returning to Final Stair and back remains stable.
