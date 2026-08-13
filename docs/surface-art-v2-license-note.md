@@ -1,0 +1,1 @@
+The custom surface atlas and surface water texture in this project are original Echoes of Yendor modifications created for this fork. They are stored separately from the upstream dungeon atlases so upstream assets remain intact.
