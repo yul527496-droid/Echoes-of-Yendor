@@ -21,6 +21,7 @@ public class RoadFarmer extends NPC {
     private static final int LEAVE_Y = 21;
 
     private boolean conversationOpen;
+    private boolean journeyStarted;
 
     {
         spriteClass = WandmakerSprite.class;
@@ -42,6 +43,17 @@ public class RoadFarmer extends NPC {
         }
 
         if (!story.farmerMet) {
+            // Stay well beyond the northern fog until the player has actually left the ruin apron.
+            // The farmer then walks into view naturally instead of materialising on a visible tile.
+            if (!journeyStarted) {
+                int heroY = Dungeon.hero.pos / Dungeon.level.width();
+                if (heroY >= 24) {
+                    spend(TICK);
+                    return true;
+                }
+                journeyStarted = true;
+            }
+
             if (Dungeon.level.distance(pos, Dungeon.hero.pos) <= 3 && Dungeon.level.heroFOV[pos]) {
                 interact(Dungeon.hero);
                 spend(TICK);
@@ -73,11 +85,6 @@ public class RoadFarmer extends NPC {
         return true;
     }
 
-    /**
-     * Mob.getCloser() uses this character's FOV as the visibility mask for pathfinding.
-     * Normal mobs get that array from Char.act(), but this scripted NPC owns its entire
-     * act loop and therefore must keep the FOV initialized itself before moving.
-     */
     private void ensurePathfindingFov() {
         if (fieldOfView == null || fieldOfView.length != Dungeon.level.length()) {
             fieldOfView = new boolean[Dungeon.level.length()];
@@ -147,7 +154,6 @@ public class RoadFarmer extends NPC {
 
     @Override
     public void damage(int dmg, Object src) {
-        // Ordinary, not attackable: combat is not a dialogue shortcut.
     }
 
     @Override
