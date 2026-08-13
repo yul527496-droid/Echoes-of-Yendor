@@ -1,16 +1,17 @@
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
 
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.LedgerFlow;
 import com.shatteredpixel.shatteredpixeldungeon.ReturningHeroProfile;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.StyledButton;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndSettings;
-import com.watabou.noosa.Camera;
-import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Game;
+import com.watabou.noosa.Image;
 import com.watabou.utils.RectF;
 
 import java.util.ArrayList;
@@ -21,91 +22,79 @@ public class LedgerRecordsScene extends PixelScene {
     public void create() {
         super.create();
         uiCamera.visible = false;
-        LedgerEnvironment.addOpenBook(this);
+        Image book = LedgerEnvironment.addOpenBook(this);
+        RectF left = LedgerEnvironment.leftPage(book);
+        RectF right = LedgerEnvironment.rightPage(book);
 
-        int w = Camera.main.width;
-        int h = Camera.main.height;
-        RectF safe = getCommonInsets();
-        float usableW = w - safe.left - safe.right;
-        float bookW = Math.min(usableW - 10, 360);
-        float gap = Math.max(7, bookW * 0.035f);
-        float pageW = (bookW - gap) / 2f;
-        float bookX = safe.left + (usableW - bookW) / 2f;
-        float leftX = bookX;
-        float rightX = bookX + pageW + gap;
-        float top = safe.top + Math.max(10, (h - safe.top - safe.bottom) * 0.12f);
+        float leftX = left.left + 6;
+        float rightX = right.left + 6;
+        float leftW = left.width() - 12;
+        float rightW = right.width() - 12;
+        float top = left.top + 6;
 
-        RenderedTextBlock title = text("ECHOES OF YENDOR", 11, LedgerEnvironment.INK, (int) pageW - 14);
-        title.setPos(leftX + (pageW - title.width()) / 2f, top);
+        RenderedTextBlock title = text("ECHOES OF YENDOR", 8, LedgerEnvironment.INK, (int) leftW);
+        title.setPos(leftX + (leftW-title.width())/2f, top);
         add(title);
 
-        RenderedTextBlock ledgerName = text("晨溪镇 · 老鸦旅店\n遗迹下行者登记簿", 7,
-                LedgerEnvironment.FADED_INK, (int) pageW - 18);
+        RenderedTextBlock ledgerName = text("晨溪镇 · 老鸦旅店\n遗迹下行者登记簿", 6,
+                LedgerEnvironment.FADED_INK, (int) leftW);
         ledgerName.align(RenderedTextBlock.CENTER_ALIGN);
-        ledgerName.setPos(leftX + (pageW - ledgerName.width()) / 2f, title.bottom() + 6);
+        ledgerName.setPos(leftX + (leftW-ledgerName.width())/2f, title.bottom()+5);
         add(ledgerName);
 
-        ColorBlock rule = new ColorBlock(pageW - 22, 1, 0x663B2A1E);
-        rule.x = leftX + 11;
-        rule.y = ledgerName.bottom() + 8;
-        add(rule);
-
-        RenderedTextBlock note = text("姓名写在这里。\n理想写在这里。\n去向也写在这里。\n\n但不是每一页都会等到第二笔。", 6,
-                LedgerEnvironment.FADED_INK, (int) pageW - 24);
-        note.setPos(leftX + 12, rule.y + 10);
+        RenderedTextBlock note = text("名字、理想与去向都留在这里。\n有些页，后来再也没人补写。", 5,
+                LedgerEnvironment.FADED_INK, (int) leftW-4);
+        note.setPos(leftX+2, ledgerName.bottom()+12);
         add(note);
 
-        StyledButton settings = new StyledButton(Chrome.Type.BLANK, "设置", 6) {
-            @Override
-            protected void onClick() {
+        StyledButton settings = new StyledButton(Chrome.Type.BLANK, "设置", 5) {
+            @Override protected void onClick() {
                 super.onClick();
                 LedgerRecordsScene.this.add(new WndSettings());
             }
         };
         settings.textColor(LedgerEnvironment.FADED_INK);
-        settings.setRect(leftX + 9, h - safe.bottom - 42, (pageW - 22) / 2f, 17);
+        settings.setRect(leftX, left.bottom-20, leftW/2f-2, 15);
         add(settings);
 
-        StyledButton about = new StyledButton(Chrome.Type.BLANK, "制作信息", 6) {
-            @Override
-            protected void onClick() {
+        StyledButton about = new StyledButton(Chrome.Type.BLANK, "制作信息", 5) {
+            @Override protected void onClick() {
                 super.onClick();
                 Game.switchScene(AboutScene.class);
             }
         };
         about.textColor(LedgerEnvironment.FADED_INK);
-        about.setRect(settings.right() + 4, settings.top(), (pageW - 22) / 2f, 17);
+        about.setRect(leftX+leftW/2f+2, left.bottom-20, leftW/2f-2, 15);
         add(about);
 
-        RenderedTextBlock recordsTitle = text("现存记录", 10, LedgerEnvironment.INK, (int) pageW - 14);
-        recordsTitle.setPos(rightX + (pageW - recordsTitle.width()) / 2f, top);
+        RenderedTextBlock recordsTitle = text("现存记录", 8, LedgerEnvironment.INK, (int) rightW);
+        recordsTitle.setPos(rightX + (rightW-recordsTitle.width())/2f, top);
         add(recordsTitle);
 
-        RenderedTextBlock recordsNote = text("翻回已经写过的那一页。", 6,
-                LedgerEnvironment.FADED_INK, (int) pageW - 18);
-        recordsNote.setPos(rightX + (pageW - recordsNote.width()) / 2f, recordsTitle.bottom() + 5);
+        RenderedTextBlock recordsNote = text("翻回已经写过的那一页。", 5,
+                LedgerEnvironment.FADED_INK, (int) rightW);
+        recordsNote.setPos(rightX+(rightW-recordsNote.width())/2f, recordsTitle.bottom()+4);
         add(recordsNote);
 
         final ArrayList<GamesInProgress.Info> saves = GamesInProgress.checkAll();
-        float y = recordsNote.bottom() + 8;
+        float y = recordsNote.bottom()+7;
 
         if (saves.isEmpty()) {
-            RenderedTextBlock empty = text("这一册还没有属于你的名字。", 6,
-                    LedgerEnvironment.FADED_INK, (int) pageW - 22);
-            empty.setPos(rightX + 11, y + 8);
+            RenderedTextBlock empty = text("这一册还没有属于你的名字。", 5,
+                    LedgerEnvironment.FADED_INK, (int) rightW-4);
+            empty.setPos(rightX+2, y+8);
             add(empty);
-            y = empty.bottom() + 18;
+            y = empty.bottom()+12;
         } else {
             int shown = 0;
             for (GamesInProgress.Info info : saves) {
                 if (shown >= 4) break;
                 final int slot = info.slot;
-                ReturningHeroProfile profile = ReturningHeroProfile.loadFromSlot(slot);
+                final ReturningHeroProfile profile = ReturningHeroProfile.loadFromSlot(slot);
                 String label = profile.name + "\n" + Messages.titleCase(info.heroClass.title()) + " · Lv." + info.level;
 
-                StyledButton record = new StyledButton(Chrome.Type.BLANK, label, 7) {
-                    @Override
-                    protected void onClick() {
+                StyledButton record = new StyledButton(Chrome.Type.BLANK, label, 6) {
+                    @Override protected void onClick() {
                         super.onClick();
                         GamesInProgress.curSlot = slot;
                         InterlevelScene.mode = InterlevelScene.Mode.CONTINUE;
@@ -114,26 +103,40 @@ public class LedgerRecordsScene extends PixelScene {
                 };
                 record.leftJustify = true;
                 record.textColor(LedgerEnvironment.INK);
-                record.setRect(rightX + 9, y, pageW - 18, 29);
+                record.setRect(rightX, y, rightW-31, 25);
                 add(record);
 
-                RenderedTextBlock stamp = text("未归", 7, LedgerEnvironment.STAMP, 36);
-                stamp.setPos(record.right() - stamp.width() - 4, record.top() + 10);
+                RenderedTextBlock stamp = text("未归", 6, LedgerEnvironment.STAMP, 28);
+                stamp.setPos(right.left + right.width()-stamp.width()-8, y+3);
                 add(stamp);
 
-                ColorBlock recordRule = new ColorBlock(pageW - 18, 1, 0x443B2A1E);
-                recordRule.x = rightX + 9;
-                recordRule.y = record.bottom();
-                add(recordRule);
+                StyledButton erase = new StyledButton(Chrome.Type.BLANK, "删除", 5) {
+                    @Override protected void onClick() {
+                        super.onClick();
+                        LedgerRecordsScene.this.add(new WndOptions(
+                                "删除记录",
+                                "要从名册中移除「" + profile.name + "」吗？\n这会同时删除对应存档。",
+                                "删除", "取消") {
+                            @Override protected void onSelect(int index) {
+                                if (index == 0) {
+                                    Dungeon.deleteGame(slot, true);
+                                    Game.switchScene(LedgerRecordsScene.class);
+                                }
+                            }
+                        });
+                    }
+                };
+                erase.textColor(LedgerEnvironment.STAMP);
+                erase.setRect(right.left + right.width()-34, y+11, 27, 13);
+                add(erase);
 
-                y = record.bottom() + 4;
+                y += 29;
                 shown++;
             }
         }
 
-        StyledButton newRecord = new StyledButton(Chrome.Type.TOAST_WHITE, "＋  登记新的下行者", 7) {
-            @Override
-            protected void onClick() {
+        StyledButton newRecord = new StyledButton(Chrome.Type.TOAST_WHITE, "＋ 登记新的下行者", 6) {
+            @Override protected void onClick() {
                 super.onClick();
                 if (GamesInProgress.firstEmpty() < 0) return;
                 LedgerFlow.resetDraft();
@@ -141,9 +144,8 @@ public class LedgerRecordsScene extends PixelScene {
             }
         };
         newRecord.textColor(LedgerEnvironment.INK);
-        newRecord.setRect(rightX + 9, Math.min(h - safe.bottom - 29, y + 6), pageW - 18, 21);
+        newRecord.setRect(rightX, Math.min(right.bottom-20, y+4), rightW, 16);
         add(newRecord);
-
         fadeIn();
     }
 
