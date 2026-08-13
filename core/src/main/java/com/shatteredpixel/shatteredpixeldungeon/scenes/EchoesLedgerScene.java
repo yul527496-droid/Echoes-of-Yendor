@@ -15,12 +15,9 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
-import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Button;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ExitButton;
@@ -38,21 +35,19 @@ import com.watabou.utils.DeviceCompat;
 import com.watabou.utils.RectF;
 
 import java.util.ArrayList;
-import java.util.Base64;
 
 /**
  * Echoes of Yendor's ledger-first title scene.
  *
- * The artwork is stored as base64 text only as a temporary repository transport
- * workaround. At runtime it is decoded into a normal Pixmap/Image.
+ * The scene intentionally stays on Shattered's stock RenderedTextBlock path.
+ * The two approved pixel-art plates are embedded as palette data in companion
+ * classes because binary repository writes are not reliable through every
+ * development transport.
  */
 public class EchoesLedgerScene extends PixelScene {
 
-    private static final String CLOSED_ART = "interfaces/echoes/ledger_closed_v2.b64";
-    private static final String OPEN_ART = "interfaces/echoes/ledger_open_v2.b64";
-
-    private static final int INK = 0x2B2119;
-    private static final int INK_SOFT = 0x55483C;
+    private static final int INK = 0x332116;
+    private static final int INK_SOFT = 0x5A412B;
     private static final int CREAM = 0xF4DEAE;
     private static final int STAMP_RED = 0x8C2929;
 
@@ -75,18 +70,11 @@ public class EchoesLedgerScene extends PixelScene {
 
     @Override
     public void create() {
-        // The ledger deliberately uses the bundled Droid Sans generator so CJK
-        // glyphs render even when the game's current language is not Chinese.
-        boolean previousSystemFont = SPDSettings.systemFont();
-        if (!previousSystemFont) SPDSettings.systemFont(true);
         super.create();
-        if (!previousSystemFont) SPDSettings.systemFont(false);
 
         Music.INSTANCE.playTracks(
                 new String[]{Assets.Music.THEME_1, Assets.Music.THEME_2},
                 new float[]{1f, 1f}, false);
-
-        uiCamera.visible = false;
 
         RectF insets = getCommonInsets();
         left = insets.left;
@@ -109,26 +97,26 @@ public class EchoesLedgerScene extends PixelScene {
     }
 
     private void createArtwork() {
-        closedArt = loadBase64Image(CLOSED_ART);
-        float closedScale = landscape()
-                ? Math.max(contentW / closedArt.width, contentH / closedArt.height)
-                : Math.min(contentW / closedArt.width, contentH / closedArt.height);
+        // Keep the entire candle/table composition visible. Cropping it was the
+        // reason the previous landscape title looked like a lone cheap Y-book.
+        closedArt = LedgerClosedArtwork.image();
+        float closedScale = Math.min(
+                contentW / closedArt.width,
+                contentH / closedArt.height);
         closedArt.scale.set(closedScale);
         center(closedArt);
         add(closedArt);
 
-        openArt = loadBase64Image(OPEN_ART);
-        openScale = Math.min(contentW / openArt.width, contentH / openArt.height);
-        openScale = Math.max(0.2f, openScale);
+        openArt = LedgerOpenArtwork.image();
+        openScale = Math.min(
+                contentW / openArt.width,
+                contentH / openArt.height);
         openArt.scale.set(openScale);
         center(openArt);
         openArt.visible = false;
         openArt.am = 0f;
         add(openArt);
 
-        // First pass: make the whole title artwork clickable so the interaction
-        // stays reliable at every aspect ratio. We can tighten this to the book
-        // bounds after the visual layout is approved.
         openHotArea = new PointerArea(left, top, contentW, contentH) {
             @Override
             protected void onClick(PointerEvent event) {
@@ -148,13 +136,6 @@ public class EchoesLedgerScene extends PixelScene {
         add(openHotArea);
     }
 
-    private static Image loadBase64Image(String path) {
-        String encoded = Gdx.files.internal(path).readString("UTF-8").replaceAll("\\s+", "");
-        byte[] bytes = Base64.getDecoder().decode(encoded);
-        Pixmap pixmap = new Pixmap(bytes, 0, bytes.length);
-        return new Image(pixmap);
-    }
-
     private void createClosedHint() {
         hint = ledgerText("点击或触碰名册以翻开它", landscape() ? 7 : 6);
         hint.hardlight(CREAM);
@@ -170,15 +151,17 @@ public class EchoesLedgerScene extends PixelScene {
         openUI.active = false;
         add(openUI);
 
-        // Coordinates are measured against the approved 480x270 ledger artwork.
-        float pageLeft = openArt.x + 88f * openScale;
-        float pageRight = openArt.x + 258f * openScale;
-        float pageTop = openArt.y + 49f * openScale;
-        float pageWidth = 132f * openScale;
+        // The embedded open plate is a clean 160x90 reduction of the approved
+        // 480x270 artwork, so these coordinates are exactly one third of the
+        // original layout measurements.
+        float pageLeft = openArt.x + (88f / 3f) * openScale;
+        float pageRight = openArt.x + (258f / 3f) * openScale;
+        float pageTop = openArt.y + (49f / 3f) * openScale;
+        float pageWidth = (132f / 3f) * openScale;
 
-        int headingSize = openScale >= 0.75f ? 9 : 7;
-        int bodySize = openScale >= 0.75f ? 7 : 6;
-        int buttonSize = openScale >= 0.7f ? 7 : 6;
+        int headingSize = 9;
+        int bodySize = 7;
+        int buttonSize = 7;
 
         RenderedTextBlock leftHeading = ledgerText("遗迹下行者登记簿", headingSize);
         leftHeading.hardlight(INK);
@@ -214,14 +197,17 @@ public class EchoesLedgerScene extends PixelScene {
                     "已有 " + games.size() + " 份记录。\n名册已满，请先整理旧记录。",
                     Math.max(58, (int) pageWidth));
         } else {
-            status.text("已有 " + games.size() + " 份记录。", Math.max(58, (int) pageWidth));
+            status.text("已有 " + games.size() + " 份记录。",
+                    Math.max(58, (int) pageWidth));
         }
         status.hardlight(INK_SOFT);
         status.setPos(pageRight, rightHeading.bottom() + 7f);
         openUI.add(status);
 
         float buttonW = Math.max(58f, pageWidth);
-        float buttonY = Math.max(status.bottom() + 8f, openArt.y + 138f * openScale);
+        float buttonY = Math.max(
+                status.bottom() + 8f,
+                openArt.y + (138f / 3f) * openScale);
 
         if (!games.isEmpty()) {
             LedgerButton records = new LedgerButton("整理登记记录", buttonSize) {
@@ -238,7 +224,7 @@ public class EchoesLedgerScene extends PixelScene {
         }
 
         if (games.size() < GamesInProgress.MAX_SLOTS) {
-            LedgerButton register = new LedgerButton("＋ 登记新的下行者", buttonSize) {
+            LedgerButton register = new LedgerButton("登记新的下行者", buttonSize) {
                 @Override
                 protected void onClick() {
                     Sample.INSTANCE.play(Assets.Sounds.CLICK);
@@ -254,17 +240,18 @@ public class EchoesLedgerScene extends PixelScene {
         }
     }
 
-    /** Ledger text has no outline: dark glyphs stay crisp on bright parchment. */
+    /**
+     * Do not bypass the stock font path here. The prior border=false custom
+     * RenderedText construction produced atlas-shaped bars and missing-glyph
+     * squares on Windows. Stock PixelScene rendering already selects Droid Sans
+     * for CJK glyphs through PlatformSupport.
+     */
     private static RenderedTextBlock ledgerText(String text, int size) {
-        float realScale = DeviceCompat.getRealPixelScaleX();
-        int fontScale = Math.max(1, Math.round(defaultZoom * realScale));
-        RenderedTextBlock result = new RenderedTextBlock(text, size * fontScale, false);
-        result.zoom(1f / fontScale);
-        return result;
+        return PixelScene.renderTextBlock(text, size);
     }
 
     private static RenderedTextBlock ledgerText(int size) {
-        return ledgerText("", size);
+        return PixelScene.renderTextBlock(size);
     }
 
     private void openLedger() {
