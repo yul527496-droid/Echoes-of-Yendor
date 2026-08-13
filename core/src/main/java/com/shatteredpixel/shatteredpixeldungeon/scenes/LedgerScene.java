@@ -19,15 +19,11 @@ import com.watabou.noosa.Camera;
 import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
-import com.watabou.utils.DeviceCompat;
 import com.watabou.utils.RectF;
 
 import java.util.ArrayList;
 
-/**
- * Echoes of Yendor's front door: the Morningcreek inn's old expedition ledger.
- * New games are registered as "未归" entries; existing saves are continued from the same book.
- */
+/** Echoes of Yendor's in-world title/save screen: Morningcreek's expedition ledger. */
 public class LedgerScene extends PixelScene {
 
     private static final String LEDGER_BG = "interfaces/echoes/ledger_open.png";
@@ -41,7 +37,6 @@ public class LedgerScene extends PixelScene {
     public void create() {
         super.create();
         uiCamera.visible = false;
-
         addLedgerBackground();
 
         int w = Camera.main.width;
@@ -62,13 +57,32 @@ public class LedgerScene extends PixelScene {
         subtitle.setPos(bookX + (pageW - subtitle.width()) / 2f, title.bottom() + 5);
         add(subtitle);
 
-        RenderedTextBlock note = inkText(
-                "有人写下姓名、理想与去处。\n有人回来，也有人永远停在这一页。", 6, (int)pageW - 18);
+        RenderedTextBlock note = inkText("有人写下姓名、理想与去处。\n有人回来，也有人永远停在这一页。", 6, (int)pageW - 18);
         note.hardlight(FADED_INK);
         note.setPos(bookX + 9, subtitle.bottom() + 12);
         add(note);
 
-        addSideButtons(bookX + 7, top + Math.max(86, pageW * 0.76f), pageW - 14);
+        StyledButton settings = new StyledButton(Chrome.Type.TOAST_WHITE, "设置") {
+            @Override
+            protected void onClick() {
+                super.onClick();
+                LedgerScene.this.add(new WndSettings());
+            }
+        };
+        settings.textColor(INK);
+        settings.setRect(bookX + 7, top + Math.max(86, pageW * 0.76f), pageW - 14, 19);
+        add(settings);
+
+        StyledButton credits = new StyledButton(Chrome.Type.TOAST_WHITE, "制作与授权") {
+            @Override
+            protected void onClick() {
+                super.onClick();
+                Game.switchScene(AboutScene.class);
+            }
+        };
+        credits.textColor(INK);
+        credits.setRect(bookX + 7, settings.bottom() + 4, pageW - 14, 19);
+        add(credits);
 
         float rightX = bookX + pageW + pageGap;
         RenderedTextBlock recordsTitle = inkText("现存记录", 10, (int)pageW - 10);
@@ -87,9 +101,9 @@ public class LedgerScene extends PixelScene {
             for (GamesInProgress.Info info : saves) {
                 if (shown >= 4) break;
                 ReturningHeroProfile profile = ReturningHeroProfile.loadFromSlot(info.slot);
-                String label = profile.name + "   ·   " + Messages.titleCase(info.heroClass.title()) + "\n未归   ·   Lv." + info.level;
+                String label = profile.name + " · " + Messages.titleCase(info.heroClass.title()) + "\n未归 · Lv." + info.level;
                 final int slot = info.slot;
-                StyledButton record = ledgerButton(label) {
+                StyledButton record = new StyledButton(Chrome.Type.TOAST_WHITE, label) {
                     @Override
                     protected void onClick() {
                         super.onClick();
@@ -98,6 +112,7 @@ public class LedgerScene extends PixelScene {
                         Game.switchScene(InterlevelScene.class);
                     }
                 };
+                record.textColor(INK);
                 record.setRect(rightX + 6, y, pageW - 12, 31);
                 add(record);
                 y = record.bottom() + 4;
@@ -105,7 +120,7 @@ public class LedgerScene extends PixelScene {
             }
         }
 
-        StyledButton newRecord = ledgerButton("＋  登记新的下行者") {
+        StyledButton newRecord = new StyledButton(Chrome.Type.TOAST_WHITE, "＋  登记新的下行者") {
             @Override
             protected void onClick() {
                 super.onClick();
@@ -117,51 +132,17 @@ public class LedgerScene extends PixelScene {
                 Game.switchScene(RegistrationScene.class);
             }
         };
+        newRecord.textColor(INK);
         newRecord.setRect(rightX + 6, Math.min(h - safe.bottom - 29, y + 7), pageW - 12, 23);
         add(newRecord);
 
         fadeIn();
     }
 
-    private void addSideButtons(float x, float y, float width) {
-        StyledButton settings = ledgerButton("设置") {
-            @Override
-            protected void onClick() {
-                super.onClick();
-                LedgerScene.this.add(new WndSettings());
-            }
-        };
-        settings.setRect(x, y, width, 19);
-        add(settings);
-
-        StyledButton credits = ledgerButton("制作与授权") {
-            @Override
-            protected void onClick() {
-                super.onClick();
-                Game.switchScene(AboutScene.class);
-            }
-        };
-        credits.setRect(x, settings.bottom() + 4, width, 19);
-        add(credits);
-
-        if (DeviceCompat.isDesktop()) {
-            StyledButton quit = ledgerButton("合上名册并退出") {
-                @Override
-                protected void onClick() {
-                    super.onClick();
-                    Game.instance.finish();
-                }
-            };
-            quit.setRect(x, credits.bottom() + 4, width, 19);
-            add(quit);
-        }
-    }
-
     private void addLedgerBackground() {
         int screenW = Camera.main.width;
         int screenH = Camera.main.height;
         add(new ColorBlock(screenW, screenH, 0xFF17110D));
-
         Image bg = new Image(LEDGER_BG);
         float scale = Math.max(screenW / bg.width, screenH / bg.height);
         bg.scale.set(scale);
@@ -176,12 +157,6 @@ public class LedgerScene extends PixelScene {
         block.maxWidth(maxWidth);
         block.hardlight(INK);
         return block;
-    }
-
-    private StyledButton ledgerButton(String text) {
-        StyledButton button = new StyledButton(Chrome.Type.TOAST_WHITE, text);
-        button.textColor(INK);
-        return button;
     }
 
     /** Fill one empty page before descending into the remembered past. */
@@ -215,139 +190,97 @@ public class LedgerScene extends PixelScene {
             add(header);
             y = header.bottom() + 8;
 
-            StyledButton name = fieldButton("姓名", draft.name) {
+            StyledButton name = fieldButton("姓名", draft.name, () -> RegistrationScene.this.add(new WndTextInput(
+                    "登记姓名", "写下当年走进遗迹时留下的名字。",
+                    draft.name.equals("无名者") ? "" : draft.name, 20, false,
+                    "写入名册", "取消") {
                 @Override
-                protected void onClick() {
-                    super.onClick();
-                    RegistrationScene.this.add(new WndTextInput(
-                            "登记姓名",
-                            "写下当年走进遗迹时留下的名字。",
-                            draft.name.equals("无名者") ? "" : draft.name,
-                            20,
-                            false,
-                            "写入名册",
-                            "取消") {
-                        @Override
-                        public void onSelect(boolean positive, String text) {
-                            if (positive && text != null && !text.trim().isEmpty()) {
-                                draft.name = text.trim();
-                                Game.switchScene(RegistrationScene.class);
-                            }
-                        }
-                    });
+                public void onSelect(boolean positive, String text) {
+                    if (positive && text != null && !text.trim().isEmpty()) {
+                        draft.name = text.trim();
+                        Game.switchScene(RegistrationScene.class);
+                    }
                 }
-            };
+            }));
             name.setRect(formX, y, formW, 22);
             add(name);
             y = name.bottom() + 3;
 
-            StyledButton heroClass = fieldButton("理想职业", Messages.titleCase(draft.heroClass.title())) {
-                @Override
-                protected void onClick() {
-                    super.onClick();
-                    HeroClass[] classes = HeroClass.values();
-                    String[] labels = new String[classes.length];
-                    for (int i = 0; i < classes.length; i++) labels[i] = Messages.titleCase(classes[i].title());
-                    RegistrationScene.this.add(new WndOptions(
-                            "理想职业",
-                            "这是当年登记在名册上的愿望，也是归还者真正拥有的英雄单位。",
-                            labels) {
-                        @Override
-                        protected void onSelect(int index) {
-                            draft.heroClass = HeroClass.values()[index];
-                            draft.resetDependentChoices();
-                            Game.switchScene(RegistrationScene.class);
-                        }
-                    });
-                }
-            };
+            StyledButton heroClass = fieldButton("理想职业", Messages.titleCase(draft.heroClass.title()), () -> {
+                HeroClass[] classes = HeroClass.values();
+                String[] labels = new String[classes.length];
+                for (int i = 0; i < classes.length; i++) labels[i] = Messages.titleCase(classes[i].title());
+                RegistrationScene.this.add(new WndOptions("理想职业",
+                        "这是当年登记在名册上的愿望，也是归还者真正拥有的英雄单位。", labels) {
+                    @Override
+                    protected void onSelect(int index) {
+                        draft.heroClass = HeroClass.values()[index];
+                        draft.resetDependentChoices();
+                        Game.switchScene(RegistrationScene.class);
+                    }
+                });
+            });
             heroClass.setRect(formX, y, formW, 22);
             add(heroClass);
             y = heroClass.bottom() + 3;
 
-            StyledButton weapon = fieldButton("惯用兵器", draft.weaponName()) {
-                @Override
-                protected void onClick() {
-                    super.onClick();
-                    RegistrationScene.this.add(new WndOptions(
-                            "惯用兵器",
-                            "不是把第一部存档伪装成精确导入，而是记录归来时最有代表性的战斗风格。",
-                            draft.weaponOptions()) {
+            StyledButton weapon = fieldButton("惯用兵器", draft.weaponName(), () ->
+                    RegistrationScene.this.add(new WndOptions("惯用兵器",
+                            "记录归来时最有代表性的战斗风格。", draft.weaponOptions()) {
                         @Override
                         protected void onSelect(int index) {
                             draft.weaponIndex = index;
                             Game.switchScene(RegistrationScene.class);
                         }
-                    });
-                }
-            };
+                    }));
             weapon.setRect(formX, y, formW, 22);
             add(weapon);
             y = weapon.bottom() + 3;
 
-            StyledButton subclass = fieldButton("后来专精", Messages.titleCase(draft.subClass().title())) {
-                @Override
-                protected void onClick() {
-                    super.onClick();
-                    HeroSubClass[] subclasses = draft.heroClass.subClasses();
-                    String[] labels = new String[subclasses.length];
-                    for (int i = 0; i < subclasses.length; i++) labels[i] = Messages.titleCase(subclasses[i].title());
-                    RegistrationScene.this.add(new WndOptions(
-                            "后来专精",
-                            "这不是新的职业系统，而是沿用原版英雄在地下城中形成的专精。",
-                            labels) {
-                        @Override
-                        protected void onSelect(int index) {
-                            draft.subclassIndex = index;
-                            Game.switchScene(RegistrationScene.class);
-                        }
-                    });
-                }
-            };
+            StyledButton subclass = fieldButton("后来专精", Messages.titleCase(draft.subClass().title()), () -> {
+                HeroSubClass[] subclasses = draft.heroClass.subClasses();
+                String[] labels = new String[subclasses.length];
+                for (int i = 0; i < subclasses.length; i++) labels[i] = Messages.titleCase(subclasses[i].title());
+                RegistrationScene.this.add(new WndOptions("后来专精",
+                        "沿用原版英雄在地下城中形成的专精。", labels) {
+                    @Override
+                    protected void onSelect(int index) {
+                        draft.subclassIndex = index;
+                        Game.switchScene(RegistrationScene.class);
+                    }
+                });
+            });
             subclass.setRect(formX, y, formW, 22);
             add(subclass);
             y = subclass.bottom() + 3;
 
-            StyledButton ability = fieldButton("最终战技", draft.armorAbility().name()) {
-                @Override
-                protected void onClick() {
-                    super.onClick();
-                    ArmorAbility[] abilities = draft.heroClass.armorAbilities();
-                    String[] labels = new String[abilities.length];
-                    for (int i = 0; i < abilities.length; i++) labels[i] = abilities[i].name();
-                    RegistrationScene.this.add(new WndOptions(
-                            "最终战技",
-                            "记录你在第一部终局阶段掌握的英雄护甲能力。",
-                            labels) {
-                        @Override
-                        protected void onSelect(int index) {
-                            draft.abilityIndex = index;
-                            Game.switchScene(RegistrationScene.class);
-                        }
-                    });
-                }
-            };
+            StyledButton ability = fieldButton("最终战技", draft.armorAbility().name(), () -> {
+                ArmorAbility[] abilities = draft.heroClass.armorAbilities();
+                String[] labels = new String[abilities.length];
+                for (int i = 0; i < abilities.length; i++) labels[i] = abilities[i].name();
+                RegistrationScene.this.add(new WndOptions("最终战技",
+                        "记录第一部终局阶段掌握的英雄护甲能力。", labels) {
+                    @Override
+                    protected void onSelect(int index) {
+                        draft.abilityIndex = index;
+                        Game.switchScene(RegistrationScene.class);
+                    }
+                });
+            });
             ability.setRect(formX, y, formW, 22);
             add(ability);
             y = ability.bottom() + 3;
 
-            StyledButton growth = fieldButton("成长记录", draft.growthPreset.title) {
-                @Override
-                protected void onClick() {
-                    super.onClick();
-                    String[] labels = new String[]{"均衡记录", "进攻记录", "生存记录"};
-                    RegistrationScene.this.add(new WndOptions(
-                            "成长记录",
-                            "原版 Lv.30 的 29 个标准天赋点仍按四个层级分别计算。当前先提供三套起点；逐项加减的详细页会在这套名册 UI 稳定后接入。",
-                            labels) {
+            StyledButton growth = fieldButton("成长记录", draft.growthPreset.title, () ->
+                    RegistrationScene.this.add(new WndOptions("成长记录",
+                            "原版 Lv.30 的 29 个标准天赋点仍按四个层级分别计算。当前先提供三套起点；逐项加减的详细页会在名册 UI 稳定后接入。",
+                            "均衡记录", "进攻记录", "生存记录") {
                         @Override
                         protected void onSelect(int index) {
                             draft.growthPreset = ReturningHeroProfile.GrowthPreset.values()[index];
                             Game.switchScene(RegistrationScene.class);
                         }
-                    });
-                }
-            };
+                    }));
             growth.setRect(formX, y, formW, 22);
             add(growth);
             y = growth.bottom() + 7;
@@ -356,15 +289,18 @@ public class LedgerScene extends PixelScene {
             destination.hardlight(FADED_INK);
             destination.setPos(formX + 3, y);
             add(destination);
-            y = destination.bottom() + 4;
+            y = destination.bottom() + 5;
 
-            ColorBlock stampBorder = new ColorBlock(58, 21, 0x55922E2E);
-            stampBorder.setPos(formX + formW - 61, y - 1);
+            final float stampW = 58;
+            final float stampH = 21;
+            ColorBlock stampBorder = new ColorBlock(stampW, stampH, 0x55922E2E);
+            stampBorder.x = formX + formW - stampW - 3;
+            stampBorder.y = y - 1;
             add(stampBorder);
             RenderedTextBlock stamp = PixelScene.renderTextBlock("未  归", 13);
             stamp.hardlight(STAMP);
-            stamp.setPos(stampBorder.x + (stampBorder.width - stamp.width()) / 2f,
-                    stampBorder.y + (stampBorder.height - stamp.height()) / 2f);
+            stamp.setPos(stampBorder.x + (stampW - stamp.width()) / 2f,
+                    stampBorder.y + (stampH - stamp.height()) / 2f);
             add(stamp);
 
             StyledButton confirm = new StyledButton(Chrome.Type.TOAST_WHITE, "盖下「未归」并登记") {
@@ -379,25 +315,32 @@ public class LedgerScene extends PixelScene {
                 }
             };
             confirm.textColor(STAMP);
-            confirm.setRect(formX, Math.min(screenH - safe.bottom - 27, y + 26), formW, 22);
+            confirm.setRect(formX, Math.min(screenH - safe.bottom - 50, y + 25), formW, 22);
             add(confirm);
 
-            StyledButton back = fieldButton("返回名册", "") {
+            StyledButton back = new StyledButton(Chrome.Type.TOAST_WHITE, "返回名册") {
                 @Override
                 protected void onClick() {
                     super.onClick();
                     Game.switchScene(LedgerScene.class);
                 }
             };
+            back.textColor(INK);
             back.setRect(formX, confirm.bottom() + 3, formW, 18);
             add(back);
 
             fadeIn();
         }
 
-        private StyledButton fieldButton(String field, String value) {
+        private StyledButton fieldButton(String field, String value, final Runnable action) {
             StyledButton button = new StyledButton(Chrome.Type.TOAST_WHITE,
-                    value == null || value.isEmpty() ? field : field + "：" + value);
+                    value == null || value.isEmpty() ? field : field + "：" + value) {
+                @Override
+                protected void onClick() {
+                    super.onClick();
+                    action.run();
+                }
+            };
             button.textColor(INK);
             return button;
         }
