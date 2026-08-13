@@ -1,7 +1,11 @@
-name: Echoes of Yendor Windows Build
+name: Echoes of Yendor Windows EXE Build
 
 on:
   push:
+    branches:
+      - "rpg-development"
+      - "ui-*"
+  pull_request:
     branches: [ "rpg-development" ]
   workflow_dispatch:
 
@@ -27,23 +31,37 @@ jobs:
         with:
           cache-read-only: false
 
-      - name: Build Windows native image
+      - name: Build Windows native EXE image
         shell: pwsh
         run: |
           $maxAttempts = 3
           for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
-            Write-Host "Gradle build attempt $attempt of $maxAttempts"
+            Write-Host "Gradle jpackage image attempt $attempt of $maxAttempts"
             .\gradlew.bat desktop:jpackageimage
-            if ($LASTEXITCODE -eq 0) { exit 0 }
+            if ($LASTEXITCODE -eq 0) { break }
             if ($attempt -eq $maxAttempts) { exit $LASTEXITCODE }
             Start-Sleep -Seconds (15 * $attempt)
           }
 
-      - name: Upload Windows build
+      - name: Verify runnable Windows launcher
+        shell: pwsh
+        run: |
+          $launchers = Get-ChildItem -Path "desktop/build/jpackage" -Recurse -Filter "*.exe" |
+            Where-Object { $_.FullName -notmatch '[\\/]runtime[\\/]' }
+
+          if (-not $launchers) {
+            Write-Error "jpackage completed but no application .exe launcher was found."
+            exit 1
+          }
+
+          Write-Host "Runnable launcher(s):"
+          $launchers | ForEach-Object { Write-Host $_.FullName }
+
+      - name: Upload ready-to-run Windows build
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Echoes-of-Yendor-Windows
+          name: Echoes-of-Yendor-Windows-EXE
           path: desktop/build/jpackage/**
           if-no-files-found: error
           retention-days: 14
