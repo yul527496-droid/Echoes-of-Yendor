@@ -200,13 +200,19 @@ public class LedgerRecordsScene extends PixelScene {
                 meta.setPos(textX, rowY + 18f);
                 add(meta);
 
-                Image stamp = new Image(LedgerEnvironment.STAMP_UNRETURNED);
-                float stampScale = Math.min(0.78f, Math.max(0.52f, (rowH - 6f) / stamp.height));
-                stamp.scale.set(stampScale);
-                stamp.x = page.body.right - stamp.width() - 5f;
-                stamp.y = rowY + (rowH - stamp.height()) / 2f - 2f;
-                stamp.alpha(0.88f);
-                add(stamp);
+                Image stamp = LedgerEnvironment.tryLoad(LedgerEnvironment.STAMP_UNRETURNED);
+                if (stamp != null) {
+                    float stampScale = Math.min(0.78f, Math.max(0.52f, (rowH - 6f) / stamp.height));
+                    stamp.scale.set(stampScale);
+                    stamp.x = page.body.right - stamp.width() - 5f;
+                    stamp.y = rowY + (rowH - stamp.height()) / 2f - 2f;
+                    stamp.alpha(0.88f);
+                    add(stamp);
+                } else {
+                    RenderedTextBlock stampText = text("未归", 6, LedgerEnvironment.STAMP, 22);
+                    stampText.setPos(page.body.right - stampText.width() - 5f, rowY + 5f);
+                    add(stampText);
+                }
 
                 LedgerButton erase = new LedgerButton(Chrome.Type.BLANK, "移除", 5) {
                     @Override protected void onClick() {
