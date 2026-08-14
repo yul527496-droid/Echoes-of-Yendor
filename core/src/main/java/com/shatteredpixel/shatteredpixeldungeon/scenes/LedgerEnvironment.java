@@ -66,44 +66,16 @@ final class LedgerEnvironment {
         return embeddedFallback;
     }
 
+    /**
+     * Both the external 480x270 plate and the 160x90 embedded fallback use the
+     * exact same logical page geometry. Only the artwork changes.
+     */
     static RectF leftPage(Image book) {
-        if (embeddedFallback) {
-            float sx = book.width() / 160f;
-            float sy = book.height() / 90f;
-            return new RectF(
-                    book.x + 18f * sx,
-                    book.y + 11f * sy,
-                    book.x + 74f * sx,
-                    book.y + 75f * sy);
-        }
-
-        float sx = book.width() / 480f;
-        float sy = book.height() / 270f;
-        return new RectF(
-                book.x + 78f * sx,
-                book.y + 32f * sy,
-                book.x + 235f * sx,
-                book.y + 238f * sy);
+        return LedgerDesignSpace.leftPage(book);
     }
 
     static RectF rightPage(Image book) {
-        if (embeddedFallback) {
-            float sx = book.width() / 160f;
-            float sy = book.height() / 90f;
-            return new RectF(
-                    book.x + 87f * sx,
-                    book.y + 11f * sy,
-                    book.x + 139f * sx,
-                    book.y + 75f * sy);
-        }
-
-        float sx = book.width() / 480f;
-        float sy = book.height() / 270f;
-        return new RectF(
-                book.x + 250f * sx,
-                book.y + 32f * sy,
-                book.x + 405f * sx,
-                book.y + 238f * sy);
+        return LedgerDesignSpace.rightPage(book);
     }
 
     static LedgerPageGrid.Page leftGrid(Image book) {
