@@ -8,37 +8,45 @@ import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.ui.Component;
 
-/** Candle ambience for ledger scenes. */
+/** Layered, directional candle ambience for ledger scenes. */
 final class LedgerCandleFX extends Component {
 
-    private static final String GLOW_KEY = "echoes-ledger-candle-glow-v3";
+    private static final String GLOW_KEY = "echoes-ledger-candle-glow-v4";
     private static final int GLOW_SIZE = 48;
 
-    private static final int[] FRAME_SEQUENCE = {0, 1, 2, 1, 3, 4, 5, 4, 2, 3};
-    private static final float[] JITTER_X = {0f, 0.28f, -0.16f, 0.12f, -0.30f, 0.18f};
-    private static final float[] JITTER_Y = {0f, -0.12f, 0.16f, -0.20f, 0.10f, -0.06f};
+    // Deliberately irregular 9-10 fps loop; readable as pixel animation without looking mechanical.
+    private static final int[] FRAME_SEQUENCE = {0, 1, 2, 1, 3, 4, 3, 5, 4, 2, 1};
+    private static final float[] JITTER_X = {0f, 0.46f, -0.34f, 0.20f, -0.52f, 0.36f};
+    private static final float[] JITTER_Y = {0f, -0.24f, 0.28f, -0.36f, 0.16f, -0.18f};
 
+    // 480x270 detailed open-book plate. The candle wick is around x=54,y=42.
     private static final Profile OPEN_EXTERNAL = new Profile(
-            46.5f, 40.0f, 1.00f,
-            54.0f, 51.0f, 76.0f, 66.0f, 0.080f,
-            96.0f, 78.0f, 174.0f, 138.0f, 0.020f,
-            true, true);
+            46.5f, 37.5f, 0.66f, 1.28f, 0.40f,
+            54.0f, 49.0f, 82.0f, 72.0f, 0.115f,
+            98.0f, 77.0f, 182.0f, 146.0f, 0.034f,
+            0.105f, 0.125f,
+            true, true, true);
 
+    // 160x90 emergency artwork. It already contains a painted flame, so the sprite is low-alpha accent only.
     private static final Profile OPEN_EMBEDDED = new Profile(
-            9.5f, 12.5f, 0.42f,
-            10.2f, 13.5f, 22.0f, 20.0f, 0.070f,
-            17.0f, 18.0f, 42.0f, 34.0f, 0.018f,
-            true, false);
+            9.4f, 10.2f, 0.30f, 0.58f, 0.28f,
+            10.2f, 13.0f, 25.0f, 22.0f, 0.105f,
+            17.0f, 18.0f, 45.0f, 37.0f, 0.030f,
+            0f, 0f,
+            false, true, false);
 
+    // 128x85 title artwork. The animated sprite softly reshapes the existing painted flame.
     private static final Profile CLOSED_EMBEDDED = new Profile(
-            17.7f, 10.7f, 0.50f,
-            18.0f, 12.8f, 20.0f, 18.0f, 0.068f,
-            26.0f, 19.0f, 40.0f, 32.0f, 0.017f,
-            false, false);
+            17.5f, 9.8f, 0.35f, 0.72f, 0.30f,
+            19.5f, 14.0f, 24.0f, 22.0f, 0.120f,
+            28.0f, 20.0f, 47.0f, 37.0f, 0.035f,
+            0f, 0f,
+            false, true, false);
 
     private final Image source;
     private final Profile profile;
     private final Image shadow;
+    private final Image lightMap;
     private final Image spill;
     private final Image halo;
     private final Image flame;
@@ -61,14 +69,14 @@ final class LedgerCandleFX extends Component {
         this.source = source;
         this.profile = profile;
 
-        if (profile.pageShadow) {
+        if (profile.fullPlateLighting) {
             shadow = LedgerEnvironment.tryLoad(LedgerEnvironment.LEDGER_SHADOW);
-            if (shadow != null) {
-                shadow.alpha(0.10f);
-                add(shadow);
-            }
+            lightMap = LedgerEnvironment.tryLoad(LedgerEnvironment.LEDGER_LIGHT);
+            if (shadow != null) add(shadow);
+            if (lightMap != null) add(lightMap);
         } else {
             shadow = null;
+            lightMap = null;
         }
 
         SmartTexture glowTexture = glowTexture();
@@ -93,69 +101,81 @@ final class LedgerCandleFX extends Component {
     @Override
     public void update() {
         super.update();
-        LedgerAudio.update();
         time += Game.elapsed;
         updateVisuals(time);
     }
 
     private void updateVisuals(float t) {
-        int sequenceIndex = ((int) (t / 0.09f)) % FRAME_SEQUENCE.length;
+        int sequenceIndex = ((int) (t / 0.105f)) % FRAME_SEQUENCE.length;
         int frame = FRAME_SEQUENCE[sequenceIndex];
         float jx = JITTER_X[frame];
         float jy = JITTER_Y[frame];
 
-        float slow = (float) Math.sin(t * 2.05f + 0.35f);
-        float quick = (float) Math.sin(t * 8.35f + 1.10f);
-        float flicker = slow * 0.58f + quick * 0.42f;
+        float slow = (float) Math.sin(t * 2.15f + 0.31f);
+        float quick = (float) Math.sin(t * 8.85f + 1.07f);
+        float flicker = slow * 0.56f + quick * 0.44f;
         float sourceAlpha = source.alpha();
 
         if (shadow != null) {
             shadow.visible = source.visible;
-            if (LedgerEnvironment.usingEmbeddedFallback()) {
-                shadow.visible = false;
-            } else {
-                shadow.scale.set(source.scale.x, source.scale.y);
-                shadow.x = source.x - jx * 0.22f * source.scale.x;
-                shadow.y = source.y - jy * 0.14f * source.scale.y;
-                shadow.alpha(sourceAlpha * clamp(0.105f - 0.014f * flicker, 0.080f, 0.125f));
-            }
+            shadow.scale.set(source.scale.x, source.scale.y);
+            shadow.x = source.x - jx * 0.40f * source.scale.x;
+            shadow.y = source.y - jy * 0.22f * source.scale.y;
+            shadow.alpha(sourceAlpha * clamp(
+                    profile.shadowAlpha - flicker * 0.026f,
+                    profile.shadowAlpha * 0.70f,
+                    profile.shadowAlpha * 1.28f));
+        }
+
+        if (lightMap != null) {
+            lightMap.visible = source.visible;
+            lightMap.scale.set(source.scale.x, source.scale.y);
+            lightMap.x = source.x + jx * 0.16f * source.scale.x;
+            lightMap.y = source.y + jy * 0.10f * source.scale.y;
+            lightMap.alpha(sourceAlpha * clamp(
+                    profile.plateLightAlpha + flicker * 0.030f,
+                    profile.plateLightAlpha * 0.68f,
+                    profile.plateLightAlpha * 1.34f));
         }
 
         placeGlow(spill,
-                profile.spillX + jx * 0.08f,
-                profile.spillY + jy * 0.06f,
+                profile.spillX + jx * 0.15f,
+                profile.spillY + jy * 0.10f,
                 profile.spillW,
                 profile.spillH);
         spill.visible = source.visible;
         spill.alpha(sourceAlpha * clamp(
-                profile.spillAlpha + slow * 0.003f + quick * 0.002f,
-                profile.spillAlpha * 0.78f,
-                profile.spillAlpha * 1.24f));
+                profile.spillAlpha + slow * 0.006f + quick * 0.005f,
+                profile.spillAlpha * 0.66f,
+                profile.spillAlpha * 1.42f));
 
         placeGlow(halo,
-                profile.glowX + jx * 0.24f,
-                profile.glowY + jy * 0.20f,
+                profile.glowX + jx * 0.38f,
+                profile.glowY + jy * 0.30f,
                 profile.glowW,
                 profile.glowH);
         halo.visible = source.visible;
         halo.alpha(sourceAlpha * clamp(
-                profile.glowAlpha + slow * 0.008f + quick * 0.006f,
-                profile.glowAlpha * 0.80f,
-                profile.glowAlpha * 1.22f));
+                profile.glowAlpha + slow * 0.020f + quick * 0.015f,
+                profile.glowAlpha * 0.62f,
+                profile.glowAlpha * 1.40f));
 
         if (flame != null) {
             flame.visible = source.visible;
             flame.frame(frame * 16, 0, 16, 16);
 
-            float breatheX = 0.985f + quick * 0.018f;
-            float breatheY = 1.000f + slow * 0.028f + quick * 0.012f;
+            float breatheX = 0.97f + quick * 0.045f;
+            float breatheY = 1.00f + slow * 0.075f + quick * 0.035f;
             flame.scale.set(
-                    source.scale.x * profile.flameScale * breatheX,
-                    source.scale.y * profile.flameScale * breatheY);
+                    source.scale.x * profile.flameScaleX * breatheX,
+                    source.scale.y * profile.flameScaleY * breatheY);
 
             flame.x = source.x + (profile.flameX + jx) * source.scale.x;
             flame.y = source.y + (profile.flameY + jy) * source.scale.y;
-            flame.alpha(sourceAlpha * clamp(0.88f + 0.050f * flicker, 0.80f, 0.96f));
+            flame.alpha(sourceAlpha * clamp(
+                    profile.flameAlpha + 0.055f * flicker,
+                    profile.flameAlpha * 0.72f,
+                    Math.min(0.78f, profile.flameAlpha * 1.30f)));
             PixelScene.align(flame);
         }
     }
@@ -191,8 +211,8 @@ final class LedgerCandleFX extends Component {
                 float falloff = 1f - distance;
                 float smooth = falloff * falloff * (3f - 2f * falloff);
                 float stepped = Math.round(smooth * 15f) / 15f;
-                float alpha = stepped * 0.50f;
-                pixmap.setColor(1.00f, 0.70f, 0.34f, alpha);
+                float alpha = stepped * 0.52f;
+                pixmap.setColor(1.00f, 0.68f, 0.30f, alpha);
                 pixmap.drawPixel(x, y);
             }
         }
@@ -209,7 +229,9 @@ final class LedgerCandleFX extends Component {
     private static final class Profile {
         final float flameX;
         final float flameY;
-        final float flameScale;
+        final float flameScaleX;
+        final float flameScaleY;
+        final float flameAlpha;
         final float glowX;
         final float glowY;
         final float glowW;
@@ -220,16 +242,22 @@ final class LedgerCandleFX extends Component {
         final float spillW;
         final float spillH;
         final float spillAlpha;
-        final boolean pageShadow;
+        final float shadowAlpha;
+        final float plateLightAlpha;
+        final boolean fullPlateLighting;
         final boolean animatedFlame;
+        final boolean reserved;
 
-        Profile(float flameX, float flameY, float flameScale,
+        Profile(float flameX, float flameY, float flameScaleX, float flameScaleY, float flameAlpha,
                 float glowX, float glowY, float glowW, float glowH, float glowAlpha,
                 float spillX, float spillY, float spillW, float spillH, float spillAlpha,
-                boolean pageShadow, boolean animatedFlame) {
+                float shadowAlpha, float plateLightAlpha,
+                boolean fullPlateLighting, boolean animatedFlame, boolean reserved) {
             this.flameX = flameX;
             this.flameY = flameY;
-            this.flameScale = flameScale;
+            this.flameScaleX = flameScaleX;
+            this.flameScaleY = flameScaleY;
+            this.flameAlpha = flameAlpha;
             this.glowX = glowX;
             this.glowY = glowY;
             this.glowW = glowW;
@@ -240,8 +268,11 @@ final class LedgerCandleFX extends Component {
             this.spillW = spillW;
             this.spillH = spillH;
             this.spillAlpha = spillAlpha;
-            this.pageShadow = pageShadow;
+            this.shadowAlpha = shadowAlpha;
+            this.plateLightAlpha = plateLightAlpha;
+            this.fullPlateLighting = fullPlateLighting;
             this.animatedFlame = animatedFlame;
+            this.reserved = reserved;
         }
     }
 }
