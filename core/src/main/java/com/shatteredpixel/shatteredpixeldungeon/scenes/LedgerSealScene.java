@@ -20,6 +20,16 @@ public class LedgerSealScene extends PixelScene {
 
     @Override
     public void create() {
+        // Expanded returning builds must pass through the equipment ledger before
+        // the final inn stamp. This keeps the old weapon-page transition usable
+        // while the remaining reconstruction pages are introduced incrementally.
+        if (LedgerFlow.draft().loadout != null
+                && LedgerFlow.draft().loadout.armorId == null) {
+            PixelScene.noFade = true;
+            Game.switchScene(LedgerBuildScene.class);
+            return;
+        }
+
         super.create();
 
         Image book = LedgerEnvironment.addOpenBook(this);
@@ -102,7 +112,6 @@ public class LedgerSealScene extends PixelScene {
         super.update();
         time += Game.elapsed;
 
-        // Leave the first 0.4s clear for the incoming page reveal.
         float fall = Math.max(0f, Math.min(1f, (time - 0.42f) / 0.34f));
         float eased = 1f - (1f - fall) * (1f - fall) * (1f - fall);
         stamp.setRect(stampX, stampY - (1f - eased) * 20f, stampW, stampH);
