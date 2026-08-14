@@ -32,6 +32,8 @@ final class LedgerEnvironment {
     }
 
     static Image addOpenBook(PixelScene scene) {
+        LedgerAudio.enter();
+
         int w = Camera.main.width;
         int h = Camera.main.height;
 
