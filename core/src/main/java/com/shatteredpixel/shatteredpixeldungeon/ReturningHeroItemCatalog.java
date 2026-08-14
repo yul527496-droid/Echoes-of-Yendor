@@ -8,6 +8,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.rings.*;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.*;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.*;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.*;
+import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,7 +58,7 @@ public final class ReturningHeroItemCatalog {
     static {
         for (Kind kind : Kind.values()) BY_KIND.put(kind, new ArrayList<Entry>());
 
-        // T1 is career heritage.  It is catalogued for stable identity, but is
+        // T1 is career heritage. It is catalogued for stable identity, but is
         // not offered in the normal returning-weapon picker.
         add("weapon.t1.worn_shortsword", Kind.MELEE_WEAPON, 1, WornShortsword.class, false);
         add("weapon.t1.mages_staff", Kind.MELEE_WEAPON, 1, MagesStaff.class, false);
@@ -193,6 +194,12 @@ public final class ReturningHeroItemCatalog {
     public static String idForClass(Class<? extends Item> itemClass) {
         Entry entry = byClass(itemClass);
         return entry == null ? null : entry.id;
+    }
+
+    /** Creates a fresh item instance for a stable ID, or null for an unknown ID. */
+    public static Item newItem(String id) {
+        Entry entry = byId(id);
+        return entry == null ? null : Reflection.newInstance(entry.itemClass);
     }
 
     public static List<Entry> entries(Kind kind) {
