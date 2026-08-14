@@ -26,15 +26,15 @@ public class LedgerSealScene extends PixelScene {
         LedgerPageGrid.Page left = LedgerEnvironment.leftGrid(book);
         right = LedgerEnvironment.rightGrid(book);
 
-        RenderedTextBlock title = t("登记完成", 8,
-                LedgerEnvironment.INK, (int) left.header.width());
+        RenderedTextBlock title = t("登记完成", 8, LedgerEnvironment.INK,
+                (int) left.header.width());
         title.align(RenderedTextBlock.CENTER_ALIGN);
         title.setPos(left.header.left + (left.header.width() - title.width()) / 2f,
                 left.header.top);
         add(title);
 
-        RenderedTextBlock note = t("名册原稿", 4,
-                LedgerEnvironment.FADED_INK, (int) left.header.width());
+        RenderedTextBlock note = t("名册原稿", 4, LedgerEnvironment.FADED_INK,
+                (int) left.header.width());
         note.align(RenderedTextBlock.CENTER_ALIGN);
         note.setPos(left.header.left + (left.header.width() - note.width()) / 2f,
                 title.bottom() + 3f);
@@ -48,9 +48,7 @@ public class LedgerSealScene extends PixelScene {
                         + "\n\n理想职业\n" + Messages.titleCase(LedgerFlow.draft().heroClass.title())
                         + "\n\n惯用兵器\n" + LedgerFlow.draft().weaponName()
                         + "\n\n去向\n地下遗迹",
-                5,
-                LedgerEnvironment.INK,
-                (int) left.body.width() - 6);
+                5, LedgerEnvironment.INK, (int) left.body.width() - 6);
         entry.setPos(left.body.left + 3f, left.body.top + 4f);
         add(entry);
 
@@ -70,8 +68,7 @@ public class LedgerSealScene extends PixelScene {
                 Math.min(right.header.bottom - 1f, inn.bottom() + 5f),
                 right.header.width() * 0.68f, 0.28f));
 
-        stamp = t("未  归", 13,
-                LedgerEnvironment.STAMP, (int) right.body.width());
+        stamp = t("未  归", 13, LedgerEnvironment.STAMP, (int) right.body.width());
         stampX = right.body.left + (right.body.width() - stamp.width()) / 2f;
         stampY = right.body.top + right.body.height() * 0.52f;
         stamp.setPos(stampX, stampY - 18f);
