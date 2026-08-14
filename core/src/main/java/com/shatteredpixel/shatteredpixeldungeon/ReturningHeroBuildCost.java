@@ -43,16 +43,16 @@ public final class ReturningHeroBuildCost {
         if (entry.tier < 2 || entry.tier >= WEAPON_COST.length) return -1;
         int[] table = WEAPON_COST[entry.tier];
         if (level < 0 || level >= table.length) return -1;
-        return table[level] + weaponFeatureAdjustment(itemId, level);
+
+        int cost = table[level] + ReturningHeroWeaponBalance.featureAdjustment(itemId, level);
+        return Math.max(0, cost);
     }
 
-    /**
-     * Reserved hook for the detailed per-weapon pass (reach, speed, accuracy,
-     * blocking, etc.).  Stable IDs mean that pass can add small modifiers here
-     * without touching presets or scenes.
-     */
-    private static int weaponFeatureAdjustment(String itemId, int level) {
-        return 0;
+    /** Exposed for ledger explanations and balance diagnostics. */
+    public static int weaponFeatureAdjustment(String itemId, int level) {
+        Entry entry = ReturningHeroItemCatalog.byId(itemId);
+        if (entry == null || entry.kind != Kind.MELEE_WEAPON || !entry.selectable) return 0;
+        return ReturningHeroWeaponBalance.featureAdjustment(itemId, level);
     }
 
     public static int armorCost(String itemId, int level) {
