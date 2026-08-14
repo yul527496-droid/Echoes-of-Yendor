@@ -3,6 +3,8 @@ package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.ReturningHeroItemCatalog.Kind;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,7 +31,12 @@ public final class ReturningHeroBuildValidator {
         SECOND_ARTIFACT_TOO_HIGH_WITH_CLASS_ARTIFACT,
         INVALID_TRINKET,
         TRINKET_ALCHEMY_BUDGET_EXCEEDED,
-        EQUIPMENT_BUDGET_EXCEEDED
+        EQUIPMENT_BUDGET_EXCEEDED,
+        TALENT_RULESET_MISMATCH,
+        UNKNOWN_TALENT,
+        TALENT_NOT_AVAILABLE,
+        TALENT_LEVEL_TOO_HIGH,
+        TALENT_TIER_BUDGET_EXCEEDED
     }
 
     public static final class Result {
@@ -53,12 +60,15 @@ public final class ReturningHeroBuildValidator {
     }
 
     public static Result validate(ReturningHeroProfile profile) {
+        List<Problem> problems = new ArrayList<>();
         if (profile == null) {
-            List<Problem> problems = new ArrayList<>();
             problems.add(Problem.RULESET_MISMATCH);
             return new Result(problems);
         }
-        return validate(profile.heroClass, profile.loadout);
+        appendProblems(problems, profile.heroClass, profile.loadout);
+        appendTalentProblems(problems, profile.heroClass, profile.subClass(),
+                profile.armorAbility(), profile.talentPlan);
+        return new Result(problems);
     }
 
     public static Result validate(ReturningHeroPreset preset) {
@@ -67,14 +77,57 @@ public final class ReturningHeroBuildValidator {
             problems.add(Problem.RULESET_MISMATCH);
             return new Result(problems);
         }
+        HeroSubClass subClass = subClass(preset.heroClass, preset.subclassIndex);
+        ArmorAbility armorAbility = armorAbility(preset.heroClass, preset.abilityIndex);
         appendProblems(problems, preset.heroClass, preset.loadout);
+        appendTalentProblems(problems, preset.heroClass, subClass,
+                armorAbility, preset.talentPlan);
         return new Result(problems);
     }
 
+    /** Equipment-only validation retained for callers that have not chosen talents yet. */
     public static Result validate(HeroClass heroClass, ReturningHeroLoadout loadout) {
         List<Problem> problems = new ArrayList<>();
         appendProblems(problems, heroClass, loadout);
         return new Result(problems);
+    }
+
+    private static HeroSubClass subClass(HeroClass heroClass, int index) {
+        HeroSubClass[] values = heroClass.subClasses();
+        return values[Math.max(0, Math.min(index, values.length - 1))];
+    }
+
+    private static ArmorAbility armorAbility(HeroClass heroClass, int index) {
+        ArmorAbility[] values = heroClass.armorAbilities();
+        return values[Math.max(0, Math.min(index, values.length - 1))];
+    }
+
+    private static void appendTalentProblems(List<Problem> problems,
+                                             HeroClass heroClass,
+                                             HeroSubClass subClass,
+                                             ArmorAbility armorAbility,
+                                             ReturningHeroTalentPlan talentPlan) {
+        ReturningHeroTalentRules.Result result = ReturningHeroTalentRules.validate(
+                talentPlan, heroClass, subClass, armorAbility);
+        for (ReturningHeroTalentRules.Problem problem : result.problems()) {
+            switch (problem) {
+                case RULESET_MISMATCH:
+                    problems.add(Problem.TALENT_RULESET_MISMATCH);
+                    break;
+                case UNKNOWN_TALENT:
+                    problems.add(Problem.UNKNOWN_TALENT);
+                    break;
+                case TALENT_NOT_AVAILABLE:
+                    problems.add(Problem.TALENT_NOT_AVAILABLE);
+                    break;
+                case TALENT_LEVEL_TOO_HIGH:
+                    problems.add(Problem.TALENT_LEVEL_TOO_HIGH);
+                    break;
+                case TIER_BUDGET_EXCEEDED:
+                    problems.add(Problem.TALENT_TIER_BUDGET_EXCEEDED);
+                    break;
+            }
+        }
     }
 
     private static void appendProblems(List<Problem> problems,
