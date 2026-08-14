@@ -48,9 +48,7 @@ public class LedgerIntroScene extends PixelScene {
     public void update() {
         super.update();
         time += Game.elapsed;
-        if (input.active) {
-            closedBook.brightness(1f + (float)Math.sin(time * 1.9f) * 0.007f);
-        }
+        if (input.active) closedBook.brightness(1f + (float)Math.sin(time * 1.9f) * 0.007f);
     }
 
     private void open() {
