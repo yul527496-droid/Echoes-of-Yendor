@@ -121,7 +121,13 @@ public class LedgerBuildScene extends PixelScene {
                         right.paper, LedgerArmorScene.class, true);
             }
         });
-        y = directoryButton(y, rowH, "法杖", wandStatus(), false, null);
+        y = directoryButton(y, rowH, "法杖", wandStatus(), true, new Runnable() {
+            @Override public void run() {
+                LedgerFlow.resetWandPicker();
+                LedgerTransitions.turn(LedgerBuildScene.this,
+                        right.paper, LedgerWandScene.class, true);
+            }
+        });
         y = directoryButton(y, rowH, "神器与戒指", accessoryStatus(), false, null);
         y = directoryButton(y, rowH, "随身饰品", trinketStatus(), false, null);
         y = directoryButton(y, rowH, "天赋", talentStatus(), false, null);
@@ -204,12 +210,14 @@ public class LedgerBuildScene extends PixelScene {
         if (loadout == null) return "未填写";
         if (LedgerFlow.draft().heroClass == HeroClass.MAGE
                 && loadout.mageStaffImbuementId != null) {
-            return itemName(loadout.mageStaffImbuementId) + "灌注";
+            String text = itemName(loadout.mageStaffImbuementId) + "灌注";
+            if (loadout.carriedWandId != null) text += " / 另携一杖";
+            return text;
         }
         if (loadout.carriedWandId != null) {
             return itemName(loadout.carriedWandId) + " +" + loadout.carriedWandLevel;
         }
-        return "未填写";
+        return "未携带";
     }
 
     private String accessoryStatus() {
