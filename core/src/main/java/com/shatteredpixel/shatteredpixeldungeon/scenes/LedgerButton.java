@@ -10,10 +10,6 @@ class LedgerButton extends StyledButton {
 
     LedgerButton(Chrome.Type type, String label, int size) {
         super(type, label, size);
-
-        // StyledButton's normal label is DPI-aware but outlined. On parchment
-        // that outline is visually too heavy, so replace it with the ledger's
-        // DPI-aware borderless text.
         remove(text);
         text = LedgerUI.rawText(label, size);
         add(text);
