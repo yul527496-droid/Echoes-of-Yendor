@@ -7,12 +7,11 @@ import com.watabou.utils.RectF;
 /** Shared geometry, palette, and ambient presentation for every ledger page. */
 final class LedgerEnvironment {
 
-    // Warm ink instead of near-black so the UI reads like print on parchment,
-    // not outlined debug text pasted over an image.
     static final int INK = 0x3B281B;
     static final int FADED_INK = 0x755E45;
     static final int STAMP = 0x9B302C;
     static final int RULE = 0x8B6B49;
+    static final int PAPER_ACCENT = 0xB98A55;
 
     // LedgerOpenArtwork is a 160x90 pixel-art reduction of the approved plate.
     private static final float ART_W = 160f;
@@ -32,9 +31,10 @@ final class LedgerEnvironment {
         PixelScene.align(book);
         scene.add(book);
 
-        // The approved plate already contains the candle and its shadow. This
-        // very subtle warm duplicate merely makes that lighting breathe.
-        scene.add(new LedgerWarmth(book, 0.032f));
+        // Global warmth stays almost imperceptible; the readable motion now
+        // comes from a local candle flame/light anchored to the painted candle.
+        scene.add(new LedgerWarmth(book, 0.014f));
+        scene.add(LedgerCandleFX.openBook(book));
         return book;
     }
 
@@ -56,5 +56,13 @@ final class LedgerEnvironment {
                 book.y + 11f * sy,
                 book.x + 144f * sx,
                 book.y + 75f * sy);
+    }
+
+    static LedgerPageGrid.Page leftGrid(Image book) {
+        return LedgerPageGrid.from(leftPage(book));
+    }
+
+    static LedgerPageGrid.Page rightGrid(Image book) {
+        return LedgerPageGrid.from(rightPage(book));
     }
 }
