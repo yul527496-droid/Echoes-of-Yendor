@@ -23,6 +23,7 @@ final class LedgerAudio {
     private static boolean shortLoaded;
     private static com.badlogic.gdx.audio.Music ambience;
     private static float ambienceFade;
+    private static long lastUpdateNanos;
 
     private LedgerAudio() {}
 
@@ -35,6 +36,7 @@ final class LedgerAudio {
                 ambience.setVolume(0f);
                 ambience.play();
                 ambienceFade = 0f;
+                lastUpdateNanos = 0L;
             } catch (Exception e) {
                 Game.reportException(e);
                 ambience = null;
@@ -43,11 +45,16 @@ final class LedgerAudio {
     }
 
     static void update() {
-        if (ambience != null && ambience.isPlaying() && ambienceFade < 1f) {
-            ambienceFade = Math.min(1f, ambienceFade + Game.elapsed / 1.35f);
-            // Atmosphere should sit behind paper/ink interactions, never lead them.
-            ambience.setVolume(0.15f * ambienceFade);
-        }
+        if (ambience == null || !ambience.isPlaying() || ambienceFade >= 1f) return;
+
+        // Intro owns both open- and closed-book candle FX for a short time.
+        // Avoid advancing the same ambience fade twice in one render frame.
+        long now = System.nanoTime();
+        if (lastUpdateNanos != 0L && now - lastUpdateNanos < 2_000_000L) return;
+        lastUpdateNanos = now;
+
+        ambienceFade = Math.min(1f, ambienceFade + Game.elapsed / 1.35f);
+        ambience.setVolume(0.15f * ambienceFade);
     }
 
     static void leave() {
@@ -60,6 +67,7 @@ final class LedgerAudio {
             }
             ambience = null;
             ambienceFade = 0f;
+            lastUpdateNanos = 0L;
         }
     }
 
