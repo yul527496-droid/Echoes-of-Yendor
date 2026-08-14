@@ -14,10 +14,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
  */
 public final class ReturningHeroBuildCost {
 
-    // Index is upgrade level. T1 is career heritage and has no selectable table.
+    // Index is upgrade level. T1 is only available as the matching class heritage.
     private static final int[][] WEAPON_COST = new int[][]{
             null,
-            null,
+            {0, 0, 0, 1, 2, 2, 3, 4},       // T1 class heritage only
             {0, 1, 2, 3, 4, 5, 6, 7},       // T2
             {2, 3, 4, 6, 7, 8, 9, 11},      // T3
             {3, 5, 6, 8, 9, 11, 12, 14},    // T4
@@ -37,13 +37,38 @@ public final class ReturningHeroBuildCost {
         // Utility class.
     }
 
+    /** Ordinary freely selectable T2-T5 melee weapons. */
     public static int weaponCost(String itemId, int level) {
         Entry entry = ReturningHeroItemCatalog.byId(itemId);
         if (entry == null || entry.kind != Kind.MELEE_WEAPON || !entry.selectable) return -1;
         if (entry.tier < 2 || entry.tier >= WEAPON_COST.length) return -1;
-        int[] table = WEAPON_COST[entry.tier];
-        if (level < 0 || level >= table.length) return -1;
+        return tableWeaponCost(entry, itemId, level);
+    }
 
+    /**
+     * Cost for the actual primary-weapon slot.  In addition to ordinary T2-T5
+     * choices, a non-Mage may keep using only their own original T1 weapon.
+     * Mage T1 is the completed staff heritage and is represented implicitly.
+     */
+    public static int primaryWeaponCost(HeroClass heroClass, String itemId, int level) {
+        Entry entry = ReturningHeroItemCatalog.byId(itemId);
+        if (entry == null || entry.kind != Kind.MELEE_WEAPON) return -1;
+
+        if (entry.tier == 1) {
+            if (heroClass == null || heroClass == HeroClass.MAGE) return -1;
+            String heritageId = ReturningHeroItemCatalog.idForClass(
+                    ReturningHeroHeritage.initialWeapon(heroClass));
+            if (!itemId.equals(heritageId)) return -1;
+            return tableWeaponCost(entry, itemId, level);
+        }
+
+        return weaponCost(itemId, level);
+    }
+
+    private static int tableWeaponCost(Entry entry, String itemId, int level) {
+        if (entry.tier < 1 || entry.tier >= WEAPON_COST.length) return -1;
+        int[] table = WEAPON_COST[entry.tier];
+        if (table == null || level < 0 || level >= table.length) return -1;
         int cost = table[level] + ReturningHeroWeaponBalance.featureAdjustment(itemId, level);
         return Math.max(0, cost);
     }
@@ -51,7 +76,7 @@ public final class ReturningHeroBuildCost {
     /** Exposed for ledger explanations and balance diagnostics. */
     public static int weaponFeatureAdjustment(String itemId, int level) {
         Entry entry = ReturningHeroItemCatalog.byId(itemId);
-        if (entry == null || entry.kind != Kind.MELEE_WEAPON || !entry.selectable) return 0;
+        if (entry == null || entry.kind != Kind.MELEE_WEAPON) return 0;
         return ReturningHeroWeaponBalance.featureAdjustment(itemId, level);
     }
 
@@ -94,7 +119,8 @@ public final class ReturningHeroBuildCost {
         int total = 0;
 
         if (loadout.primaryWeaponId != null) {
-            int value = weaponCost(loadout.primaryWeaponId, loadout.primaryWeaponLevel);
+            int value = primaryWeaponCost(heroClass, loadout.primaryWeaponId,
+                    loadout.primaryWeaponLevel);
             if (value < 0) return -1;
             total += value;
         }
