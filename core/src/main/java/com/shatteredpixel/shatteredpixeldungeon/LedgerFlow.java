@@ -17,6 +17,11 @@ public final class LedgerFlow {
     private static String wandCandidateId;
     private static int wandCandidateLevel;
 
+    private static int accessoryPickerStage = 0;
+    private static int accessoryTarget = 0;
+    private static String accessoryCandidateId;
+    private static int accessoryCandidateLevel;
+
     private LedgerFlow() {}
 
     public static ReturningHeroProfile draft() { return draft; }
@@ -26,6 +31,7 @@ public final class LedgerFlow {
         resetWeaponPicker();
         resetArmorPicker();
         resetWandPicker();
+        resetAccessoryPicker();
         return draft;
     }
 
@@ -81,5 +87,26 @@ public final class LedgerFlow {
         wandPickerStage = 0;
         wandCandidateId = null;
         wandCandidateLevel = 0;
+    }
+
+    /**
+     * Accessory picker stages: 0=three-slot overview, 1=item list, 2=level list.
+     * Targets: 0=artifact slot, 1=misc artifact, 2=misc ring, 3=ring slot.
+     */
+    public static int accessoryPickerStage() { return accessoryPickerStage; }
+    public static void accessoryPickerStage(int value) { accessoryPickerStage = Math.max(0, Math.min(value, 2)); }
+    public static int accessoryTarget() { return accessoryTarget; }
+    public static void accessoryTarget(int value) { accessoryTarget = Math.max(0, Math.min(value, 3)); }
+    public static String accessoryCandidateId() { return accessoryCandidateId; }
+    public static void accessoryCandidateId(String value) { accessoryCandidateId = value; }
+    public static int accessoryCandidateLevel() { return accessoryCandidateLevel; }
+    public static void accessoryCandidateLevel(int value) { accessoryCandidateLevel = Math.max(0, Math.min(value, 10)); }
+
+    public static void resetAccessoryPicker() {
+        choicePage = 0;
+        accessoryPickerStage = 0;
+        accessoryTarget = 0;
+        accessoryCandidateId = null;
+        accessoryCandidateLevel = 0;
     }
 }
