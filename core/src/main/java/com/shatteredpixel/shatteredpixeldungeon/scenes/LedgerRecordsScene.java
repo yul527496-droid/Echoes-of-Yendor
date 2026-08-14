@@ -30,16 +30,16 @@ public class LedgerRecordsScene extends PixelScene {
 
         buildLedgerPage(left, saves);
         buildRecordsPage(right, saves);
+        LedgerTransitions.revealIfPending(this, left.paper, right.paper);
         fadeIn();
     }
 
-    /** Left page: information that plausibly belongs in the inn's physical ledger. */
     private void buildLedgerPage(LedgerPageGrid.Page page,
                                  ArrayList<GamesInProgress.Info> saves) {
         float x = page.header.left;
         float w = page.header.width();
 
-        RenderedTextBlock title = text("遗迹下行者登记簿", 11,
+        RenderedTextBlock title = text("遗迹下行者登记簿", 10,
                 LedgerEnvironment.INK, (int) w);
         title.align(RenderedTextBlock.CENTER_ALIGN);
         title.setPos(x + (w - title.width()) / 2f, page.header.top);
@@ -66,17 +66,15 @@ public class LedgerRecordsScene extends PixelScene {
         y = section.bottom() + 10f;
 
         y = addField(bx, bw, y, "登记地点", "晨溪镇 · 老鸦旅店");
-        y = addField(bx, bw, y, "去向", "地下遗迹");
+        y = addField(bx, bw, y, "下行去向", "地下遗迹");
 
         int visibleRecords = Math.min(4, saves.size());
-        y = addField(bx, bw, y, "现存记录", String.valueOf(visibleRecords));
-        addField(bx, bw, y, "尚未归来", String.valueOf(visibleRecords));
+        y = addField(bx, bw, y, "册中人数", String.valueOf(visibleRecords));
+        addField(bx, bw, y, "未归人数", String.valueOf(visibleRecords));
 
-        RenderedTextBlock archiveMark = text("老鸦旅店", 8,
-                LedgerEnvironment.STAMP, 60);
-        archiveMark.alpha(0.12f);
-        archiveMark.setPos(page.body.right - archiveMark.width() - 5f,
-                page.body.bottom - archiveMark.height() - 7f);
+        LedgerStamp archiveMark = new LedgerStamp("老鸦旅店", 5);
+        archiveMark.setRect(page.body.right - 58f, page.body.bottom - 25f, 52f, 18f);
+        archiveMark.alpha(0.13f);
         add(archiveMark);
 
         add(LedgerPageGrid.rule(page.footer.left, page.footer.top + 1f,
@@ -133,7 +131,7 @@ public class LedgerRecordsScene extends PixelScene {
         title.setPos(x + (w - title.width()) / 2f, page.header.top + 1f);
         add(title);
 
-        RenderedTextBlock subtitle = text("留在册中的下行者", 5,
+        RenderedTextBlock subtitle = text("仍留在册上的名字", 5,
                 LedgerEnvironment.FADED_INK, (int) w);
         subtitle.align(RenderedTextBlock.CENTER_ALIGN);
         subtitle.setPos(x + (w - subtitle.width()) / 2f, title.bottom() + 3f);
@@ -240,7 +238,7 @@ public class LedgerRecordsScene extends PixelScene {
         add(avatar);
 
         float textX = page.body.left + 27f;
-        float textW = page.body.width() - 65f;
+        float textW = page.body.width() - 68f;
 
         RenderedTextBlock name = text(heroName, 7,
                 LedgerEnvironment.INK, (int) textW);
@@ -253,22 +251,10 @@ public class LedgerRecordsScene extends PixelScene {
         meta.setPos(textX, rowY + 17f);
         add(meta);
 
-        Image stamp = LedgerEnvironment.tryLoad(LedgerEnvironment.STAMP_UNRETURNED);
-        if (stamp != null) {
-            float stampScale = Math.min(0.68f,
-                    Math.max(0.48f, (rowH - 8f) / stamp.height));
-            stamp.scale.set(stampScale);
-            stamp.x = page.body.right - stamp.width() - 5f;
-            stamp.y = rowY + 3f;
-            stamp.alpha(0.86f);
-            add(stamp);
-        } else {
-            RenderedTextBlock stampText = text("未归", 6,
-                    LedgerEnvironment.STAMP, 24);
-            stampText.setPos(page.body.right - stampText.width() - 5f,
-                    rowY + 4f);
-            add(stampText);
-        }
+        LedgerStamp stamp = new LedgerStamp("未归", 5);
+        stamp.setRect(page.body.right - 31f, rowY + 3f, 27f, 13f);
+        stamp.alpha(0.86f);
+        add(stamp);
 
         LedgerButton erase = new LedgerButton(Chrome.Type.BLANK, "划去", 5) {
             @Override protected void onClick() {
@@ -279,6 +265,7 @@ public class LedgerRecordsScene extends PixelScene {
                         "划去", "取消") {
                     @Override protected void onSelect(int selected) {
                         if (selected == 0) {
+                            LedgerAudio.erase();
                             Dungeon.deleteGame(slot, true);
                             Game.switchScene(LedgerRecordsScene.class);
                         }
