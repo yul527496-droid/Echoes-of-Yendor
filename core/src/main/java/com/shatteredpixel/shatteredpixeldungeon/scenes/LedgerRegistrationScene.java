@@ -20,7 +20,8 @@ public class LedgerRegistrationScene extends PixelScene {
         LedgerPageGrid.Page right = LedgerEnvironment.rightGrid(book);
 
         buildEntry(left);
-        buildNotes(right);
+        buildRegister(right);
+        LedgerTransitions.revealIfPending(this, left.paper, right.paper);
         fadeIn();
     }
 
@@ -28,36 +29,37 @@ public class LedgerRegistrationScene extends PixelScene {
         float x = page.header.left;
         float w = page.header.width();
 
-        RenderedTextBlock title = t("遗迹下行者登记", 8, LedgerEnvironment.INK, (int) w);
+        RenderedTextBlock title = t("下行登记", 9, LedgerEnvironment.INK, (int) w);
         title.align(RenderedTextBlock.CENTER_ALIGN);
         title.setPos(x + (w - title.width()) / 2f, page.header.top);
         add(title);
 
-        RenderedTextBlock note = t("出发前记录", 4, LedgerEnvironment.FADED_INK, (int) w);
+        RenderedTextBlock note = t("晨溪镇 · 老鸦旅店", 5,
+                LedgerEnvironment.FADED_INK, (int) w);
         note.align(RenderedTextBlock.CENTER_ALIGN);
         note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
         add(note);
         add(LedgerPageGrid.rule(x + w * 0.14f,
                 Math.min(page.header.bottom - 1f, note.bottom() + 4f), w * 0.72f, 0.36f));
 
-        float bx = page.body.left + 2f;
-        float bw = page.body.width() - 4f;
+        float bx = page.body.left + 3f;
+        float bw = page.body.width() - 6f;
         float y = page.body.top + 4f;
 
         Image hero = new Image(LedgerFlow.draft().heroClass.spritesheet(), 0, 90, 12, 15);
-        hero.scale.set(1.65f);
+        hero.scale.set(1.75f);
         hero.x = bx + 2f;
         hero.y = y;
         add(hero);
 
         float ix = hero.x + hero.width() + 7f;
-        RenderedTextBlock classLabel = t("理想职业", 4, LedgerEnvironment.FADED_INK,
+        RenderedTextBlock classLabel = t("职业", 5, LedgerEnvironment.FADED_INK,
                 (int) (page.body.right - ix));
         classLabel.setPos(ix, y);
         add(classLabel);
 
         RenderedTextBlock classValue = t(Messages.titleCase(LedgerFlow.draft().heroClass.title()),
-                6, LedgerEnvironment.INK, (int) (page.body.right - ix));
+                7, LedgerEnvironment.INK, (int) (page.body.right - ix));
         classValue.setPos(ix, classLabel.bottom() + 2f);
         add(classValue);
 
@@ -65,25 +67,26 @@ public class LedgerRegistrationScene extends PixelScene {
         add(LedgerPageGrid.rule(bx, y, bw, 0.24f));
         y += 5f;
 
-        RenderedTextBlock nameLabel = t("姓名", 4, LedgerEnvironment.FADED_INK, 20);
+        RenderedTextBlock nameLabel = t("姓名", 5, LedgerEnvironment.FADED_INK, 20);
         nameLabel.setPos(bx, y + 2f);
         add(nameLabel);
 
         String cur = LedgerFlow.draft().name;
         boolean unnamed = cur == null || cur.trim().isEmpty() || cur.equals("无名者");
         LedgerButton name = new LedgerButton(Chrome.Type.BLANK,
-                unnamed ? "点击写下姓名" : cur, 5) {
+                unnamed ? "写下姓名" : cur, 6) {
             @Override protected void onClick() {
                 super.onClick();
                 String existing = LedgerFlow.draft().name;
                 LedgerRegistrationScene.this.add(new WndTextInput(
                         "登记姓名",
-                        "写下当年进入遗迹前留下的名字。",
+                        "请报姓名。",
                         existing == null || existing.equals("无名者") ? "" : existing,
-                        20, false, "写入名册", "取消") {
+                        20, false, "写入", "取消") {
                     @Override public void onSelect(boolean ok, String value) {
                         if (ok && value != null && !value.trim().isEmpty()) {
                             LedgerFlow.draft().name = value.trim();
+                            LedgerAudio.write();
                             PixelScene.noFade = true;
                             Game.switchScene(LedgerRegistrationScene.class);
                         }
@@ -94,26 +97,17 @@ public class LedgerRegistrationScene extends PixelScene {
         };
         name.leftJustify = true;
         name.textColor(unnamed ? LedgerEnvironment.FADED_INK : LedgerEnvironment.INK);
-        name.setRect(bx + 22f, y - 1f, bw - 22f, 12f);
+        name.setRect(bx + 22f, y - 1f, bw - 22f, 13f);
         add(name);
 
-        y += 15f;
-        RenderedTextBlock routeLabel = t("去向", 4, LedgerEnvironment.FADED_INK, 20);
-        routeLabel.setPos(bx, y);
-        add(routeLabel);
-        RenderedTextBlock routeValue = t("地下遗迹", 5, LedgerEnvironment.INK, (int) bw - 22);
-        routeValue.setPos(bx + 22f, y - 1f);
-        add(routeValue);
-
-        RenderedTextBlock signed = t("本人于下行前登记。", 4,
-                LedgerEnvironment.FADED_INK, (int) bw);
-        signed.setPos(bx, page.body.bottom - signed.height() - 3f);
-        add(signed);
+        y += 17f;
+        y = field(page, bx, bw, y, "去向", "地下遗迹");
+        field(page, bx, bw, y, "归期", "未定");
 
         add(LedgerPageGrid.rule(page.footer.left, page.footer.top + 1f,
                 page.footer.width(), 0.22f));
 
-        LedgerButton back = new LedgerButton(Chrome.Type.BLANK, "重新选择身份", 4) {
+        LedgerButton back = new LedgerButton(Chrome.Type.BLANK, "返回职业栏", 5) {
             @Override protected void onClick() {
                 super.onClick();
                 LedgerTransitions.turn(LedgerRegistrationScene.this,
@@ -126,46 +120,61 @@ public class LedgerRegistrationScene extends PixelScene {
         add(back);
     }
 
-    private void buildNotes(LedgerPageGrid.Page page) {
+    private float field(LedgerPageGrid.Page page, float x, float width, float y,
+                        String labelText, String valueText) {
+        RenderedTextBlock label = t(labelText, 5, LedgerEnvironment.FADED_INK, 20);
+        label.setPos(x, y);
+        add(label);
+        RenderedTextBlock value = t(valueText, 6, LedgerEnvironment.INK, (int) width - 23);
+        value.setPos(x + 23f, y - 1f);
+        add(value);
+        return Math.max(label.bottom(), value.bottom()) + 9f;
+    }
+
+    private void buildRegister(LedgerPageGrid.Page page) {
         float x = page.header.left;
         float w = page.header.width();
 
-        RenderedTextBlock title = t("登记原则", 8, LedgerEnvironment.INK, (int) w);
+        RenderedTextBlock title = t("随身登记", 9, LedgerEnvironment.INK, (int) w);
         title.align(RenderedTextBlock.CENTER_ALIGN);
         title.setPos(x + (w - title.width()) / 2f, page.header.top);
         add(title);
 
-        RenderedTextBlock note = t("老板娘只记录当时能知道的事", 4,
+        RenderedTextBlock note = t("下行前核对", 5,
                 LedgerEnvironment.FADED_INK, (int) w);
         note.align(RenderedTextBlock.CENTER_ALIGN);
         note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
         add(note);
-        add(LedgerPageGrid.rule(x + w * 0.10f,
-                Math.min(page.header.bottom - 1f, note.bottom() + 4f), w * 0.80f, 0.36f));
+        add(LedgerPageGrid.rule(x + w * 0.12f,
+                Math.min(page.header.bottom - 1f, note.bottom() + 4f), w * 0.76f, 0.36f));
 
-        float bx = page.body.left + 3f;
-        float bw = page.body.width() - 6f;
-        RenderedTextBlock rules = t(
-                "写入这一页\n姓名\n理想职业\n惯用兵器\n去向\n\n不写入这一页\n后来专精\n最终战技\n归来后的经历",
-                5, LedgerEnvironment.FADED_INK, (int) bw);
-        rules.setPos(bx, page.body.top + 4f);
-        add(rules);
+        float bx = page.body.left + 5f;
+        float bw = page.body.width() - 10f;
+        float y = page.body.top + 7f;
+        String name = LedgerFlow.draft().name;
+        if (name == null || name.trim().isEmpty() || name.equals("无名者")) name = "尚未填写";
 
-        RenderedTextBlock warning = t("后来的事，留给归来者自己补上。", 4,
-                LedgerEnvironment.STAMP, (int) bw);
-        warning.setPos(bx, page.body.bottom - warning.height() - 3f);
-        warning.alpha(0.78f);
-        add(warning);
+        y = registerField(bx, bw, y, "姓名", name);
+        y = registerField(bx, bw, y, "职业",
+                Messages.titleCase(LedgerFlow.draft().heroClass.title()));
+        y = registerField(bx, bw, y, "去向", "地下遗迹");
+        y = registerField(bx, bw, y, "惯用兵器", "尚未登记");
+        registerField(bx, bw, y, "归期", "未定");
+
+        LedgerStamp keep = new LedgerStamp("旅店留档", 5);
+        keep.setRect(page.body.right - 58f, page.body.bottom - 25f, 52f, 18f);
+        keep.alpha(0.13f);
+        add(keep);
 
         add(LedgerPageGrid.rule(page.footer.left, page.footer.top + 1f,
                 page.footer.width(), 0.28f));
 
-        LedgerButton next = new LedgerButton(Chrome.Type.BLANK, "继续填写惯用兵器", 5) {
+        LedgerButton next = new LedgerButton(Chrome.Type.BLANK, "填写惯用兵器", 6) {
             @Override protected void onClick() {
                 super.onClick();
                 String n = LedgerFlow.draft().name;
                 if (n == null || n.trim().isEmpty() || n.equals("无名者")) {
-                    LedgerRegistrationScene.this.add(new WndMessage("先在名册上留下一个名字。"));
+                    LedgerRegistrationScene.this.add(new WndMessage("请先留下姓名。"));
                     return;
                 }
                 LedgerTransitions.turn(LedgerRegistrationScene.this,
@@ -176,6 +185,17 @@ public class LedgerRegistrationScene extends PixelScene {
         next.setRect(page.footer.left, page.footer.top + 3f,
                 page.footer.width(), page.footer.height() - 3f);
         add(next);
+    }
+
+    private float registerField(float x, float width, float y,
+                                String labelText, String valueText) {
+        RenderedTextBlock label = t(labelText, 5, LedgerEnvironment.FADED_INK, 34);
+        label.setPos(x, y);
+        add(label);
+        RenderedTextBlock value = t(valueText, 6, LedgerEnvironment.INK, (int) width - 39);
+        value.setPos(x + 39f, y - 1f);
+        add(value);
+        return Math.max(label.bottom(), value.bottom()) + 10f;
     }
 
     private RenderedTextBlock t(String value, int size, int color, int width) {
