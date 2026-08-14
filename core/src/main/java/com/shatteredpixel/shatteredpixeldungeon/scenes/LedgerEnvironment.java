@@ -13,7 +13,6 @@ final class LedgerEnvironment {
     static final int RULE = 0x8B6B49;
     static final int PAPER_ACCENT = 0xB98A55;
 
-    // LedgerOpenArtwork is a 160x90 pixel-art reduction of the approved plate.
     private static final float ART_W = 160f;
     private static final float ART_H = 90f;
 
@@ -49,8 +48,6 @@ final class LedgerEnvironment {
     static RectF rightPage(Image book) {
         float sx = book.width() / ART_W;
         float sy = book.height() / ART_H;
-        // Intentionally conservative. The approved art's right edge contains
-        // heavy page curl/shadow; interactive content should stop well before it.
         return new RectF(
                 book.x + 87f * sx,
                 book.y + 11f * sy,
