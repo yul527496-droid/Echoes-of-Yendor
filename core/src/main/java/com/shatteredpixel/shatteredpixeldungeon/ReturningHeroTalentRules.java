@@ -16,11 +16,11 @@ import java.util.Map;
  * Original-talent rules used by the returning-hero reconstruction flow.
  *
  * Legal talent lists are derived from SPD itself through Talent's class,
- * subclass and armor-ability initialization helpers.  Echoes therefore does not
+ * subclass and armor-ability initialization helpers. Echoes therefore does not
  * maintain a second hand-written copy of every hero's talent table.
  *
  * The baseline reconstruction intentionally excludes Metamorphosis replacements
- * and Potion of Divine Inspiration bonus points.  Those represent optional past
+ * and Potion of Divine Inspiration bonus points. Those represent optional past
  * events rather than the guaranteed level-30 talent economy.
  */
 public final class ReturningHeroTalentRules {
@@ -69,6 +69,40 @@ public final class ReturningHeroTalentRules {
         Talent.initSubclassTalents(subClass, result);
         Talent.initArmorTalents(armorAbility, result);
         return result;
+    }
+
+    /**
+     * Reconcile one dependency tier after a choice changes. This deliberately
+     * preserves every other tier: subclass changes only invalidate old T3
+     * talents, while armor-ability changes only invalidate old T4 talents.
+     */
+    public static void reconcileChangedTier(ReturningHeroTalentPlan plan, int tier,
+                                            HeroClass oldClass, HeroSubClass oldSubClass,
+                                            ArmorAbility oldAbility,
+                                            HeroClass newClass, HeroSubClass newSubClass,
+                                            ArmorAbility newAbility) {
+        if (plan == null || tier < 1 || tier > Talent.MAX_TALENT_TIERS) return;
+
+        ArrayList<LinkedHashMap<Talent, Integer>> oldLegal =
+                legalTiers(oldClass, oldSubClass, oldAbility);
+        ArrayList<LinkedHashMap<Talent, Integer>> newLegal =
+                legalTiers(newClass, newSubClass, newAbility);
+
+        LinkedHashMap<Talent, Integer> oldTier = oldLegal.get(tier - 1);
+        LinkedHashMap<Talent, Integer> newTier = newLegal.get(tier - 1);
+
+        for (Talent talent : oldTier.keySet()) {
+            if (!newTier.containsKey(talent)) {
+                plan.set(talent, 0);
+            }
+        }
+        for (Talent talent : newTier.keySet()) {
+            int current = plan.pointsIn(talent);
+            if (current > talent.maxPoints()) {
+                plan.set(talent, talent.maxPoints());
+            }
+        }
+        plan.rulesetVersion = ReturningHeroBuildRules.RULESET_VERSION;
     }
 
     public static int tierOf(Talent talent, HeroClass heroClass,
