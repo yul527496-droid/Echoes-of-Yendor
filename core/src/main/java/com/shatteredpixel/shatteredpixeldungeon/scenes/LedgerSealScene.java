@@ -7,61 +7,82 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.audio.Sample;
-import com.watabou.utils.RectF;
 
 public class LedgerSealScene extends PixelScene {
 
     private float time;
     private boolean struck;
+    private boolean leaving;
     private RenderedTextBlock stamp;
     private float stampX;
     private float stampY;
+    private LedgerPageGrid.Page right;
 
     @Override
     public void create() {
         super.create();
 
         Image book = LedgerEnvironment.addOpenBook(this);
-        RectF l = LedgerEnvironment.leftPage(book);
-        RectF r = LedgerEnvironment.rightPage(book);
-        float lx = l.left + 8;
-        float lw = l.width() - 16;
-        float rx = r.left + 8;
-        float rw = r.width() - 16;
-        float top = l.top + 8;
+        LedgerPageGrid.Page left = LedgerEnvironment.leftGrid(book);
+        right = LedgerEnvironment.rightGrid(book);
 
-        RenderedTextBlock h = t("登记完成", 8, LedgerEnvironment.INK, (int) lw);
-        h.setPos(lx + (lw - h.width()) / 2f, top);
-        add(h);
+        RenderedTextBlock title = t("登记完成", 8,
+                LedgerEnvironment.INK, (int) left.header.width());
+        title.align(RenderedTextBlock.CENTER_ALIGN);
+        title.setPos(left.header.left + (left.header.width() - title.width()) / 2f,
+                left.header.top);
+        add(title);
+
+        RenderedTextBlock note = t("名册原稿", 4,
+                LedgerEnvironment.FADED_INK, (int) left.header.width());
+        note.align(RenderedTextBlock.CENTER_ALIGN);
+        note.setPos(left.header.left + (left.header.width() - note.width()) / 2f,
+                title.bottom() + 3f);
+        add(note);
+        add(LedgerPageGrid.rule(left.header.left + left.header.width() * 0.14f,
+                Math.min(left.header.bottom - 1f, note.bottom() + 4f),
+                left.header.width() * 0.72f, 0.36f));
 
         RenderedTextBlock entry = t(
-                "姓名  " + LedgerFlow.draft().name
-                        + "\n\n理想职业  " + Messages.titleCase(LedgerFlow.draft().heroClass.title())
-                        + "\n\n惯用兵器  " + LedgerFlow.draft().weaponName()
-                        + "\n\n去向  地下遗迹",
+                "姓名\n" + LedgerFlow.draft().name
+                        + "\n\n理想职业\n" + Messages.titleCase(LedgerFlow.draft().heroClass.title())
+                        + "\n\n惯用兵器\n" + LedgerFlow.draft().weaponName()
+                        + "\n\n去向\n地下遗迹",
                 5,
                 LedgerEnvironment.INK,
-                (int) lw);
-        entry.setPos(lx, h.bottom() + 12);
+                (int) left.body.width() - 6);
+        entry.setPos(left.body.left + 3f, left.body.top + 4f);
         add(entry);
 
-        RenderedTextBlock note = t("此后未再登记归期。", 5, LedgerEnvironment.FADED_INK, (int) lw);
-        note.setPos(lx, Math.min(l.bottom - 28, entry.bottom() + 14));
-        add(note);
+        RenderedTextBlock original = t("此后未再登记归期。", 4,
+                LedgerEnvironment.FADED_INK, (int) left.body.width() - 6);
+        original.setPos(left.body.left + 3f,
+                left.body.bottom - original.height() - 3f);
+        add(original);
 
-        RenderedTextBlock rh = t("晨溪镇 · 老鸦旅店", 6, LedgerEnvironment.FADED_INK, (int) rw);
-        rh.setPos(rx + (rw - rh.width()) / 2f, top + 3);
-        add(rh);
+        RenderedTextBlock inn = t("晨溪镇 · 老鸦旅店", 5,
+                LedgerEnvironment.FADED_INK, (int) right.header.width());
+        inn.align(RenderedTextBlock.CENTER_ALIGN);
+        inn.setPos(right.header.left + (right.header.width() - inn.width()) / 2f,
+                right.header.top + 2f);
+        add(inn);
+        add(LedgerPageGrid.rule(right.header.left + right.header.width() * 0.16f,
+                Math.min(right.header.bottom - 1f, inn.bottom() + 5f),
+                right.header.width() * 0.68f, 0.28f));
 
-        stamp = t("未  归", 14, LedgerEnvironment.STAMP, (int) rw);
-        stampX = rx + (rw - stamp.width()) / 2f;
-        stampY = r.top + r.height() * 0.52f;
+        stamp = t("未  归", 13,
+                LedgerEnvironment.STAMP, (int) right.body.width());
+        stampX = right.body.left + (right.body.width() - stamp.width()) / 2f;
+        stampY = right.body.top + right.body.height() * 0.52f;
         stamp.setPos(stampX, stampY - 18f);
         stamp.alpha(0f);
         add(stamp);
 
-        RenderedTextBlock hand = t("—— 名册原注", 5, LedgerEnvironment.FADED_INK, (int) rw);
-        hand.setPos(rx + (rw - hand.width()) / 2f, r.bottom - 25);
+        RenderedTextBlock hand = t("—— 名册原注", 4,
+                LedgerEnvironment.FADED_INK, (int) right.body.width());
+        hand.align(RenderedTextBlock.CENTER_ALIGN);
+        hand.setPos(right.body.left + (right.body.width() - hand.width()) / 2f,
+                right.body.bottom - hand.height() - 4f);
         add(hand);
 
         fadeIn();
@@ -72,8 +93,6 @@ public class LedgerSealScene extends PixelScene {
         super.update();
         time += Game.elapsed;
 
-        // A short anticipation beat makes the seal feel deliberate rather than
-        // appearing immediately as another static label.
         float fall = Math.max(0f, Math.min(1f, (time - 0.18f) / 0.34f));
         float eased = 1f - (1f - fall) * (1f - fall);
         stamp.alpha(eased);
@@ -85,9 +104,9 @@ public class LedgerSealScene extends PixelScene {
             PixelScene.shake(1.35f, 0.12f);
         }
 
-        // Leave the result on the page long enough for the player to read it.
-        if (time > 1.55f) {
-            Game.switchScene(LedgerReturnScene.class);
+        if (!leaving && time > 1.55f) {
+            leaving = true;
+            LedgerTransitions.turn(this, right.paper, LedgerReturnScene.class, true);
         }
     }
 
