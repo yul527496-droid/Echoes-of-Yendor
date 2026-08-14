@@ -119,9 +119,6 @@ public class LedgerWeaponScene extends PixelScene {
     }
 
     private RenderedTextBlock t(String value, int size, int color, int width) {
-        RenderedTextBlock block = PixelScene.renderTextBlock(value, size);
-        block.maxWidth(width);
-        block.hardlight(color);
-        return block;
+        return LedgerUI.text(value, size, color, width);
     }
 }
