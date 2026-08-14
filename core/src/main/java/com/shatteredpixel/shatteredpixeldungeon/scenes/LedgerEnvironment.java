@@ -13,8 +13,14 @@ final class LedgerEnvironment {
     static final int RULE = 0x8B6B49;
     static final int PAPER_ACCENT = 0xB98A55;
 
-    private static final float ART_W = 160f;
-    private static final float ART_H = 90f;
+    static final String LEDGER_BASE = "interfaces/echoes/ledger/ledger_base.png";
+    static final String LEDGER_SHADOW = "interfaces/echoes/ledger/ledger_shadow.png";
+    static final String LEDGER_LIGHT = "interfaces/echoes/ledger/ledger_light.png";
+    static final String CANDLE_FLAME = "interfaces/echoes/ledger/candle_flame.png";
+    static final String STAMP_UNRETURNED = "interfaces/echoes/ledger/stamp_unreturned.png";
+
+    private static final float ART_W = 480f;
+    private static final float ART_H = 270f;
 
     private LedgerEnvironment() {}
 
@@ -22,37 +28,51 @@ final class LedgerEnvironment {
         int w = Camera.main.width;
         int h = Camera.main.height;
 
-        Image book = LedgerOpenArtwork.image();
-        float scale = Math.min((w - 8f) / book.width, (h - 8f) / book.height);
-        book.scale.set(scale);
-        book.x = (w - book.width()) / 2f;
-        book.y = (h - book.height()) / 2f;
-        PixelScene.align(book);
-        scene.add(book);
+        Image base = new Image(LEDGER_BASE);
+        float scale = Math.min(w / base.width, h / base.height);
+        base.scale.set(scale);
+        base.x = (w - base.width()) / 2f;
+        base.y = (h - base.height()) / 2f;
+        PixelScene.align(base);
+        scene.add(base);
 
-        scene.add(new LedgerWarmth(book, 0.014f));
-        scene.add(LedgerCandleFX.openBook(book));
-        return book;
+        Image shadow = layer(LEDGER_SHADOW, base);
+        scene.add(shadow);
+
+        LedgerLightLayer light = new LedgerLightLayer(LEDGER_LIGHT, base);
+        scene.add(light);
+
+        scene.add(new LedgerCandleFlame(CANDLE_FLAME, base, light));
+        return base;
+    }
+
+    private static Image layer(String path, Image base) {
+        Image layer = new Image(path);
+        layer.scale.set(base.scale.x, base.scale.y);
+        layer.x = base.x;
+        layer.y = base.y;
+        layer.alpha(1f);
+        return layer;
     }
 
     static RectF leftPage(Image book) {
         float sx = book.width() / ART_W;
         float sy = book.height() / ART_H;
         return new RectF(
-                book.x + 18f * sx,
-                book.y + 11f * sy,
-                book.x + 74f * sx,
-                book.y + 75f * sy);
+                book.x + 78f * sx,
+                book.y + 32f * sy,
+                book.x + 235f * sx,
+                book.y + 238f * sy);
     }
 
     static RectF rightPage(Image book) {
         float sx = book.width() / ART_W;
         float sy = book.height() / ART_H;
         return new RectF(
-                book.x + 87f * sx,
-                book.y + 11f * sy,
-                book.x + 139f * sx,
-                book.y + 75f * sy);
+                book.x + 250f * sx,
+                book.y + 32f * sy,
+                book.x + 405f * sx,
+                book.y + 238f * sy);
     }
 
     static LedgerPageGrid.Page leftGrid(Image book) {
