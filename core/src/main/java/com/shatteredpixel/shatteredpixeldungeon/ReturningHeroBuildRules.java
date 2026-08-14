@@ -9,7 +9,7 @@ package com.shatteredpixel.shatteredpixeldungeon;
 public final class ReturningHeroBuildRules {
 
     /** Increment whenever stored presets need to be revalidated. */
-    public static final int RULESET_VERSION = 2;
+    public static final int RULESET_VERSION = 3;
 
     /** Shared budget for ordinary equipment reconstruction. */
     public static final int EQUIPMENT_RECONSTRUCTION_BUDGET = 15;
