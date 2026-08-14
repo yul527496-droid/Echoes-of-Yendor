@@ -51,11 +51,9 @@ public class LedgerHeroScene extends PixelScene {
         note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
         add(note);
 
-        add(LedgerPageGrid.rule(
-                x + w * 0.14f,
+        add(LedgerPageGrid.rule(x + w * 0.14f,
                 Math.min(left.header.bottom - 1f, note.bottom() + 4f),
-                w * 0.72f,
-                0.36f));
+                w * 0.72f, 0.36f));
 
         previewY = left.body.top + 8f;
         previews = new Image[HeroClass.values().length];
@@ -69,8 +67,7 @@ public class LedgerHeroScene extends PixelScene {
             add(hero);
         }
 
-        selectedName = t("尚未登记", 6,
-                LedgerEnvironment.INK, (int) left.body.width());
+        selectedName = t("尚未登记", 6, LedgerEnvironment.INK, (int) left.body.width());
         selectedName.align(RenderedTextBlock.CENTER_ALIGN);
         add(selectedName);
 
@@ -79,25 +76,19 @@ public class LedgerHeroScene extends PixelScene {
         selectedDesc.align(RenderedTextBlock.CENTER_ALIGN);
         add(selectedDesc);
 
-        add(LedgerPageGrid.rule(
-                left.footer.left,
-                left.footer.top + 1f,
-                left.footer.width(),
-                0.22f));
+        add(LedgerPageGrid.rule(left.footer.left, left.footer.top + 1f,
+                left.footer.width(), 0.22f));
 
         LedgerButton back = new LedgerButton(Chrome.Type.BLANK, "‹ 返回名册", 4) {
-            @Override
-            protected void onClick() {
+            @Override protected void onClick() {
                 super.onClick();
                 LedgerTransitions.turn(LedgerHeroScene.this,
                         left.paper, LedgerRecordsScene.class, false);
             }
         };
         back.textColor(LedgerEnvironment.FADED_INK);
-        back.setRect(left.footer.left,
-                left.footer.top + 3f,
-                left.footer.width(),
-                left.footer.height() - 3f);
+        back.setRect(left.footer.left, left.footer.top + 3f,
+                left.footer.width(), left.footer.height() - 3f);
         add(back);
     }
 
@@ -105,8 +96,7 @@ public class LedgerHeroScene extends PixelScene {
         float x = right.header.left;
         float w = right.header.width();
 
-        RenderedTextBlock title = t("选择身份", 8,
-                LedgerEnvironment.INK, (int) w);
+        RenderedTextBlock title = t("选择身份", 8, LedgerEnvironment.INK, (int) w);
         title.align(RenderedTextBlock.CENTER_ALIGN);
         title.setPos(x + (w - title.width()) / 2f, right.header.top);
         add(title);
@@ -117,15 +107,12 @@ public class LedgerHeroScene extends PixelScene {
         note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
         add(note);
 
-        add(LedgerPageGrid.rule(
-                x + w * 0.10f,
+        add(LedgerPageGrid.rule(x + w * 0.10f,
                 Math.min(right.header.bottom - 1f, note.bottom() + 4f),
-                w * 0.80f,
-                0.36f));
+                w * 0.80f, 0.36f));
 
         HeroClass[] classes = HeroClass.values();
         marks = new ColorBlock[classes.length];
-
         float gapX = 3f;
         float gapY = 2f;
         float cardW = (right.body.width() - gapX) / 2f;
@@ -143,18 +130,13 @@ public class LedgerHeroScene extends PixelScene {
             marks[i] = mark;
             add(mark);
 
-            LedgerButton button = new LedgerButton(
-                    Chrome.Type.BLANK,
-                    Messages.titleCase(cl.title()),
-                    4) {
-                @Override
-                protected void onClick() {
+            LedgerButton button = new LedgerButton(Chrome.Type.BLANK,
+                    Messages.titleCase(cl.title()), 4) {
+                @Override protected void onClick() {
                     super.onClick();
                     choose(cl);
                 }
-
-                @Override
-                protected String hoverText() {
+                @Override protected String hoverText() {
                     return Messages.titleCase(cl.title());
                 }
             };
@@ -166,15 +148,11 @@ public class LedgerHeroScene extends PixelScene {
             add(button);
         }
 
-        add(LedgerPageGrid.rule(
-                right.footer.left,
-                right.footer.top + 1f,
-                right.footer.width(),
-                0.28f));
+        add(LedgerPageGrid.rule(right.footer.left, right.footer.top + 1f,
+                right.footer.width(), 0.28f));
 
         confirm = new LedgerButton(Chrome.Type.BLANK, "以此身份登记  ›", 5) {
-            @Override
-            protected void onClick() {
+            @Override protected void onClick() {
                 super.onClick();
                 if (selected != null) {
                     LedgerTransitions.turn(LedgerHeroScene.this,
@@ -183,10 +161,8 @@ public class LedgerHeroScene extends PixelScene {
             }
         };
         confirm.textColor(LedgerEnvironment.INK);
-        confirm.setRect(right.footer.left,
-                right.footer.top + 3f,
-                right.footer.width(),
-                right.footer.height() - 3f);
+        confirm.setRect(right.footer.left, right.footer.top + 3f,
+                right.footer.width(), right.footer.height() - 3f);
         add(confirm);
     }
 
