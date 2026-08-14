@@ -158,8 +158,8 @@ public class LedgerRegistrationScene extends PixelScene {
         y = registerField(bx, bw, y, "职业",
                 Messages.titleCase(LedgerFlow.draft().heroClass.title()));
         y = registerField(bx, bw, y, "去向", "地下遗迹");
-        y = registerField(bx, bw, y, "惯用兵器", "尚未登记");
-        registerField(bx, bw, y, "归期", "未定");
+        y = registerField(bx, bw, y, "所习专精", "归来后补录");
+        registerField(bx, bw, y, "英雄战技", "归来后补录");
 
         LedgerStamp keep = new LedgerStamp("旅店留档", 5);
         keep.setRect(page.body.right - 58f, page.body.bottom - 25f, 52f, 18f);
@@ -169,7 +169,7 @@ public class LedgerRegistrationScene extends PixelScene {
         add(LedgerPageGrid.rule(page.footer.left, page.footer.top + 1f,
                 page.footer.width(), 0.28f));
 
-        LedgerButton next = new LedgerButton(Chrome.Type.BLANK, "填写惯用兵器", 6) {
+        LedgerButton next = new LedgerButton(Chrome.Type.BLANK, "补写归来专精与战技", 6) {
             @Override protected void onClick() {
                 super.onClick();
                 String n = LedgerFlow.draft().name;
@@ -177,8 +177,9 @@ public class LedgerRegistrationScene extends PixelScene {
                     LedgerRegistrationScene.this.add(new WndMessage("请先留下姓名。"));
                     return;
                 }
+                LedgerFlow.heroPathReturnToBuild(false);
                 LedgerTransitions.turn(LedgerRegistrationScene.this,
-                        page.paper, LedgerWeaponScene.class, true);
+                        page.paper, LedgerHeroPathScene.class, true);
             }
         };
         next.textColor(LedgerEnvironment.INK);

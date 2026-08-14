@@ -35,6 +35,10 @@ public class RenderedTextBlock extends Component {
     // different tracking value without touching the rest of the game.
     private float tracking = -0.667f;
 
+    // SPD's historical line gap remains the default. Ledger pages can opt into
+    // a little more breathing room without altering any non-ledger UI.
+    private float lineSpacing = 2f;
+
     // Font choice must survive rebuilds triggered by text(), maxWidth(), and
     // highlighting changes. Without this, ledger text briefly used Fusion Pixel
     // during construction and then silently rebuilt with Droid Sans.
@@ -172,6 +176,16 @@ public class RenderedTextBlock extends Component {
         return tracking;
     }
 
+    /** Extra vertical gap between wrapped/newline rows, in logical UI units. */
+    public synchronized void lineSpacing(float value) {
+        lineSpacing = Math.max(0f, value);
+        layout();
+    }
+
+    public synchronized float lineSpacing() {
+        return lineSpacing;
+    }
+
     public synchronized void hardlight(int c) {
         color = c;
         for (RenderedText w : words) if (w != null) w.hardlight(c);
@@ -238,7 +252,7 @@ public class RenderedTextBlock extends Component {
             if (w == SPACE) {
                 x += 1.667f;
             } else if (w == NEWLINE) {
-                y += h + 2;
+                y += h + lineSpacing;
                 x = this.x;
                 nLines++;
                 cur = new ArrayList<>();
@@ -259,7 +273,7 @@ public class RenderedTextBlock extends Component {
                 }
 
                 if ((x - this.x) + full - .001f > maxWidth && !cur.isEmpty()) {
-                    y += h + 2;
+                    y += h + lineSpacing;
                     x = this.x;
                     nLines++;
                     cur = new ArrayList<>();

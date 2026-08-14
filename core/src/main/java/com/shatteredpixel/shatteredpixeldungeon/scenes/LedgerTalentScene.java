@@ -10,6 +10,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
+import com.watabou.utils.RectF;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -71,11 +72,7 @@ public class LedgerTalentScene extends PixelScene {
                     spent + " / " + budget + (spent == budget ? "  已满" : ""));
         }
 
-        boolean complete = ReturningHeroTalentRules.isComplete(
-                LedgerFlow.draft().talentPlan,
-                LedgerFlow.draft().heroClass,
-                LedgerFlow.draft().subClass(),
-                LedgerFlow.draft().armorAbility());
+        boolean complete = isComplete();
         RenderedTextBlock status = t(complete ? "四阶记录已完整。" : "仍有天赋点尚未分配。",
                 5, complete ? LedgerEnvironment.INK : LedgerEnvironment.FADED_INK,
                 (int) bw);
@@ -84,12 +81,12 @@ public class LedgerTalentScene extends PixelScene {
 
         add(LedgerPageGrid.rule(left.footer.left, left.footer.top + 1f,
                 left.footer.width(), 0.22f));
-        LedgerButton back = new LedgerButton(Chrome.Type.BLANK, "返回旧行装", 5) {
+        LedgerButton back = new LedgerButton(Chrome.Type.BLANK,
+                LedgerFlow.talentReturnToBuild() ? "返回旧行装" : "返回专精战技", 5) {
             @Override protected void onClick() {
                 super.onClick();
                 LedgerFlow.resetTalentPicker();
-                LedgerTransitions.turn(LedgerTalentScene.this,
-                        left.paper, LedgerBuildScene.class, false);
+                returnFromTalent(left.paper);
             }
         };
         back.textColor(LedgerEnvironment.FADED_INK);
@@ -122,13 +119,33 @@ public class LedgerTalentScene extends PixelScene {
             y += rowH;
         }
 
-        footerSingle("返回旧行装", new Runnable() {
-            @Override public void run() {
-                LedgerFlow.resetTalentPicker();
-                LedgerTransitions.turn(LedgerTalentScene.this,
-                        right.paper, LedgerBuildScene.class, false);
-            }
-        }, false);
+        if (LedgerFlow.talentReturnToBuild()) {
+            footerSingle("返回旧行装", new Runnable() {
+                @Override public void run() {
+                    LedgerFlow.resetTalentPicker();
+                    LedgerTransitions.turn(LedgerTalentScene.this,
+                            right.paper, LedgerBuildScene.class, false);
+                }
+            }, false);
+        } else {
+            footerTwo("返回专精战技", new Runnable() {
+                @Override public void run() {
+                    LedgerFlow.resetTalentPicker();
+                    LedgerTransitions.turn(LedgerTalentScene.this,
+                            right.paper, LedgerHeroPathScene.class, false);
+                }
+            }, "继续旧行装", new Runnable() {
+                @Override public void run() {
+                    if (!isComplete()) {
+                        LedgerTalentScene.this.add(new WndMessage("请先把四阶天赋点全部分配完。"));
+                        return;
+                    }
+                    LedgerFlow.resetTalentPicker();
+                    LedgerTransitions.turn(LedgerTalentScene.this,
+                            right.paper, LedgerBuildScene.class, true);
+                }
+            });
+        }
     }
 
     private void buildTierEditor(final int tier) {
@@ -215,6 +232,20 @@ public class LedgerTalentScene extends PixelScene {
                 reload();
             }
         });
+    }
+
+    private boolean isComplete() {
+        return ReturningHeroTalentRules.isComplete(
+                LedgerFlow.draft().talentPlan,
+                LedgerFlow.draft().heroClass,
+                LedgerFlow.draft().subClass(),
+                LedgerFlow.draft().armorAbility());
+    }
+
+    private void returnFromTalent(RectF paper) {
+        Class<? extends PixelScene> target = LedgerFlow.talentReturnToBuild()
+                ? LedgerBuildScene.class : LedgerHeroPathScene.class;
+        LedgerTransitions.turn(LedgerTalentScene.this, paper, target, false);
     }
 
     private int spent(int tier) {

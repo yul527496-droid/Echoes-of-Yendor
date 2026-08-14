@@ -27,6 +27,8 @@ public final class LedgerFlow {
     private static int trinketCandidateLevel;
 
     private static int talentTier = 0;
+    private static boolean heroPathReturnToBuild;
+    private static boolean talentReturnToBuild;
 
     private LedgerFlow() {}
 
@@ -40,6 +42,8 @@ public final class LedgerFlow {
         resetAccessoryPicker();
         resetTrinketPicker();
         resetTalentPicker();
+        heroPathReturnToBuild = false;
+        talentReturnToBuild = false;
         return draft;
     }
 
@@ -137,4 +141,12 @@ public final class LedgerFlow {
     public static int talentTier() { return talentTier; }
     public static void talentTier(int value) { talentTier = Math.max(0, Math.min(value, 4)); }
     public static void resetTalentPicker() { talentTier = 0; }
+
+    /** True when the subclass/ability picker was opened from the build directory. */
+    public static boolean heroPathReturnToBuild() { return heroPathReturnToBuild; }
+    public static void heroPathReturnToBuild(boolean value) { heroPathReturnToBuild = value; }
+
+    /** True when leaving the talent ledger should return to the build directory. */
+    public static boolean talentReturnToBuild() { return talentReturnToBuild; }
+    public static void talentReturnToBuild(boolean value) { talentReturnToBuild = value; }
 }
