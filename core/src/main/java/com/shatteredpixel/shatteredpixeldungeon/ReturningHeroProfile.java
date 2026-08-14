@@ -28,8 +28,18 @@ public class ReturningHeroProfile {
     public HeroClass heroClass = HeroClass.WARRIOR;
     public int subclassIndex = 0;
     public int abilityIndex = 0;
+
+    /**
+     * Legacy three-choice weapon index.  Kept temporarily so the current ledger
+     * screens remain usable while the stable-ID equipment flow is introduced.
+     */
     public int weaponIndex = 0;
+
+    /** Temporary compatibility field until free talent allocation replaces it. */
     public GrowthPreset growthPreset = GrowthPreset.BALANCED;
+
+    /** New stable-ID build state. */
+    public ReturningHeroLoadout loadout = new ReturningHeroLoadout();
 
     public HeroSubClass subClass() {
         HeroSubClass[] values = heroClass.subClasses();
@@ -99,6 +109,8 @@ public class ReturningHeroProfile {
         abilityIndex = 0;
         weaponIndex = 0;
         growthPreset = GrowthPreset.BALANCED;
+        if (loadout == null) loadout = new ReturningHeroLoadout();
+        loadout.resetForClass(heroClass);
     }
 
     public void saveToSlot(int slot) {
@@ -108,6 +120,8 @@ public class ReturningHeroProfile {
         LedgerSettings.ability(slot, abilityIndex);
         LedgerSettings.weapon(slot, weaponIndex);
         LedgerSettings.growth(slot, growthPreset.ordinal());
+        // Stable loadout persistence is added in the next migration step.  Until
+        // then the existing save metadata remains fully backward compatible.
     }
 
     public static ReturningHeroProfile loadFromSlot(int slot) {
@@ -125,6 +139,10 @@ public class ReturningHeroProfile {
         GrowthPreset[] presets = GrowthPreset.values();
         int growthIndex = LedgerSettings.growth(slot);
         profile.growthPreset = presets[Math.max(0, Math.min(growthIndex, presets.length - 1))];
+
+        // Old slots have no stable loadout data yet.  Initialize only class
+        // heritage defaults so loading an existing slot never invents gear.
+        profile.loadout.resetForClass(profile.heroClass);
         return profile;
     }
 }
