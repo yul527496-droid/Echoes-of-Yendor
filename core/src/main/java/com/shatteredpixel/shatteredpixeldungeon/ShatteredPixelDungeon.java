@@ -14,11 +14,8 @@
 package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.HeroSelectScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.LedgerIntroScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.TitleScene;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.WelcomeScene;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
@@ -35,6 +32,8 @@ public class ShatteredPixelDungeon extends Game {
 	public static final int v3_3_0 = 883;
 	
 	public ShatteredPixelDungeon( PlatformSupport platform ) {
+		// Echoes deliberately opens on its ledger. Other scenes remain reachable
+		// normally after startup; do not globally redirect Title/HeroSelect/etc.
 		super( sceneClass == null ? LedgerIntroScene.class : sceneClass, platform );
 
 		com.watabou.utils.Bundle.addAlias(
@@ -88,11 +87,6 @@ public class ShatteredPixelDungeon extends Game {
 	
 	@Override
 	protected void switchScene() {
-		if (requestedScene instanceof WelcomeScene || requestedScene instanceof TitleScene || requestedScene instanceof HeroSelectScene) {
-			requestedScene = new LedgerIntroScene();
-			sceneClass = LedgerIntroScene.class;
-		}
-
 		super.switchScene();
 		if (scene instanceof PixelScene){
 			((PixelScene) scene).restoreWindows();
