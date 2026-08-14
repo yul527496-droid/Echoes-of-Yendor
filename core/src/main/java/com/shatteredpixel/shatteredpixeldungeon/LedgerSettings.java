@@ -71,4 +71,14 @@ public final class LedgerSettings extends GameSettings {
         String encoded = getString(key("loadout", slot), "", 512);
         return ReturningHeroLoadoutCodec.decode(encoded, heroClass);
     }
+
+    /** Free talent allocation. Empty means the legacy growth-preset flow. */
+    public static void talentPlan(int slot, ReturningHeroTalentPlan value) {
+        put(key("talents", slot), ReturningHeroTalentPlanCodec.encode(value));
+    }
+
+    public static ReturningHeroTalentPlan talentPlan(int slot) {
+        String encoded = getString(key("talents", slot), "", 1536);
+        return ReturningHeroTalentPlanCodec.decode(encoded);
+    }
 }
