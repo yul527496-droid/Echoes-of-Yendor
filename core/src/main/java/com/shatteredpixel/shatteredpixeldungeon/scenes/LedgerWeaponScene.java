@@ -45,8 +45,7 @@ public class LedgerWeaponScene extends PixelScene {
         note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
         add(note);
         add(LedgerPageGrid.rule(x + w * 0.14f,
-                Math.min(left.header.bottom - 1f, note.bottom() + 4f),
-                w * 0.72f, 0.36f));
+                Math.min(left.header.bottom - 1f, note.bottom() + 4f), w * 0.72f, 0.36f));
 
         float bx = left.body.left + 3f;
         float bw = left.body.width() - 6f;
@@ -54,9 +53,7 @@ public class LedgerWeaponScene extends PixelScene {
                 "姓名\n" + LedgerFlow.draft().name
                         + "\n\n理想职业\n" + Messages.titleCase(LedgerFlow.draft().heroClass.title())
                         + "\n\n去向\n地下遗迹",
-                5,
-                LedgerEnvironment.INK,
-                (int) bw);
+                5, LedgerEnvironment.INK, (int) bw);
         summary.setPos(bx, left.body.top + 4f);
         add(summary);
 
@@ -65,23 +62,19 @@ public class LedgerWeaponScene extends PixelScene {
         hint.setPos(bx, left.body.bottom - hint.height() - 3f);
         add(hint);
 
-        add(LedgerPageGrid.rule(left.footer.left,
-                left.footer.top + 1f,
+        add(LedgerPageGrid.rule(left.footer.left, left.footer.top + 1f,
                 left.footer.width(), 0.22f));
 
         LedgerButton back = new LedgerButton(Chrome.Type.BLANK, "‹ 返回登记页", 4) {
-            @Override
-            protected void onClick() {
+            @Override protected void onClick() {
                 super.onClick();
                 LedgerTransitions.turn(LedgerWeaponScene.this,
                         left.paper, LedgerRegistrationScene.class, false);
             }
         };
         back.textColor(LedgerEnvironment.FADED_INK);
-        back.setRect(left.footer.left,
-                left.footer.top + 3f,
-                left.footer.width(),
-                left.footer.height() - 3f);
+        back.setRect(left.footer.left, left.footer.top + 3f,
+                left.footer.width(), left.footer.height() - 3f);
         add(back);
     }
 
@@ -100,8 +93,7 @@ public class LedgerWeaponScene extends PixelScene {
         note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
         add(note);
         add(LedgerPageGrid.rule(x + w * 0.10f,
-                Math.min(right.header.bottom - 1f, note.bottom() + 4f),
-                w * 0.80f, 0.36f));
+                Math.min(right.header.bottom - 1f, note.bottom() + 4f), w * 0.80f, 0.36f));
 
         String[] opts = LedgerFlow.draft().weaponOptions();
         marks = new ColorBlock[opts.length];
@@ -119,12 +111,9 @@ public class LedgerWeaponScene extends PixelScene {
             marks[i] = mark;
             add(mark);
 
-            LedgerButton button = new LedgerButton(
-                    Chrome.Type.BLANK,
-                    String.format("%02d   %s", i + 1, opts[i]),
-                    5) {
-                @Override
-                protected void onClick() {
+            LedgerButton button = new LedgerButton(Chrome.Type.BLANK,
+                    String.format("%02d   %s", i + 1, opts[i]), 5) {
+                @Override protected void onClick() {
                     super.onClick();
                     select(choice);
                 }
@@ -134,17 +123,14 @@ public class LedgerWeaponScene extends PixelScene {
             button.setRect(right.body.left + 1f, rowY,
                     right.body.width() - 2f, rowH - 1f);
             add(button);
-
             y += rowH;
         }
 
-        add(LedgerPageGrid.rule(right.footer.left,
-                right.footer.top + 1f,
+        add(LedgerPageGrid.rule(right.footer.left, right.footer.top + 1f,
                 right.footer.width(), 0.28f));
 
         LedgerButton ok = new LedgerButton(Chrome.Type.BLANK, "确认登记并盖章  ›", 5) {
-            @Override
-            protected void onClick() {
+            @Override protected void onClick() {
                 super.onClick();
                 LedgerFlow.draft().weaponIndex = selected;
                 LedgerTransitions.turn(LedgerWeaponScene.this,
@@ -152,10 +138,8 @@ public class LedgerWeaponScene extends PixelScene {
             }
         };
         ok.textColor(LedgerEnvironment.STAMP);
-        ok.setRect(right.footer.left,
-                right.footer.top + 3f,
-                right.footer.width(),
-                right.footer.height() - 3f);
+        ok.setRect(right.footer.left, right.footer.top + 3f,
+                right.footer.width(), right.footer.height() - 3f);
         add(ok);
     }
 
