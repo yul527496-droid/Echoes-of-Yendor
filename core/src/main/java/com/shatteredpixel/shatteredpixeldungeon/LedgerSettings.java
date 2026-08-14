@@ -1,6 +1,7 @@
 /* Echoes of Yendor modifications Copyright (C) 2026 */
 package com.shatteredpixel.shatteredpixeldungeon;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.watabou.utils.GameSettings;
 
 /** Small per-save metadata store used by the in-world ledger UI. */
@@ -59,5 +60,25 @@ public final class LedgerSettings extends GameSettings {
 
     public static int growth(int slot) {
         return getInt(key("growth", slot), 0);
+    }
+
+    /** Stable-ID build data. Empty means a legacy slot created before the migration. */
+    public static void loadout(int slot, ReturningHeroLoadout value) {
+        put(key("loadout", slot), ReturningHeroLoadoutCodec.encode(value));
+    }
+
+    public static ReturningHeroLoadout loadout(int slot, HeroClass heroClass) {
+        String encoded = getString(key("loadout", slot), "", 512);
+        return ReturningHeroLoadoutCodec.decode(encoded, heroClass);
+    }
+
+    /** Free talent allocation. Empty means the legacy growth-preset flow. */
+    public static void talentPlan(int slot, ReturningHeroTalentPlan value) {
+        put(key("talents", slot), ReturningHeroTalentPlanCodec.encode(value));
+    }
+
+    public static ReturningHeroTalentPlan talentPlan(int slot) {
+        String encoded = getString(key("talents", slot), "", 1536);
+        return ReturningHeroTalentPlanCodec.decode(encoded);
     }
 }

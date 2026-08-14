@@ -1,11 +1,216 @@
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
-import com.shatteredpixel.shatteredpixeldungeon.Chrome;import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;import com.shatteredpixel.shatteredpixeldungeon.LedgerFlow;import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;import com.watabou.noosa.ColorBlock;import com.watabou.noosa.Game;import com.watabou.noosa.Image;import com.watabou.utils.RectF;
-public class LedgerHeroScene extends PixelScene{
- private HeroClass selected;private RenderedTextBlock selectedName,selectedDesc;private LedgerButton confirm;private Image[] previews;private ColorBlock[] marks;private float lx,lw,previewY;
- @Override public void create(){super.create();uiCamera.visible=false;Image book=LedgerEnvironment.addOpenBook(this);RectF l=LedgerEnvironment.leftPage(book),r=LedgerEnvironment.rightPage(book);lx=l.left+7;lw=l.width()-14;float rx=r.left+7,rw=r.width()-14,top=l.top+7;
-  RenderedTextBlock lh=t("下行者档案",8,LedgerEnvironment.INK,(int)lw);lh.setPos(lx+(lw-lh.width())/2f,top);add(lh);RenderedTextBlock note=t("理想职业",5,LedgerEnvironment.FADED_INK,(int)lw);note.setPos(lx+2,lh.bottom()+5);add(note);previewY=note.bottom()+12;previews=new Image[HeroClass.values().length];for(HeroClass cl:HeroClass.values()){Image hero=new Image(cl.spritesheet(),0,90,12,15);hero.scale.set(2.4f);hero.x=lx+(lw-hero.width())/2f;hero.y=previewY;hero.visible=false;previews[cl.ordinal()]=hero;add(hero);}selectedName=t("尚未登记",7,LedgerEnvironment.INK,(int)lw);add(selectedName);selectedDesc=t("从右页选择一个英雄单位。",5,LedgerEnvironment.FADED_INK,(int)lw-4);selectedDesc.align(RenderedTextBlock.CENTER_ALIGN);add(selectedDesc);
-  RenderedTextBlock rh=t("选择身份",8,LedgerEnvironment.INK,(int)rw);rh.setPos(rx+(rw-rh.width())/2f,top);add(rh);RenderedTextBlock rn=t("写下当年想成为怎样的人。",5,LedgerEnvironment.FADED_INK,(int)rw);rn.setPos(rx+(rw-rn.width())/2f,rh.bottom()+5);add(rn);HeroClass[] classes=HeroClass.values();marks=new ColorBlock[classes.length];float cw=(rw-6)/2f,ch=24,gx=rx,gy=rn.bottom()+8;for(int i=0;i<classes.length;i++){final HeroClass cl=classes[i];float x=gx+(i%2)*(cw+6),y=gy+(i/2)*(ch+4);ColorBlock line=new ColorBlock(cw,1,0x553B2A1E);line.x=x;line.y=y+ch-1;marks[i]=line;add(line);LedgerButton b=new LedgerButton(Chrome.Type.BLANK,Messages.titleCase(cl.title()),5){@Override protected void onClick(){super.onClick();choose(cl);}};b.icon(new Image(cl.spritesheet(),0,90,12,15));b.textColor(LedgerEnvironment.INK);b.setRect(x,y,cw,ch-2);add(b);}confirm=new LedgerButton(Chrome.Type.BLANK,"以此身份登记  ›",6){@Override protected void onClick(){super.onClick();if(selected!=null)Game.switchScene(LedgerRegistrationScene.class);}};confirm.textColor(LedgerEnvironment.INK);confirm.setRect(rx,r.bottom-20,rw,15);add(confirm);LedgerButton back=new LedgerButton(Chrome.Type.BLANK,"‹ 返回名册",5){@Override protected void onClick(){super.onClick();Game.switchScene(GamesInProgress.checkAll().isEmpty()?LedgerIntroScene.class:LedgerRecordsScene.class);}};back.textColor(LedgerEnvironment.FADED_INK);back.setRect(lx,l.bottom-20,lw,15);add(back);selected=LedgerFlow.draft().heroClass;refresh();fadeIn();}
- private void choose(HeroClass cl){if(selected!=cl){selected=cl;LedgerFlow.draft().heroClass=cl;LedgerFlow.draft().resetDependentChoices();}refresh();}
- private void refresh(){for(HeroClass cl:HeroClass.values()){boolean on=cl==selected;previews[cl.ordinal()].visible=on;marks[cl.ordinal()].alpha(on?.95f:.22f);}if(selected==null){selectedName.text("尚未登记");selectedDesc.text("从右页选择一个英雄单位。");confirm.enable(false);}else{selectedName.text(Messages.titleCase(selected.title()));selectedDesc.text(selected.shortDesc());selectedDesc.maxWidth((int)lw-4);confirm.enable(true);}selectedName.setPos(lx+(lw-selectedName.width())/2f,previewY+42);selectedDesc.setPos(lx+(lw-selectedDesc.width())/2f,selectedName.bottom()+5);}
- private RenderedTextBlock t(String v,int s,int c,int w){RenderedTextBlock b=new RenderedTextBlock(v,s,false);b.maxWidth(w);b.hardlight(c);return b;}
+
+import com.shatteredpixel.shatteredpixeldungeon.Chrome;
+import com.shatteredpixel.shatteredpixeldungeon.LedgerFlow;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.watabou.noosa.ColorBlock;
+import com.watabou.noosa.Image;
+
+public class LedgerHeroScene extends PixelScene {
+
+    private HeroClass selected;
+    private RenderedTextBlock selectedName;
+    private RenderedTextBlock selectedDesc;
+    private LedgerButton confirm;
+    private LedgerButton[] classButtons;
+    private Image[] previews;
+    private ColorBlock[] marks;
+    private LedgerPageGrid.Page left;
+    private LedgerPageGrid.Page right;
+    private float previewY;
+
+    @Override
+    public void create() {
+        super.create();
+
+        Image book = LedgerEnvironment.addOpenBook(this);
+        left = LedgerEnvironment.leftGrid(book);
+        right = LedgerEnvironment.rightGrid(book);
+
+        buildPreviewPage();
+        buildChoicePage();
+
+        selected = LedgerFlow.draft().heroClass;
+        refresh();
+        LedgerTransitions.revealIfPending(this, left.paper, right.paper);
+        fadeIn();
+    }
+
+    private void buildPreviewPage() {
+        float x = left.header.left;
+        float w = left.header.width();
+
+        RenderedTextBlock title = t("下行者档案", 9, LedgerEnvironment.INK, (int) w);
+        title.align(RenderedTextBlock.CENTER_ALIGN);
+        title.setPos(x + (w - title.width()) / 2f, left.header.top);
+        add(title);
+
+        RenderedTextBlock note = t("晨溪镇 · 老鸦旅店", 5,
+                LedgerEnvironment.FADED_INK, (int) w);
+        note.align(RenderedTextBlock.CENTER_ALIGN);
+        note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
+        add(note);
+
+        add(LedgerPageGrid.rule(x + w * 0.14f,
+                Math.min(left.header.bottom - 1f, note.bottom() + 4f),
+                w * 0.72f, 0.36f));
+
+        previewY = left.body.top + 8f;
+        previews = new Image[HeroClass.values().length];
+        for (HeroClass cl : HeroClass.values()) {
+            Image hero = new Image(cl.spritesheet(), 0, 90, 12, 15);
+            hero.scale.set(2.25f);
+            hero.x = left.body.left + (left.body.width() - hero.width()) / 2f;
+            hero.y = previewY;
+            hero.visible = false;
+            previews[cl.ordinal()] = hero;
+            add(hero);
+        }
+
+        selectedName = t("职业未填", 7, LedgerEnvironment.INK, (int) left.body.width());
+        selectedName.align(RenderedTextBlock.CENTER_ALIGN);
+        add(selectedName);
+
+        selectedDesc = LedgerUI.markupText("职业一栏尚空。", 5,
+                LedgerEnvironment.FADED_INK, LedgerEnvironment.INK,
+                (int) left.body.width() - 8);
+        selectedDesc.align(RenderedTextBlock.CENTER_ALIGN);
+        add(selectedDesc);
+
+        add(LedgerPageGrid.rule(left.footer.left, left.footer.top + 1f,
+                left.footer.width(), 0.22f));
+
+        LedgerButton back = new LedgerButton(Chrome.Type.BLANK, "返回名册", 5) {
+            @Override protected void onClick() {
+                super.onClick();
+                LedgerTransitions.turn(LedgerHeroScene.this,
+                        left.paper, LedgerRecordsScene.class, false);
+            }
+        };
+        back.textColor(LedgerEnvironment.FADED_INK);
+        back.setRect(left.footer.left, left.footer.top + 3f,
+                left.footer.width(), left.footer.height() - 3f);
+        add(back);
+    }
+
+    private void buildChoicePage() {
+        float x = right.header.left;
+        float w = right.header.width();
+
+        RenderedTextBlock title = t("职业", 9, LedgerEnvironment.INK, (int) w);
+        title.align(RenderedTextBlock.CENTER_ALIGN);
+        title.setPos(x + (w - title.width()) / 2f, right.header.top);
+        add(title);
+
+        RenderedTextBlock note = t("按本人自报记入", 5,
+                LedgerEnvironment.FADED_INK, (int) w);
+        note.align(RenderedTextBlock.CENTER_ALIGN);
+        note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
+        add(note);
+
+        add(LedgerPageGrid.rule(x + w * 0.10f,
+                Math.min(right.header.bottom - 1f, note.bottom() + 4f),
+                w * 0.80f, 0.36f));
+
+        HeroClass[] classes = HeroClass.values();
+        classButtons = new LedgerButton[classes.length];
+        marks = new ColorBlock[classes.length];
+        float gapX = 3f;
+        float gapY = 2f;
+        float cardW = (right.body.width() - gapX) / 2f;
+        float cardH = (right.body.height() - gapY * 2f) / 3f;
+
+        for (int i = 0; i < classes.length; i++) {
+            final HeroClass cl = classes[i];
+            float bx = right.body.left + (i % 2) * (cardW + gapX);
+            float by = right.body.top + (i / 2) * (cardH + gapY);
+
+            ColorBlock mark = new ColorBlock(cardW - 2f, 1f, 0xFF9B302C);
+            mark.x = bx + 1f;
+            mark.y = by + cardH - 1f;
+            mark.alpha(0.10f);
+            marks[i] = mark;
+            add(mark);
+
+            LedgerButton button = new LedgerButton(Chrome.Type.BLANK,
+                    Messages.titleCase(cl.title()), 5) {
+                @Override protected void onClick() {
+                    super.onClick();
+                    choose(cl);
+                }
+                @Override protected String hoverText() {
+                    return Messages.titleCase(cl.title());
+                }
+            };
+            Image icon = new Image(cl.spritesheet(), 0, 90, 12, 15);
+            icon.scale.set(Math.min(1.35f, Math.max(1f, cardH / 15f)));
+            button.icon(icon);
+            button.textColor(LedgerEnvironment.INK);
+            button.setRect(bx, by, cardW, cardH - 1f);
+            classButtons[i] = button;
+            add(button);
+        }
+
+        add(LedgerPageGrid.rule(right.footer.left, right.footer.top + 1f,
+                right.footer.width(), 0.28f));
+
+        confirm = new LedgerButton(Chrome.Type.BLANK, "记入职业", 6) {
+            @Override protected void onClick() {
+                super.onClick();
+                if (selected != null) {
+                    LedgerAudio.write();
+                    LedgerTransitions.turn(LedgerHeroScene.this,
+                            right.paper, LedgerRegistrationScene.class, true);
+                }
+            }
+        };
+        confirm.textColor(LedgerEnvironment.INK);
+        confirm.setRect(right.footer.left, right.footer.top + 3f,
+                right.footer.width(), right.footer.height() - 3f);
+        add(confirm);
+    }
+
+    private void choose(HeroClass cl) {
+        if (selected != cl) {
+            selected = cl;
+            LedgerFlow.draft().heroClass = cl;
+            LedgerFlow.draft().resetDependentChoices();
+        }
+        refresh();
+    }
+
+    private void refresh() {
+        for (HeroClass cl : HeroClass.values()) {
+            boolean on = cl == selected;
+            previews[cl.ordinal()].visible = on;
+            marks[cl.ordinal()].alpha(on ? 0.78f : 0.10f);
+            if (classButtons != null && classButtons[cl.ordinal()] != null) {
+                classButtons[cl.ordinal()].setSelected(on);
+            }
+        }
+
+        if (selected == null) {
+            selectedName.text("职业未填");
+            selectedDesc.text("职业一栏尚空。");
+            confirm.enable(false);
+        } else {
+            selectedName.text(Messages.titleCase(selected.title()));
+            selectedDesc.text(selected.shortDesc());
+            selectedDesc.maxWidth((int) left.body.width() - 8);
+            confirm.enable(true);
+        }
+
+        selectedName.setPos(
+                left.body.left + (left.body.width() - selectedName.width()) / 2f,
+                previewY + 38f);
+        selectedDesc.setPos(
+                left.body.left + (left.body.width() - selectedDesc.width()) / 2f,
+                selectedName.bottom() + 4f);
+    }
+
+    private RenderedTextBlock t(String value, int size, int color, int width) {
+        return LedgerUI.text(value, size, color, width);
+    }
 }

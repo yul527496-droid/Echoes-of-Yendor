@@ -16,12 +16,14 @@
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.watabou.noosa.Game;
 
 /**
  * Moves between sequel maps only after the old GameScene has been destroyed.
- * This keeps map-sized render data from the previous area away from the new level.
+ * This keeps map-sized render data and actor positions from the previous area
+ * away from the new level.
  */
 public class SequelTransitionScene extends PixelScene {
 
@@ -51,6 +53,12 @@ public class SequelTransitionScene extends PixelScene {
         InterlevelScene.mode = InterlevelScene.Mode.NONE;
         InterlevelScene.curTransition = null;
 
+        // Dungeon.newLevel() clears the global Actor registry before moving to a
+        // newly generated floor. Sequel maps are pre-created and switch directly
+        // through Dungeon.switchLevel(), so we must mirror that lifecycle here.
+        // Otherwise chars from the previous map retain positions sized for the
+        // old map and can crash pathfinding on a smaller destination level.
+        Actor.clear();
         Dungeon.switchLevel(level, pos);
         Game.switchScene(GameScene.class);
     }

@@ -16,38 +16,18 @@
 package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
-import com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal;
-import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
-import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClericArmor;
-import com.shatteredpixel.shatteredpixeldungeon.items.armor.DuelistArmor;
-import com.shatteredpixel.shatteredpixeldungeon.items.armor.HuntressArmor;
-import com.shatteredpixel.shatteredpixeldungeon.items.armor.MageArmor;
-import com.shatteredpixel.shatteredpixeldungeon.items.armor.RogueArmor;
-import com.shatteredpixel.shatteredpixeldungeon.items.armor.WarriorArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
-import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfFrost;
-import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLightning;
-import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.AssassinsBlade;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Greatsword;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.RunicBlade;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scimitar;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WarHammer;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-/** Builds a stable, representative post-Yog hero from the player's ledger entry. */
+/** Builds the post-Yog hero described by the player's ledger entry. */
 public final class ReturningHero {
 
     private static final int RETURNING_STRENGTH = 20;
-    private static final int GEAR_UPGRADE = 3;
 
     private ReturningHero() {
     }
@@ -55,6 +35,7 @@ public final class ReturningHero {
     public static void apply(Hero hero) {
         ReturningHeroProfile profile = new ReturningHeroProfile();
         if (hero != null && hero.heroClass != null) profile.heroClass = hero.heroClass;
+        profile.resetDependentChoices();
         apply(hero, profile);
     }
 
@@ -66,14 +47,18 @@ public final class ReturningHero {
         hero.exp = 0;
         hero.STR = RETURNING_STRENGTH;
 
-        // The ledger now owns these choices; no more silently picking the first option.
+        // The ledger owns these choices. Original SPD still owns the actual
+        // subclass/talent/armor-ability implementations.
         hero.subClass = profile.subClass();
         Talent.initSubclassTalents(hero);
         hero.armorAbility = profile.armorAbility();
         Talent.initArmorTalents(hero);
 
-        equipRepresentativeGear(hero, profile);
-        spendAvailableTalents(hero, profile.growthPreset);
+        // Apply equipment before talent points. In particular this prevents the
+        // Mage's reconstruction-time staff imbuement from accidentally triggering
+        // Wand Preservation as though the player had just performed a live imbue.
+        ReturningHeroLoadoutApplier.apply(hero, profile);
+        applyConfiguredTalents(hero, profile);
 
         hero.updateHT(true);
         hero.HP = hero.HT;
@@ -84,84 +69,34 @@ public final class ReturningHero {
         healing.collect();
     }
 
-    private static void equipRepresentativeGear(Hero hero, ReturningHeroProfile profile) {
-        MeleeWeapon weapon = selectedWeapon(profile);
-        ClassArmor armor;
+    private static void applyConfiguredTalents(Hero hero, ReturningHeroProfile profile) {
+        ReturningHeroTalentPlan plan = profile.talentPlan;
+        boolean modernPlan = plan != null
+                && !plan.isEmpty()
+                && ReturningHeroTalentRules.validate(
+                plan, profile.heroClass, profile.subClass(), profile.armorAbility()).isValid();
 
-        switch (hero.heroClass) {
-            case WARRIOR:
-                armor = new WarriorArmor();
-                armor.affixSeal(new BrokenSeal());
-                break;
-            case MAGE:
-                armor = new MageArmor();
-                break;
-            case ROGUE:
-                armor = new RogueArmor();
-                break;
-            case HUNTRESS:
-                armor = new HuntressArmor();
-                break;
-            case DUELIST:
-                armor = new DuelistArmor();
-                break;
-            case CLERIC:
-            default:
-                armor = new ClericArmor();
-                break;
+        if (!modernPlan) {
+            // Compatibility path for the currently shipped ledger pages. It can
+            // be removed once the free talent editor is the only entry flow.
+            spendAvailableTalents(hero, profile.growthPreset);
+            return;
         }
 
-        weapon.upgrade(GEAR_UPGRADE);
-        weapon.identify();
-        armor.upgrade(GEAR_UPGRADE);
-        armor.identify();
-        armor.charge = 100f;
-
-        hero.belongings.weapon = weapon;
-        hero.belongings.armor = armor;
-        armor.activate(hero);
-
-        if (hero.heroClass == HeroClass.MAGE || hero.heroClass == HeroClass.DUELIST) {
-            weapon.activate(hero);
-            Dungeon.quickslot.setSlot(0, weapon);
-        }
-    }
-
-    private static MeleeWeapon selectedWeapon(ReturningHeroProfile profile) {
-        int choice = Math.max(0, Math.min(profile.weaponIndex, 2));
-        switch (profile.heroClass) {
-            case WARRIOR:
-                if (choice == 1) return new WarHammer();
-                if (choice == 2) return new RunicBlade();
-                return new Greatsword();
-            case MAGE:
-                if (choice == 1) return new MagesStaff(new WandOfLightning());
-                if (choice == 2) return new MagesStaff(new WandOfFrost());
-                return new MagesStaff(new WandOfMagicMissile());
-            case ROGUE:
-                if (choice == 1) return new RunicBlade();
-                if (choice == 2) return new Scimitar();
-                return new AssassinsBlade();
-            case HUNTRESS:
-                if (choice == 1) return new RunicBlade();
-                if (choice == 2) return new Greatsword();
-                return new Scimitar();
-            case DUELIST:
-                if (choice == 1) return new Scimitar();
-                if (choice == 2) return new AssassinsBlade();
-                return new RunicBlade();
-            case CLERIC:
-            default:
-                if (choice == 1) return new RunicBlade();
-                if (choice == 2) return new Greatsword();
-                return new WarHammer();
+        for (int tier = 1; tier <= hero.talents.size(); tier++) {
+            LinkedHashMap<Talent, Integer> talents = hero.talents.get(tier - 1);
+            for (Talent talent : talents.keySet()) {
+                int target = plan.pointsIn(talent);
+                while (talents.get(talent) < target) {
+                    upgradeReturningTalent(hero, talent, talents);
+                }
+            }
         }
     }
 
     private static void spendAvailableTalents(Hero hero, ReturningHeroProfile.GrowthPreset preset) {
-        // The underlying budgets remain Shattered's tier budgets. These three presets are intentionally
-        // conservative first-pass starting points; the ledger's detailed +/- editor will manipulate
-        // the same maps directly once the new front-end has survived playtesting.
+        // Legacy compatibility only. The detailed talent plan uses the exact same
+        // original tier maps and supersedes this once the new ledger editor lands.
         for (int tier = 1; tier <= hero.talents.size(); tier++) {
             int safety = 64;
             while (hero.talentPointsAvailable(tier) > 0 && safety-- > 0) {
@@ -175,7 +110,8 @@ public final class ReturningHero {
 
                 boolean spent = false;
                 for (Talent talent : order) {
-                    if (talents.get(talent) < talent.maxPoints() && hero.talentPointsAvailable(tier) > 0) {
+                    if (talents.get(talent) < talent.maxPoints()
+                            && hero.talentPointsAvailable(tier) > 0) {
                         upgradeReturningTalent(hero, talent, talents);
                         spent = true;
                     }
@@ -186,14 +122,12 @@ public final class ReturningHero {
     }
 
     /**
-     * Returning heroes are configured before SequelTransitionScene places them on FinalStairLevel.
-     * Shattered normally upgrades talents while the hero already occupies a valid map cell, but
-     * sensory talents immediately call Dungeon.observe(). During sequel setup hero.pos is not yet
-     * a legal cell, so that callback would index outside the level arrays. For these three passive
-     * vision talents we can safely record the point directly; their behaviour is read from the
-     * talent map once the hero is actually on a level.
+     * Returning heroes are configured before SequelTransitionScene places them
+     * on FinalStairLevel. Sensory talent upgrade callbacks immediately observe
+     * the map, so record those points directly until the hero has a legal cell.
      */
-    private static void upgradeReturningTalent(Hero hero, Talent talent, LinkedHashMap<Talent, Integer> talents) {
+    private static void upgradeReturningTalent(Hero hero, Talent talent,
+                                                LinkedHashMap<Talent, Integer> talents) {
         boolean sensoryTalent = talent == Talent.HEIGHTENED_SENSES
                 || talent == Talent.FARSIGHT
                 || talent == Talent.DIVINE_SENSE;

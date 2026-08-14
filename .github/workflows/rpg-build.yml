@@ -1,9 +1,16 @@
-name: Echoes of Yendor Windows Build
+name: Echoes of Yendor Windows EXE Build
 
 on:
   push:
-    branches: [ "rpg-development" ]
+    branches:
+      - "rpg-development"
+      - "build-test"
+      - "ui-ledger-first-pass"
   workflow_dispatch:
+
+concurrency:
+  group: echoes-windows-exe-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   windows-native-build:
@@ -19,6 +26,115 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Inject pinned Fusion Pixel font
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $version = "2026.08.11"
+          $archive = "fusion-pixel-font-12px-proportional-ttf-v$version.zip"
+          $url = "https://github.com/TakWolf/fusion-pixel-font/releases/download/$version/$archive"
+          $expected = "58cc7021a24749ad9405845e499a2ef0a1709e2d90adc242cf198cb278dc065e"
+          $zip = Join-Path $env:RUNNER_TEMP $archive
+          $extract = Join-Path $env:RUNNER_TEMP "fusion-pixel-font"
+
+          curl.exe -L --fail --retry 3 --retry-delay 2 $url -o $zip
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to download pinned Fusion Pixel Font release."
+          }
+
+          $actual = (Get-FileHash -Path $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $expected) {
+            throw "Fusion Pixel Font SHA256 mismatch. Expected $expected, got $actual"
+          }
+
+          Expand-Archive -Path $zip -DestinationPath $extract -Force
+          $font = Get-ChildItem -Path $extract -Recurse -File -Filter "fusion-pixel-12px-proportional-zh_hans.ttf" | Select-Object -First 1
+          if (-not $font) {
+            throw "Pinned archive did not contain fusion-pixel-12px-proportional-zh_hans.ttf"
+          }
+
+          $fontDir = "core/src/main/assets/fonts"
+          New-Item -ItemType Directory -Force -Path $fontDir | Out-Null
+          Copy-Item $font.FullName (Join-Path $fontDir "fusion_pixel_12_prop_zh_hans.ttf") -Force
+
+          $licenseUrl = "https://raw.githubusercontent.com/TakWolf/fusion-pixel-font/$version/LICENSE-OFL"
+          curl.exe -L --fail --retry 3 --retry-delay 2 $licenseUrl -o (Join-Path $fontDir "FUSION_PIXEL_FONT_LICENSE.txt")
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to download Fusion Pixel Font OFL license."
+          }
+
+          Write-Host "Pinned Fusion Pixel Font injected and SHA256 verified: $actual"
+
+      - name: Inject verified Echoes ledger audio from pinned GitHub mirrors
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $assets = @(
+            @{
+              Name = "Old Tavern - Cinematic Atmosphere Fairytale"
+              Url = "https://raw.githubusercontent.com/drdreo/dicegame/879776a38da76cee2cda2a63b00cc288d3c235d7/public/sounds/background/old-tavern-cinematic-atmosphere-fairytale-273871.mp3"
+              Target = "core/src/main/assets/music/echoes/ledger_tavern.mp3"
+              Sha256 = "4b114794884397d5a02af3569ec9afefedb791083c66db06f113ed4b2b7eebae"
+            },
+            @{
+              Name = "Tavern ambience with openfire effect"
+              Url = "https://raw.githubusercontent.com/John-Popovici/duel-of-the-eights/be8b6c799fe500288c6e65b74c12e710d94a7f0d/src/Assets/Audio/Ambience/tavern-ambience-with-openfire-effect-no-loops-86151.mp3"
+              Target = "core/src/main/assets/music/echoes/ledger_ambience.mp3"
+              Sha256 = "a258853368ab9b1e4723c3f992059e09e36bdd0fdce99ddf6b2c88190e248860"
+            },
+            @{
+              Name = "Book Opening"
+              Url = "https://raw.githubusercontent.com/bushnghiem/Project04/cba32629189ca35261bae0e666d9f63afc429830/Audio/book-opening-345808.mp3"
+              Target = "core/src/main/assets/sounds/echoes/ledger_book_open.mp3"
+              Sha256 = "137b6b7a15b5415671589c5094394ff9e343000bec42650e04917b0541045ded"
+            },
+            @{
+              Name = "Flipping Book Page"
+              Url = "https://raw.githubusercontent.com/mr-vishwakarma/illuster-coaching-classes/c5367b5acf7be172b2b4d3152bdd74b833a1443c/public/sounds/dragon-studio-flipping-book-page-499646.mp3"
+              Target = "core/src/main/assets/sounds/echoes/ledger_page_turn.mp3"
+              Sha256 = "600be61dd4591f09cdc1711fa8e07098fd3d948f619a7e096513ed6ab5aa82d8"
+            },
+            @{
+              Name = "Book Closing"
+              Url = "https://raw.githubusercontent.com/MikhaellaJingCarumbana/AUTOMA/7d2890fac0d4faf362debdd274665cd65510c896/Chapters/Chapter%201/audios/sounds/book-closing-48311.mp3"
+              Target = "core/src/main/assets/sounds/echoes/ledger_book_close.mp3"
+              Sha256 = "bec81ccf7cc302fa3dad21b90cb73394cf9060ef7222006590ee85980c78d0da"
+            },
+            @{
+              Name = "Writing,Pen,Signature,Paper"
+              Url = "https://raw.githubusercontent.com/gabl18/GAMEDEVTVJam2025/ad55540f245ac9469712015c362bc7d20e0e8538/gamedevtvjam/Assets/Audio/SFX/writingpensignaturepaper-102967.mp3"
+              Target = "core/src/main/assets/sounds/echoes/ledger_pen_write.mp3"
+              Sha256 = "2bb4ba4c07e3ec0f2f747885b4164e10cb6e3bdd058de740f5910706a831ea59"
+            },
+            @{
+              Name = "Traditional Stamp"
+              Url = "https://raw.githubusercontent.com/matt-macarte/felpojam-2026/fe3c64d378447fbcacbb6155c5f72a5ffe0092e2/assets/musga/freesound_community-traditional-stamp-44189.mp3"
+              Target = "core/src/main/assets/sounds/echoes/ledger_stamp.mp3"
+              Sha256 = "8ebefdd86e4c5676888aaf8a50b39453200ae9bfc7f8f815e1874c9d1830213d"
+            }
+          )
+
+          foreach ($asset in $assets) {
+            $targetDir = Split-Path -Parent $asset.Target
+            New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
+
+            Write-Host "Downloading $($asset.Name)"
+            curl.exe -L --fail --retry 3 --retry-delay 2 $asset.Url -o $asset.Target
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to download ledger audio asset: $($asset.Name)"
+            }
+
+            $actual = (Get-FileHash -Path $asset.Target -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actual -ne $asset.Sha256) {
+              throw "Ledger audio SHA256 mismatch for $($asset.Name). Expected $($asset.Sha256), got $actual"
+            }
+
+            Write-Host "Verified $($asset.Name): $actual"
+          }
+
+          Write-Host "All $($assets.Count) Echoes ledger audio assets downloaded and SHA256 verified."
+
       - name: Validate custom PNG assets
         run: python tools/validate_pngs.py
 
@@ -27,23 +143,30 @@ jobs:
         with:
           cache-read-only: false
 
-      - name: Build Windows native image
+      - name: Build Windows native EXE image
+        shell: pwsh
+        run: .\gradlew.bat desktop:jpackageimage --no-build-cache --stacktrace
+
+      - name: Verify runnable Windows launcher
         shell: pwsh
         run: |
-          $maxAttempts = 3
-          for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
-            Write-Host "Gradle build attempt $attempt of $maxAttempts"
-            .\gradlew.bat desktop:jpackageimage
-            if ($LASTEXITCODE -eq 0) { exit 0 }
-            if ($attempt -eq $maxAttempts) { exit $LASTEXITCODE }
-            Start-Sleep -Seconds (15 * $attempt)
+          $launchers = Get-ChildItem -Path "desktop/build/jpackage" -Recurse -Filter "*.exe" |
+            Where-Object { $_.FullName -notmatch '[\\/]runtime[\\/]'
+            }
+
+          if (-not $launchers) {
+            Write-Error "jpackage completed but no application .exe launcher was found."
+            exit 1
           }
 
-      - name: Upload Windows build
+          Write-Host "Runnable launcher(s):"
+          $launchers | ForEach-Object { Write-Host $_.FullName }
+
+      - name: Upload ready-to-run Windows build
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Echoes-of-Yendor-Windows
+          name: Echoes-of-Yendor-Windows-EXE
           path: desktop/build/jpackage/**
           if-no-files-found: error
           retention-days: 14

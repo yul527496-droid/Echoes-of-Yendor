@@ -4,6 +4,8 @@ package com.shatteredpixel.shatteredpixeldungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 
 /**
  * The in-world ledger entry used to reconstruct the hero who returned from the dungeon.
@@ -27,8 +29,18 @@ public class ReturningHeroProfile {
     public HeroClass heroClass = HeroClass.WARRIOR;
     public int subclassIndex = 0;
     public int abilityIndex = 0;
+
+    /** Legacy three-choice weapon index retained while old saves migrate. */
     public int weaponIndex = 0;
+
+    /** Temporary compatibility field until free talent allocation replaces it. */
     public GrowthPreset growthPreset = GrowthPreset.BALANCED;
+
+    /** New stable-ID equipment build state. */
+    public ReturningHeroLoadout loadout = new ReturningHeroLoadout();
+
+    /** Free allocation of the original hero's four talent tiers. */
+    public ReturningHeroTalentPlan talentPlan = new ReturningHeroTalentPlan();
 
     public HeroSubClass subClass() {
         HeroSubClass[] values = heroClass.subClasses();
@@ -40,6 +52,32 @@ public class ReturningHeroProfile {
         return values[Math.max(0, Math.min(abilityIndex, values.length - 1))];
     }
 
+    /** Original class loadout facts are owned by ReturningHeroHeritage. */
+    public Class<? extends Item> initialWeaponClass() {
+        return ReturningHeroHeritage.initialWeapon(heroClass);
+    }
+
+    public Class<? extends Item> signatureHeritageClass() {
+        return ReturningHeroHeritage.signatureItem(heroClass);
+    }
+
+    public Class<? extends Item> initialThrownWeaponClass() {
+        return ReturningHeroHeritage.initialThrownWeapon(heroClass);
+    }
+
+    public boolean hasClassArtifact() {
+        return ReturningHeroHeritage.hasClassArtifact(heroClass);
+    }
+
+    public int classArtifactReturnLevel() {
+        return ReturningHeroHeritage.classArtifactReturnLevel(heroClass);
+    }
+
+    public int mageStaffReturnLevel() {
+        return ReturningHeroHeritage.mageStaffReturnLevel(heroClass);
+    }
+
+    /** Legacy three-choice weapon UI kept only for compatibility with older drafts. */
     public String[] weaponOptions() {
         switch (heroClass) {
             case WARRIOR:
@@ -58,7 +96,18 @@ public class ReturningHeroProfile {
         }
     }
 
+    /** Human-readable current reconstruction, falling back to the legacy picker. */
     public String weaponName() {
+        if (loadout != null && loadout.primaryWeaponId != null) {
+            Item item = ReturningHeroItemCatalog.newItem(loadout.primaryWeaponId);
+            if (item != null) {
+                return Messages.titleCase(item.trueName()) + " +" + loadout.primaryWeaponLevel;
+            }
+        }
+        if (heroClass == HeroClass.MAGE && loadout != null
+                && loadout.rulesetVersion == ReturningHeroBuildRules.RULESET_VERSION) {
+            return "法师魔杖 +" + ReturningHeroBuildRules.MAGES_STAFF_RETURN_LEVEL;
+        }
         String[] options = weaponOptions();
         return options[Math.max(0, Math.min(weaponIndex, options.length - 1))];
     }
@@ -68,6 +117,10 @@ public class ReturningHeroProfile {
         abilityIndex = 0;
         weaponIndex = 0;
         growthPreset = GrowthPreset.BALANCED;
+        if (loadout == null) loadout = new ReturningHeroLoadout();
+        loadout.resetForClass(heroClass);
+        if (talentPlan == null) talentPlan = new ReturningHeroTalentPlan();
+        talentPlan.clear();
     }
 
     public void saveToSlot(int slot) {
@@ -77,6 +130,8 @@ public class ReturningHeroProfile {
         LedgerSettings.ability(slot, abilityIndex);
         LedgerSettings.weapon(slot, weaponIndex);
         LedgerSettings.growth(slot, growthPreset.ordinal());
+        LedgerSettings.loadout(slot, loadout);
+        LedgerSettings.talentPlan(slot, talentPlan);
     }
 
     public static ReturningHeroProfile loadFromSlot(int slot) {
@@ -94,6 +149,8 @@ public class ReturningHeroProfile {
         GrowthPreset[] presets = GrowthPreset.values();
         int growthIndex = LedgerSettings.growth(slot);
         profile.growthPreset = presets[Math.max(0, Math.min(growthIndex, presets.length - 1))];
+        profile.loadout = LedgerSettings.loadout(slot, profile.heroClass);
+        profile.talentPlan = LedgerSettings.talentPlan(slot);
         return profile;
     }
 }

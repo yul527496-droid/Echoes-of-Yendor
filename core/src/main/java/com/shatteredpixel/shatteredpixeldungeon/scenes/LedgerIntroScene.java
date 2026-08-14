@@ -1,9 +1,121 @@
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
-import com.shatteredpixel.shatteredpixeldungeon.Assets;import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;import com.shatteredpixel.shatteredpixeldungeon.LedgerFlow;import com.watabou.input.PointerEvent;import com.watabou.noosa.Camera;import com.watabou.noosa.Game;import com.watabou.noosa.Image;import com.watabou.noosa.PointerArea;import com.watabou.noosa.audio.Sample;import com.watabou.noosa.tweeners.Tweener;
-public class LedgerIntroScene extends PixelScene{
- private static final String CLOSED="interfaces/echoes/ledger_closed.png";private Image closedBook,openBook;private PointerArea input;private float time,closedScale,openScale;
- @Override public void create(){super.create();uiCamera.visible=false;int w=Camera.main.width,h=Camera.main.height;openBook=LedgerEnvironment.addOpenBook(this);openScale=openBook.scale.x;openBook.alpha(0);closedBook=new Image(CLOSED);closedScale=Math.min(w*.46f/closedBook.width,h*.58f/closedBook.height);closedBook.scale.set(closedScale);center(closedBook);add(closedBook);input=new PointerArea(closedBook.x-5,closedBook.y-5,closedBook.width()+10,closedBook.height()+10){@Override protected void onClick(PointerEvent e){open();}};add(input);fadeIn();}
- @Override public void update(){super.update();time+=Game.elapsed;if(input.active)closedBook.brightness(1f+(float)Math.sin(time*2.1f)*.025f);}
- private void open(){if(!input.active)return;input.active=false;Sample.INSTANCE.play(Assets.Sounds.OPEN,.55f,.92f);add(new Tweener(this,.72f){@Override protected void updateValues(float p){float close=Math.min(1f,p/.48f);closedBook.alpha(1f-close);closedBook.scale.set(closedScale*(1f-.18f*close),closedScale*(1f+.03f*close));center(closedBook);float reveal=Math.max(0f,Math.min(1f,(p-.18f)/.82f));openBook.alpha(reveal);openBook.scale.set(openScale*(.92f+.08f*reveal));center(openBook);}@Override protected void onComplete(){if(GamesInProgress.checkAll().isEmpty()){LedgerFlow.resetDraft();Game.switchScene(LedgerHeroScene.class);}else Game.switchScene(LedgerRecordsScene.class);}});}
- private void center(Image image){image.x=(Camera.main.width-image.width())/2f;image.y=(Camera.main.height-image.height())/2f;PixelScene.align(image);}
+
+import com.watabou.input.PointerEvent;
+import com.watabou.noosa.Camera;
+import com.watabou.noosa.ColorBlock;
+import com.watabou.noosa.Game;
+import com.watabou.noosa.Image;
+import com.watabou.noosa.PointerArea;
+import com.watabou.noosa.tweeners.Tweener;
+import com.watabou.utils.RectF;
+
+public class LedgerIntroScene extends PixelScene {
+
+    private Image closedBook;
+    private Image openBook;
+    private PointerArea input;
+    private float closedScale;
+    private float openScale;
+
+    @Override
+    public void create() {
+        super.create();
+        int w = Camera.main.width;
+        int h = Camera.main.height;
+
+        openBook = LedgerEnvironment.addOpenBook(this);
+        openScale = openBook.scale.x;
+        openBook.alpha(0f);
+
+        closedBook = LedgerClosedArtwork.image();
+        closedScale = Math.min((w - 8f) / closedBook.width, (h - 8f) / closedBook.height);
+        closedBook.scale.set(closedScale);
+        center(closedBook);
+        add(closedBook);
+        add(LedgerCandleFX.closedBook(closedBook));
+
+        input = new PointerArea(closedBook.x - 5f, closedBook.y - 5f,
+                closedBook.width() + 10f, closedBook.height() + 10f) {
+            @Override protected void onClick(PointerEvent e) { open(); }
+        };
+        add(input);
+        fadeIn();
+    }
+
+    private void open() {
+        if (!input.active) return;
+        input.active = false;
+        closedBook.resetColor();
+        LedgerAudio.bookOpen();
+
+        final RectF left = LedgerEnvironment.leftPage(openBook);
+        final RectF right = LedgerEnvironment.rightPage(openBook);
+        final ColorBlock leftCover = new ColorBlock(left.width(), left.height(), 0xFFE8C783);
+        final ColorBlock rightCover = new ColorBlock(right.width(), right.height(), 0xFFE8C783);
+        final ColorBlock leftEdge = new ColorBlock(1.2f, left.height(), 0xFFFFE7AE);
+        final ColorBlock rightEdge = new ColorBlock(1.2f, right.height(), 0xFFFFE7AE);
+        leftCover.x = left.left;
+        leftCover.y = left.top;
+        rightCover.x = right.left;
+        rightCover.y = right.top;
+        leftEdge.y = left.top;
+        rightEdge.y = right.top;
+        leftCover.alpha(0f);
+        rightCover.alpha(0f);
+        leftEdge.alpha(0f);
+        rightEdge.alpha(0f);
+        add(leftCover);
+        add(rightCover);
+        add(leftEdge);
+        add(rightEdge);
+
+        add(new Tweener(this, 0.88f) {
+            @Override protected void updateValues(float progress) {
+                float close = Math.min(1f, progress / 0.50f);
+                float closeEase = close * close * (3f - 2f * close);
+                closedBook.alpha(1f - closeEase);
+                closedBook.scale.set(closedScale * (1f - 0.13f * closeEase),
+                        closedScale * (1f + 0.020f * closeEase));
+                center(closedBook);
+
+                float reveal = Math.max(0f, Math.min(1f, (progress - 0.16f) / 0.84f));
+                float revealEase = reveal * reveal * (3f - 2f * reveal);
+                openBook.alpha(revealEase);
+                openBook.scale.set(openScale * (0.965f + 0.035f * revealEase));
+                center(openBook);
+
+                float coverFraction = 1f - revealEase;
+                float leftW = left.width() * coverFraction;
+                float rightW = right.width() * coverFraction;
+                leftCover.x = left.left;
+                leftCover.size(Math.max(0.01f, leftW), left.height());
+                rightCover.x = right.right - rightW;
+                rightCover.size(Math.max(0.01f, rightW), right.height());
+
+                float pageAlpha = reveal > 0f ? 0.94f : 0f;
+                leftCover.alpha(pageAlpha);
+                rightCover.alpha(pageAlpha);
+                float edgeAlpha = (float) Math.sin(Math.PI * revealEase) * 0.52f;
+                leftEdge.x = left.left + leftW - leftEdge.width;
+                rightEdge.x = right.right - rightW;
+                leftEdge.alpha(edgeAlpha);
+                rightEdge.alpha(edgeAlpha);
+            }
+
+            @Override protected void onComplete() {
+                leftCover.killAndErase();
+                rightCover.killAndErase();
+                leftEdge.killAndErase();
+                rightEdge.killAndErase();
+                PixelScene.noFade = true;
+                Game.switchScene(LedgerRecordsScene.class);
+            }
+        });
+    }
+
+    private void center(Image image) {
+        image.x = (Camera.main.width - image.width()) / 2f;
+        image.y = (Camera.main.height - image.height()) / 2f;
+        PixelScene.align(image);
+    }
 }
