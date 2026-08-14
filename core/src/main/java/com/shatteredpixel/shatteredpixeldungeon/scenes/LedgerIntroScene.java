@@ -9,7 +9,6 @@ import com.watabou.noosa.PointerArea;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.tweeners.Tweener;
 
-/** The single cold-start entrance for Echoes of Yendor. */
 public class LedgerIntroScene extends PixelScene {
 
     private Image closedBook;
@@ -22,11 +21,9 @@ public class LedgerIntroScene extends PixelScene {
     @Override
     public void create() {
         super.create();
-
         int w = Camera.main.width;
         int h = Camera.main.height;
 
-        // The approved artwork is the single visual source for both states.
         openBook = LedgerEnvironment.addOpenBook(this);
         openScale = openBook.scale.x;
         openBook.alpha(0f);
@@ -39,18 +36,11 @@ public class LedgerIntroScene extends PixelScene {
         add(new LedgerWarmth(closedBook, 0.014f));
         add(LedgerCandleFX.closedBook(closedBook));
 
-        input = new PointerArea(
-                closedBook.x - 5f,
-                closedBook.y - 5f,
-                closedBook.width() + 10f,
-                closedBook.height() + 10f) {
-            @Override
-            protected void onClick(PointerEvent e) {
-                open();
-            }
+        input = new PointerArea(closedBook.x - 5f, closedBook.y - 5f,
+                closedBook.width() + 10f, closedBook.height() + 10f) {
+            @Override protected void onClick(PointerEvent e) { open(); }
         };
         add(input);
-
         fadeIn();
     }
 
@@ -59,27 +49,22 @@ public class LedgerIntroScene extends PixelScene {
         super.update();
         time += Game.elapsed;
         if (input.active) {
-            // Very small idle breathing; the candle itself now carries the
-            // obvious motion so the entire composition does not pulse.
-            closedBook.brightness(1f + (float) Math.sin(time * 1.9f) * 0.007f);
+            closedBook.brightness(1f + (float)Math.sin(time * 1.9f) * 0.007f);
         }
     }
 
     private void open() {
         if (!input.active) return;
-
         input.active = false;
         closedBook.resetColor();
         Sample.INSTANCE.play(Assets.Sounds.OPEN, 0.58f, 0.92f);
 
         add(new Tweener(this, 0.78f) {
-            @Override
-            protected void updateValues(float progress) {
+            @Override protected void updateValues(float progress) {
                 float close = Math.min(1f, progress / 0.52f);
                 float closeEase = close * close * (3f - 2f * close);
                 closedBook.alpha(1f - closeEase);
-                closedBook.scale.set(
-                        closedScale * (1f - 0.15f * closeEase),
+                closedBook.scale.set(closedScale * (1f - 0.15f * closeEase),
                         closedScale * (1f + 0.025f * closeEase));
                 center(closedBook);
 
@@ -90,8 +75,8 @@ public class LedgerIntroScene extends PixelScene {
                 center(openBook);
             }
 
-            @Override
-            protected void onComplete() {
+            @Override protected void onComplete() {
+                PixelScene.noFade = true;
                 Game.switchScene(LedgerRecordsScene.class);
             }
         });
