@@ -118,7 +118,7 @@ public class LedgerReturnScene extends PixelScene {
 
         add(LedgerPageGrid.rule(right.footer.left, right.footer.top + 1f,
                 right.footer.width(), 0.30f));
-        LedgerButton start = new LedgerButton(Chrome.Type.BLANK, "让这名归还者醒来  ›", 5) {
+        LedgerButton start = new LedgerButton(Chrome.Type.BLANK, "让这名归还者醒来", 5) {
             @Override protected void onClick() {
                 super.onClick();
                 SequelGame.start(LedgerFlow.draft());
