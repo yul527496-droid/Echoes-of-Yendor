@@ -22,6 +22,10 @@ public final class LedgerFlow {
     private static String accessoryCandidateId;
     private static int accessoryCandidateLevel;
 
+    private static int trinketPickerStage = 0;
+    private static String trinketCandidateId;
+    private static int trinketCandidateLevel;
+
     private LedgerFlow() {}
 
     public static ReturningHeroProfile draft() { return draft; }
@@ -32,6 +36,7 @@ public final class LedgerFlow {
         resetArmorPicker();
         resetWandPicker();
         resetAccessoryPicker();
+        resetTrinketPicker();
         return draft;
     }
 
@@ -108,5 +113,20 @@ public final class LedgerFlow {
         accessoryTarget = 0;
         accessoryCandidateId = null;
         accessoryCandidateLevel = 0;
+    }
+
+    /** 0=trinket list, 1=trinket level. */
+    public static int trinketPickerStage() { return trinketPickerStage; }
+    public static void trinketPickerStage(int value) { trinketPickerStage = Math.max(0, Math.min(value, 1)); }
+    public static String trinketCandidateId() { return trinketCandidateId; }
+    public static void trinketCandidateId(String value) { trinketCandidateId = value; }
+    public static int trinketCandidateLevel() { return trinketCandidateLevel; }
+    public static void trinketCandidateLevel(int value) { trinketCandidateLevel = Math.max(0, Math.min(value, 3)); }
+
+    public static void resetTrinketPicker() {
+        choicePage = 0;
+        trinketPickerStage = 0;
+        trinketCandidateId = null;
+        trinketCandidateLevel = 0;
     }
 }
