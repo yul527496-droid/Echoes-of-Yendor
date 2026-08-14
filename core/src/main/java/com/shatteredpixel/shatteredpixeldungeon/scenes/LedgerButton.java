@@ -1,7 +1,18 @@
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
+
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
-import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.StyledButton;
-class LedgerButton extends StyledButton{
- LedgerButton(Chrome.Type type,String label,int size){super(type,label,size);remove(text);text=new RenderedTextBlock(label,size,false);add(text);layout();}
+
+/**
+ * Ledger button skin.
+ *
+ * StyledButton already creates its label through PixelScene.renderTextBlock(),
+ * which is the DPI-aware path used by Shattered for CJK text. Do not replace
+ * that label with a raw RenderedTextBlock here.
+ */
+class LedgerButton extends StyledButton {
+
+    LedgerButton(Chrome.Type type, String label, int size) {
+        super(type, label, size);
+    }
 }
