@@ -3,6 +3,7 @@ package com.shatteredpixel.shatteredpixeldungeon.ui;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Languages;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.watabou.noosa.FontPreviewMode;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.RenderedText;
 import com.watabou.noosa.ui.Component;
@@ -33,6 +34,11 @@ public class RenderedTextBlock extends Component {
     // so existing UI is unchanged. Ledger UI can explicitly opt into a
     // different tracking value without touching the rest of the game.
     private float tracking = -0.667f;
+
+    // Font choice must survive rebuilds triggered by text(), maxWidth(), and
+    // highlighting changes. Without this, ledger text briefly used Fusion Pixel
+    // during construction and then silently rebuilt with Droid Sans.
+    private boolean ledgerPixelFont;
 
     public static final int LEFT_ALIGN = 1;
     public static final int CENTER_ALIGN = 2;
@@ -96,30 +102,54 @@ public class RenderedTextBlock extends Component {
         build();
     }
 
+    /**
+     * Keeps Fusion Pixel selected for this block across every future rebuild.
+     * If the optional font was not packaged, DesktopPlatformSupport still
+     * falls back safely to the normal game font.
+     */
+    public synchronized void setLedgerPixelFont(boolean enabled) {
+        if (ledgerPixelFont != enabled) {
+            ledgerPixelFont = enabled;
+            build();
+        }
+    }
+
+    public synchronized boolean ledgerPixelFont() {
+        return ledgerPixelFont;
+    }
+
     private synchronized void build() {
         if (tokens == null) return;
-        clear();
-        words = new ArrayList<>();
-        boolean hi = false;
 
-        for (String s : tokens) {
-            if ((s.equals("_") || s.equals("**")) && highlightingEnabled) {
-                hi = !hi;
-            } else if (s.equals("\n")) {
-                words.add(NEWLINE);
-            } else if (s.equals(" ")) {
-                words.add(SPACE);
-            } else {
-                RenderedText w = new RenderedText(s, size, border);
-                if (hi) w.hardlight(hightlightColor);
-                else if (color != -1) w.hardlight(color);
-                w.scale.set(zoom);
-                words.add(w);
-                add(w);
-                if (height < w.height()) height = w.height();
+        boolean previousFontMode = FontPreviewMode.ledgerPixelFont;
+        if (ledgerPixelFont) FontPreviewMode.ledgerPixelFont = true;
+
+        try {
+            clear();
+            words = new ArrayList<>();
+            boolean hi = false;
+
+            for (String s : tokens) {
+                if ((s.equals("_") || s.equals("**")) && highlightingEnabled) {
+                    hi = !hi;
+                } else if (s.equals("\n")) {
+                    words.add(NEWLINE);
+                } else if (s.equals(" ")) {
+                    words.add(SPACE);
+                } else {
+                    RenderedText w = new RenderedText(s, size, border);
+                    if (hi) w.hardlight(hightlightColor);
+                    else if (color != -1) w.hardlight(color);
+                    w.scale.set(zoom);
+                    words.add(w);
+                    add(w);
+                    if (height < w.height()) height = w.height();
+                }
             }
+            layout();
+        } finally {
+            FontPreviewMode.ledgerPixelFont = previousFontMode;
         }
-        layout();
     }
 
     public synchronized void zoom(float z) {
