@@ -120,8 +120,7 @@ public class ReturningHeroProfile {
         LedgerSettings.ability(slot, abilityIndex);
         LedgerSettings.weapon(slot, weaponIndex);
         LedgerSettings.growth(slot, growthPreset.ordinal());
-        // Stable loadout persistence is added in the next migration step.  Until
-        // then the existing save metadata remains fully backward compatible.
+        LedgerSettings.loadout(slot, loadout);
     }
 
     public static ReturningHeroProfile loadFromSlot(int slot) {
@@ -139,10 +138,7 @@ public class ReturningHeroProfile {
         GrowthPreset[] presets = GrowthPreset.values();
         int growthIndex = LedgerSettings.growth(slot);
         profile.growthPreset = presets[Math.max(0, Math.min(growthIndex, presets.length - 1))];
-
-        // Old slots have no stable loadout data yet.  Initialize only class
-        // heritage defaults so loading an existing slot never invents gear.
-        profile.loadout.resetForClass(profile.heroClass);
+        profile.loadout = LedgerSettings.loadout(slot, profile.heroClass);
         return profile;
     }
 }
