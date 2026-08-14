@@ -3,28 +3,17 @@ package com.shatteredpixel.shatteredpixeldungeon.scenes;
 import com.watabou.noosa.ColorBlock;
 import com.watabou.utils.RectF;
 
-/**
- * Canonical safe layout for ledger pages.
- *
- * All interactive/text content must live inside {@link Page#content}. This is
- * intentionally stricter than the painted paper bounds so page decorations,
- * book shadows, and screen edges can never eat UI controls.
- */
+/** Canonical safe layout for ledger pages. */
 final class LedgerPageGrid {
 
     private LedgerPageGrid() {}
 
-    static Page from(RectF paper) {
-        float insetX = Math.max(6f, paper.width() * 0.10f);
-        float insetTop = Math.max(6f, paper.height() * 0.085f);
-        float insetBottom = Math.max(7f, paper.height() * 0.10f);
-
-        RectF content = new RectF(
-                paper.left + insetX,
-                paper.top + insetTop,
-                paper.right - insetX,
-                paper.bottom - insetBottom);
-
+    /**
+     * Builds the structural bands from an explicit writable content rectangle.
+     * The writable rectangle comes from LedgerDesignSpace and is not derived
+     * from paper-edge percentages, so artwork/fallback changes cannot move UI.
+     */
+    static Page from(RectF paper, RectF content) {
         float headerH = Math.max(15f, content.height() * 0.20f);
         float footerH = Math.max(12f, content.height() * 0.16f);
 
