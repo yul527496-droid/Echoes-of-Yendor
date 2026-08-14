@@ -27,11 +27,12 @@ final class LedgerDesignSpace {
     private static final float RIGHT_PAGE_B = 220f;
 
     // Writable page areas are explicit design landmarks, not percentages of
-    // the paper rectangle. This keeps text/control placement stable if the
-    // painted page edge or fallback artwork changes slightly.
-    private static final float LEFT_CONTENT_L = 94f;
+    // the paper rectangle. The left page is centered within its parchment so
+    // its content no longer hugs the outer edge; the right page was already
+    // visually balanced and remains unchanged.
+    private static final float LEFT_CONTENT_L = 98f;
     private static final float LEFT_CONTENT_T = 50f;
-    private static final float LEFT_CONTENT_R = 219f;
+    private static final float LEFT_CONTENT_R = 223f;
     private static final float LEFT_CONTENT_B = 217f;
 
     private static final float RIGHT_CONTENT_L = 266f;
