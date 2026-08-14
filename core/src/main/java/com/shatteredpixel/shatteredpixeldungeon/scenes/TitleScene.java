@@ -16,8 +16,8 @@
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
 
 /**
- * Stable public title-scene entry point. The Echoes-specific implementation is
- * isolated so the game's many existing references to TitleScene keep working.
+ * Compatibility entry point for code that still asks for TitleScene.
+ * Echoes has one title flow only, so TitleScene is simply the ledger intro.
  */
-public class TitleScene extends EchoesLedgerScene {
+public class TitleScene extends LedgerIntroScene {
 }
