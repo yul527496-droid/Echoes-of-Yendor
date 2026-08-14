@@ -9,7 +9,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
  * Central cost calculator for returning-hero reconstruction.
  *
  * These tables normalize the original tier/upgrade curves into Echoes build
- * points.  They are intentionally kept outside UI code so later balance passes
+ * points. They are intentionally kept outside UI code so later balance passes
  * can replace numbers without changing save data or scene layout.
  */
 public final class ReturningHeroBuildCost {
@@ -37,16 +37,21 @@ public final class ReturningHeroBuildCost {
         // Utility class.
     }
 
-    /** Ordinary freely selectable T2-T5 melee weapons. */
+    /**
+     * Raw melee reconstruction price. T1 entries have prices because a hero may
+     * keep using their own starting weapon, but class ownership is deliberately
+     * checked by primaryWeaponCost rather than here.
+     */
     public static int weaponCost(String itemId, int level) {
         Entry entry = ReturningHeroItemCatalog.byId(itemId);
-        if (entry == null || entry.kind != Kind.MELEE_WEAPON || !entry.selectable) return -1;
-        if (entry.tier < 2 || entry.tier >= WEAPON_COST.length) return -1;
+        if (entry == null || entry.kind != Kind.MELEE_WEAPON) return -1;
+        if (entry.tier < 1 || entry.tier >= WEAPON_COST.length) return -1;
+        if (entry.tier > 1 && !entry.selectable) return -1;
         return tableWeaponCost(entry, itemId, level);
     }
 
     /**
-     * Cost for the actual primary-weapon slot.  In addition to ordinary T2-T5
+     * Cost for the actual primary-weapon slot. In addition to ordinary T2-T5
      * choices, a non-Mage may keep using only their own original T1 weapon.
      * Mage T1 is the completed staff heritage and is represented implicitly.
      */
