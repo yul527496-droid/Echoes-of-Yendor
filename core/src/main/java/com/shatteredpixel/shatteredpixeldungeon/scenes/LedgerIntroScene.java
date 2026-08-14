@@ -34,7 +34,10 @@ public class LedgerIntroScene extends PixelScene {
         center(closedBook);
         add(closedBook);
         add(new LedgerWarmth(closedBook, 0.014f));
-        add(LedgerCandleFX.closedBook(closedBook));
+
+        // V2 baseline build: the known-bad closed-book candle overlay is
+        // intentionally disabled. Step 1 validates geometry only; candle
+        // anchors are rebuilt later from their own closed-book design space.
 
         input = new PointerArea(closedBook.x - 5f, closedBook.y - 5f,
                 closedBook.width() + 10f, closedBook.height() + 10f) {
@@ -75,7 +78,7 @@ public class LedgerIntroScene extends PixelScene {
 
             @Override protected void onComplete() {
                 PixelScene.noFade = true;
-                Game.switchScene(LedgerRecordsScene.class);
+                Game.switchScene(LedgerLayoutBaselineScene.class);
             }
         });
     }
