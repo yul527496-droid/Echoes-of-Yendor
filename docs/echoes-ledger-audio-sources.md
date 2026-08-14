@@ -8,11 +8,11 @@ The ledger audio layer looks for optional files under `sounds/echoes/` and `musi
 
 The following Pixabay pages were reviewed as direction/source candidates under the Pixabay Content License:
 
-- Book opening — `https://pixabay.com/sound-effects/book-opening-345805/`
-- Page turn — `https://pixabay.com/sound-effects/page-turn-98756/`
-- Traditional stamp — `https://pixabay.com/sound-effects/traditional-stamp-133910/`
-- Writing / pen-on-paper search category — `https://pixabay.com/sound-effects/search/writing/`
-- Tavern ambience search category — `https://pixabay.com/sound-effects/search/tavern/`
+- Book Opening — freesounds123 — `https://pixabay.com/sound-effects/film-special-effects-book-opening-345808/`
+- Page Turn — `https://pixabay.com/sound-effects/film-special-effects-page-turn-305789/`
+- traditional stamp — I.fekry / Freesound — `https://pixabay.com/sound-effects/film-special-effects-traditional-stamp-44189/`
+- Writing / pen-on-paper shortlist — `https://pixabay.com/sound-effects/search/writing%20paper/`
+- Tavern ambience with openfire effect (no loops) — Placidplace — `https://pixabay.com/sound-effects/tavern-ambience-with-openfire-effect-no-loops-86151/`
 
 Before committing any downloaded binary, preserve its exact item URL and creator/title here. Do not commit a remote preview or an HTML page renamed as audio.
 
