@@ -135,8 +135,20 @@ public class LedgerBuildScene extends PixelScene {
                         right.paper, LedgerAccessoryScene.class, true);
             }
         });
-        y = directoryButton(y, rowH, "随身饰品", trinketStatus(), false, null);
-        y = directoryButton(y, rowH, "天赋", talentStatus(), false, null);
+        y = directoryButton(y, rowH, "随身饰品", trinketStatus(), true, new Runnable() {
+            @Override public void run() {
+                LedgerFlow.resetTrinketPicker();
+                LedgerTransitions.turn(LedgerBuildScene.this,
+                        right.paper, LedgerTrinketScene.class, true);
+            }
+        });
+        y = directoryButton(y, rowH, "天赋", talentStatus(), true, new Runnable() {
+            @Override public void run() {
+                LedgerFlow.resetTalentPicker();
+                LedgerTransitions.turn(LedgerBuildScene.this,
+                        right.paper, LedgerTalentScene.class, true);
+            }
+        });
         directoryButton(y, rowH, "构筑预设", "八处留档位", false, null);
 
         add(LedgerPageGrid.rule(right.footer.left, right.footer.top + 1f,
@@ -239,7 +251,7 @@ public class LedgerBuildScene extends PixelScene {
 
     private String trinketStatus() {
         ReturningHeroLoadout loadout = LedgerFlow.draft().loadout;
-        if (loadout == null || loadout.trinketId == null) return "未填写";
+        if (loadout == null || loadout.trinketId == null) return "未携带";
         return itemName(loadout.trinketId) + " +" + loadout.trinketLevel;
     }
 
