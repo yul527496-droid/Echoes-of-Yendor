@@ -1,5 +1,8 @@
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
 
+import com.shatteredpixel.shatteredpixeldungeon.Chrome;
+import com.shatteredpixel.shatteredpixeldungeon.SequelGame;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
 import com.watabou.input.PointerEvent;
 import com.watabou.noosa.Camera;
 import com.watabou.noosa.ColorBlock;
@@ -39,6 +42,25 @@ public class LedgerIntroScene extends PixelScene {
             @Override protected void onClick(PointerEvent e) { open(); }
         };
         add(input);
+
+        // Temporary branch-only shortcut for real-scale graybox acceptance.
+        // It is intentionally outside the normal ledger flow and will not be
+        // carried into the production onboarding path.
+        LedgerButton preview = new LedgerButton(Chrome.Type.BLANK, "训练场预览", 5) {
+            @Override protected void onClick() {
+                super.onClick();
+                if (SequelGame.previewTrainingGround()) {
+                    LedgerAudio.leave();
+                } else {
+                    LedgerIntroScene.this.add(new WndMessage(
+                            "训练场预览需要至少一个空存档位。不会覆盖已有记录。"));
+                }
+            }
+        };
+        preview.textColor(LedgerEnvironment.FADED_INK);
+        preview.setRect(Math.max(4f, w - 62f), h - 16f, 58f, 12f);
+        add(preview);
+
         fadeIn();
     }
 
