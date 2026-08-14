@@ -23,11 +23,6 @@ final class LedgerEnvironment {
 
     private LedgerEnvironment() {}
 
-    /**
-     * Loads an optional ledger texture without allowing a bad/corrupt art file to
-     * take down the entire title flow. A missing visual layer should degrade the
-     * presentation, never make the game unbootable.
-     */
     static Image tryLoad(String asset) {
         try {
             return new Image(asset);
@@ -53,8 +48,6 @@ final class LedgerEnvironment {
         PixelScene.align(base);
         scene.add(base);
 
-        // The layered effects are optional. If any external PNG is damaged,
-        // the embedded book remains usable and the UI can still be tested.
         if (!embeddedFallback) {
             Image shadow = tryLoad(LEDGER_SHADOW);
             if (shadow != null) {
