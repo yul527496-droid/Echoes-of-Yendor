@@ -25,6 +25,10 @@ public class LedgerSealScene extends PixelScene {
         // while the remaining reconstruction pages are introduced incrementally.
         if (LedgerFlow.draft().loadout != null
                 && LedgerFlow.draft().loadout.armorId == null) {
+            // Game.switchScene is deferred; this scene may still receive an update
+            // before the replacement scene becomes active. Mark the scene as leaving
+            // so update() never touches presentation objects that were not created.
+            leaving = true;
             PixelScene.noFade = true;
             Game.switchScene(LedgerBuildScene.class);
             return;
@@ -110,6 +114,12 @@ public class LedgerSealScene extends PixelScene {
     @Override
     public void update() {
         super.update();
+
+        // create() can intentionally redirect before the seal UI is built. Scene
+        // replacement is deferred, so the old scene may still be updated briefly.
+        // Never animate objects that do not exist yet or after departure begins.
+        if (leaving || stamp == null || right == null) return;
+
         time += Game.elapsed;
 
         float fall = Math.max(0f, Math.min(1f, (time - 0.42f) / 0.34f));
@@ -131,7 +141,7 @@ public class LedgerSealScene extends PixelScene {
             stamp.visual(1f, 0.90f);
         }
 
-        if (!leaving && time > 2.05f) {
+        if (time > 2.05f) {
             leaving = true;
             LedgerTransitions.turn(this, right.paper, LedgerReturnScene.class, true);
         }
