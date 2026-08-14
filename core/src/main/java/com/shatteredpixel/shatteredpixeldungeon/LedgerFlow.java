@@ -2,10 +2,15 @@ package com.shatteredpixel.shatteredpixeldungeon;
 
 public final class LedgerFlow {
     private static ReturningHeroProfile draft = new ReturningHeroProfile();
+
     private static int weaponTier = 2;
     private static int weaponPickerStage = 0;
     private static String weaponCandidateId;
     private static int weaponCandidateLevel;
+
+    private static int armorPickerStage = 0;
+    private static String armorCandidateId;
+    private static int armorCandidateLevel;
 
     private LedgerFlow() {}
 
@@ -14,6 +19,7 @@ public final class LedgerFlow {
     public static ReturningHeroProfile resetDraft() {
         draft = new ReturningHeroProfile();
         resetWeaponPicker();
+        resetArmorPicker();
         return draft;
     }
 
@@ -56,5 +62,36 @@ public final class LedgerFlow {
         weaponPickerStage = 0;
         weaponCandidateId = null;
         weaponCandidateLevel = 0;
+    }
+
+    /** 0=armor list, 1=upgrade level. */
+    public static int armorPickerStage() {
+        return armorPickerStage;
+    }
+
+    public static void armorPickerStage(int value) {
+        armorPickerStage = Math.max(0, Math.min(value, 1));
+    }
+
+    public static String armorCandidateId() {
+        return armorCandidateId;
+    }
+
+    public static void armorCandidateId(String value) {
+        armorCandidateId = value;
+    }
+
+    public static int armorCandidateLevel() {
+        return armorCandidateLevel;
+    }
+
+    public static void armorCandidateLevel(int value) {
+        armorCandidateLevel = Math.max(0, Math.min(value, 6));
+    }
+
+    public static void resetArmorPicker() {
+        armorPickerStage = 0;
+        armorCandidateId = null;
+        armorCandidateLevel = 0;
     }
 }
