@@ -128,7 +128,13 @@ public class LedgerBuildScene extends PixelScene {
                         right.paper, LedgerWandScene.class, true);
             }
         });
-        y = directoryButton(y, rowH, "神器与戒指", accessoryStatus(), false, null);
+        y = directoryButton(y, rowH, "神器与戒指", accessoryStatus(), true, new Runnable() {
+            @Override public void run() {
+                LedgerFlow.resetAccessoryPicker();
+                LedgerTransitions.turn(LedgerBuildScene.this,
+                        right.paper, LedgerAccessoryScene.class, true);
+            }
+        });
         y = directoryButton(y, rowH, "随身饰品", trinketStatus(), false, null);
         y = directoryButton(y, rowH, "天赋", talentStatus(), false, null);
         directoryButton(y, rowH, "构筑预设", "八处留档位", false, null);
