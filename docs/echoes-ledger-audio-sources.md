@@ -14,7 +14,7 @@ The following Pixabay pages were reviewed as direction/source candidates under t
 - Writing / pen-on-paper shortlist — `https://pixabay.com/sound-effects/search/writing%20paper/`
 - Tavern ambience with openfire effect (no loops) — Placidplace — `https://pixabay.com/sound-effects/tavern-ambience-with-openfire-effect-no-loops-86151/`
 
-Before committing any downloaded binary, preserve its exact item URL and creator/title here. Do not commit a remote preview or an HTML page renamed as audio.
+The first three item pages and the tavern ambience page explicitly show “Free for use under the Pixabay Content License” and provide MP3 downloads in the browser. Before committing any downloaded binary, preserve its exact item URL and creator/title here. Do not commit a remote preview or an HTML page renamed as audio.
 
 ## Runtime target paths
 
