@@ -76,6 +76,19 @@ public final class ReturningHeroBuildCost {
         return level;
     }
 
+    public static int trinketAlchemyCost(String itemId, int level) {
+        return ReturningHeroTrinketBalance.alchemyCost(itemId, level);
+    }
+
+    public static int trinketAlchemyRemaining(ReturningHeroLoadout loadout) {
+        if (loadout == null || loadout.trinketId == null) {
+            return ReturningHeroBuildRules.TRINKET_ALCHEMY_RECONSTRUCTION_BUDGET;
+        }
+        int spent = trinketAlchemyCost(loadout.trinketId, loadout.trinketLevel);
+        if (spent < 0) return -1;
+        return ReturningHeroBuildRules.TRINKET_ALCHEMY_RECONSTRUCTION_BUDGET - spent;
+    }
+
     public static int equipmentSpent(HeroClass heroClass, ReturningHeroLoadout loadout) {
         if (loadout == null) return 0;
         int total = 0;
