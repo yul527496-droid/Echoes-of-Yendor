@@ -65,7 +65,7 @@ public class LedgerWeaponScene extends PixelScene {
         add(LedgerPageGrid.rule(left.footer.left, left.footer.top + 1f,
                 left.footer.width(), 0.22f));
 
-        LedgerButton back = new LedgerButton(Chrome.Type.BLANK, "‹ 返回登记页", 4) {
+        LedgerButton back = new LedgerButton(Chrome.Type.BLANK, "返回登记页", 4) {
             @Override protected void onClick() {
                 super.onClick();
                 LedgerTransitions.turn(LedgerWeaponScene.this,
@@ -129,7 +129,7 @@ public class LedgerWeaponScene extends PixelScene {
         add(LedgerPageGrid.rule(right.footer.left, right.footer.top + 1f,
                 right.footer.width(), 0.28f));
 
-        LedgerButton ok = new LedgerButton(Chrome.Type.BLANK, "确认登记并盖章  ›", 5) {
+        LedgerButton ok = new LedgerButton(Chrome.Type.BLANK, "确认登记并盖章", 5) {
             @Override protected void onClick() {
                 super.onClick();
                 LedgerFlow.draft().weaponIndex = selected;
