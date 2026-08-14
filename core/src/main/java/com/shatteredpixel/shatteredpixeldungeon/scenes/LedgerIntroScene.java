@@ -77,7 +77,7 @@ public class LedgerIntroScene extends PixelScene {
 
             @Override protected void onComplete() {
                 PixelScene.noFade = true;
-                Game.switchScene(LedgerFontBaselineScene.class);
+                Game.switchScene(LedgerRecordsScene.class);
             }
         });
     }
