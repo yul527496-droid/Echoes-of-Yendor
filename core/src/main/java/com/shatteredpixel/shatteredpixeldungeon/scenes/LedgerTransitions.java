@@ -11,7 +11,7 @@ import com.watabou.utils.RectF;
  * The outgoing scene is first covered by a moving parchment face; after the
  * scene switch the same page face retracts to reveal the destination. This
  * avoids the old "three coloured bars then teleport" look without requiring
- * fragile framebuffer capture code in the first vertical slice.
+ * framebuffer capture in the first vertical slice.
  */
 final class LedgerTransitions {
 
@@ -80,42 +80,35 @@ final class LedgerTransitions {
                 float coverFraction = covering ? p : (1f - p);
                 float coverW = paper.width() * coverFraction;
 
-                if (forward) {
-                    if (covering) {
-                        page.x = paper.right - coverW;
-                    } else {
-                        // New right-side content appears from the outer edge first.
-                        page.x = paper.left;
-                    }
+                if (covering) {
+                    page.x = forward ? paper.right - coverW : paper.left;
                 } else {
-                    if (covering) {
-                        page.x = paper.left;
-                    } else {
-                        // New left-side content appears from the outer edge first.
-                        page.x = paper.right - coverW;
-                    }
+                    // Reveal from the page's outer edge toward the spine.
+                    page.x = forward ? paper.left : paper.right - coverW;
                 }
                 page.size(Math.max(0.01f, coverW), paper.height());
 
                 float edge;
-                if (forward) {
-                    edge = covering ? page.x : page.x + coverW;
+                if (covering) {
+                    edge = forward ? page.x : page.x + coverW;
                 } else {
-                    edge = covering ? page.x + coverW : page.x;
+                    edge = forward ? page.x + coverW : page.x;
                 }
 
                 float foldW = 2.4f + wave * 6.8f;
+                float shadowW = 4.5f + wave * 8.0f;
+                float warmW = 1.1f + wave * 1.6f;
                 fold.size(foldW, paper.height());
-                shadow.size(4.5f + wave * 8.0f, paper.height());
-                warm.size(1.1f + wave * 1.6f, paper.height());
+                shadow.size(shadowW, paper.height());
+                warm.size(warmW, paper.height());
 
                 if (forward) {
                     fold.x = edge - foldW * 0.45f;
-                    warm.x = fold.x - warm.width() * 0.55f;
-                    shadow.x = fold.x - shadow.width();
+                    warm.x = fold.x - warmW * 0.55f;
+                    shadow.x = fold.x - shadowW;
                 } else {
                     fold.x = edge - foldW * 0.55f;
-                    warm.x = fold.x + foldW - warm.width() * 0.45f;
+                    warm.x = fold.x + foldW - warmW * 0.45f;
                     shadow.x = fold.x + foldW;
                 }
 
@@ -123,10 +116,6 @@ final class LedgerTransitions {
                 fold.alpha(0.38f + wave * 0.32f);
                 warm.alpha(wave * 0.30f);
                 shadow.alpha(wave * 0.24f);
-
-                // The page face becomes slightly less opaque at the very end of
-                // the reveal so it never looks like a flat colour card sitting
-                // on top of the parchment texture.
                 page.alpha(covering ? 0.985f : 0.94f + coverFraction * 0.045f);
             }
 
