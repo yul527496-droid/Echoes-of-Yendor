@@ -8,8 +8,11 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.watabou.noosa.Camera;
 import com.watabou.noosa.ColorBlock;
+import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
+import com.watabou.noosa.tweeners.Tweener;
 
 public class LedgerReturnScene extends PixelScene {
 
@@ -18,11 +21,13 @@ public class LedgerReturnScene extends PixelScene {
     private ColorBlock[] growthMarks;
     private LedgerPageGrid.Page left;
     private LedgerPageGrid.Page right;
+    private Image book;
+    private boolean closing;
 
     @Override
     public void create() {
         super.create();
-        Image book = LedgerEnvironment.addOpenBook(this);
+        book = LedgerEnvironment.addOpenBook(this);
         left = LedgerEnvironment.leftGrid(book);
         right = LedgerEnvironment.rightGrid(book);
         buildReturnedHero(left);
@@ -125,14 +130,87 @@ public class LedgerReturnScene extends PixelScene {
         LedgerButton start = new LedgerButton(Chrome.Type.BLANK, "合上名册", 6) {
             @Override protected void onClick() {
                 super.onClick();
-                LedgerAudio.leave();
-                SequelGame.start(LedgerFlow.draft());
+                closeLedger();
             }
         };
         start.textColor(LedgerEnvironment.INK);
         start.setRect(right.footer.left, right.footer.top + 3f,
                 right.footer.width(), right.footer.height() - 3f);
         add(start);
+    }
+
+    private void closeLedger() {
+        if (closing) return;
+        closing = true;
+
+        LedgerAudio.bookClose();
+        LedgerAudio.fadeOut(0.92f);
+
+        final ColorBlock leftFold = new ColorBlock(1f, left.paper.height(), 0xFF704724);
+        final ColorBlock rightFold = new ColorBlock(1f, right.paper.height(), 0xFF704724);
+        final ColorBlock leftEdge = new ColorBlock(1.2f, left.paper.height(), 0xFFE5B96F);
+        final ColorBlock rightEdge = new ColorBlock(1.2f, right.paper.height(), 0xFFE5B96F);
+        leftFold.y = leftEdge.y = left.paper.top;
+        rightFold.y = rightEdge.y = right.paper.top;
+        leftFold.alpha(0f);
+        rightFold.alpha(0f);
+        leftEdge.alpha(0f);
+        rightEdge.alpha(0f);
+        add(leftFold);
+        add(rightFold);
+        add(leftEdge);
+        add(rightEdge);
+
+        final ColorBlock veil = new ColorBlock(Camera.main.width, Camera.main.height, 0xFF120B07);
+        veil.x = 0f;
+        veil.y = 0f;
+        veil.alpha(0f);
+        add(veil);
+
+        final Image closed = LedgerClosedArtwork.image();
+        final float closedScale = Math.min(
+                (Camera.main.width - 8f) / closed.width,
+                (Camera.main.height - 8f) / closed.height);
+        closed.scale.set(closedScale * 1.04f);
+        closed.x = (Camera.main.width - closed.width()) / 2f;
+        closed.y = (Camera.main.height - closed.height()) / 2f;
+        closed.alpha(0f);
+        add(closed);
+
+        add(new Tweener(this, 1.02f) {
+            @Override protected void updateValues(float progress) {
+                float p = progress * progress * (3f - 2f * progress);
+                float fold = Math.min(1f, p / 0.68f);
+                float leftW = left.paper.width() * fold;
+                float rightW = right.paper.width() * fold;
+
+                leftFold.x = left.paper.left;
+                leftFold.size(Math.max(0.01f, leftW), left.paper.height());
+                leftFold.alpha(0.18f + 0.68f * fold);
+                leftEdge.x = left.paper.left + leftW - leftEdge.width;
+                leftEdge.alpha((float) Math.sin(Math.PI * Math.min(1f, fold)) * 0.55f);
+
+                rightFold.x = right.paper.right - rightW;
+                rightFold.size(Math.max(0.01f, rightW), right.paper.height());
+                rightFold.alpha(0.18f + 0.68f * fold);
+                rightEdge.x = right.paper.right - rightW;
+                rightEdge.alpha((float) Math.sin(Math.PI * Math.min(1f, fold)) * 0.55f);
+
+                veil.alpha(Math.max(0f, (p - 0.25f) / 0.75f) * 0.54f);
+
+                float reveal = Math.max(0f, Math.min(1f, (p - 0.42f) / 0.58f));
+                closed.alpha(reveal);
+                float s = closedScale * (1.04f - reveal * 0.04f);
+                closed.scale.set(s);
+                closed.x = (Camera.main.width - closed.width()) / 2f;
+                closed.y = (Camera.main.height - closed.height()) / 2f;
+            }
+
+            @Override protected void onComplete() {
+                LedgerAudio.leave();
+                SequelGame.start(LedgerFlow.draft());
+            }
+        });
     }
 
     private interface Pick { void choose(int i); }
