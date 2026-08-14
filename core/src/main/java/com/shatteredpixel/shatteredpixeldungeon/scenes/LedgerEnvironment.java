@@ -15,6 +15,9 @@ final class LedgerEnvironment {
 
     static final String LEDGER_BASE = "interfaces/echoes/ledger/ledger_base.png";
     static final String LEDGER_SHADOW = "interfaces/echoes/ledger/ledger_shadow.png";
+    // Kept for compatibility with the current asset pack. V2 lighting no longer
+    // stretches this full-plate image over the scene; LedgerCandleFX now builds
+    // a local radial light at runtime.
     static final String LEDGER_LIGHT = "interfaces/echoes/ledger/ledger_light.png";
     static final String CANDLE_FLAME = "interfaces/echoes/ledger/candle_flame.png";
     static final String STAMP_UNRETURNED = "interfaces/echoes/ledger/stamp_unreturned.png";
@@ -49,13 +52,8 @@ final class LedgerEnvironment {
         scene.add(base);
 
         if (!embeddedFallback) {
-            Image shadow = tryLoad(LEDGER_SHADOW);
-            if (shadow != null) {
-                shadow.scale.set(base.scale.x, base.scale.y);
-                shadow.x = base.x;
-                shadow.y = base.y;
-                scene.add(shadow);
-            }
+            // Shadow, local spill light, flame animation, and their tiny motion
+            // are owned by one component so they share the same candle state.
             scene.add(LedgerCandleFX.openBook(base));
         }
 
