@@ -8,16 +8,29 @@ final class LedgerUI {
     private LedgerUI() {}
 
     static RenderedTextBlock rawText(String value, int logicalSize) {
+        return rawText(value, logicalSize, -0.667f);
+    }
+
+    static RenderedTextBlock rawText(String value, int logicalSize, float tracking) {
         int rasterScale = Math.max(1,
                 Math.round(PixelScene.defaultZoom * DeviceCompat.getRealPixelScaleX()));
         RenderedTextBlock block = new RenderedTextBlock(value, logicalSize * rasterScale, false);
         block.zoom(1f / rasterScale);
+        block.tracking(tracking);
         block.setHightlighting(false);
         return block;
     }
 
     static RenderedTextBlock text(String value, int logicalSize, int color, int maxWidth) {
         RenderedTextBlock block = rawText(value, logicalSize);
+        if (maxWidth > 0) block.maxWidth(maxWidth);
+        block.hardlight(color);
+        return block;
+    }
+
+    static RenderedTextBlock text(String value, int logicalSize, int color,
+                                  int maxWidth, float tracking) {
+        RenderedTextBlock block = rawText(value, logicalSize, tracking);
         if (maxWidth > 0) block.maxWidth(maxWidth);
         block.hardlight(color);
         return block;
