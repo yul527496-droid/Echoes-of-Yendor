@@ -9,14 +9,7 @@ import com.watabou.noosa.PointerArea;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.tweeners.Tweener;
 
-/**
- * The single cold-start entrance for Echoes of Yendor.
- *
- * This scene owns only the closed-ledger presentation and the opening
- * transition. Once the book has opened, the player always lands on the ledger
- * records page. New-character creation starts from that page as well, so the
- * meaning of "open the ledger" never changes based on save state.
- */
+/** The single cold-start entrance for Echoes of Yendor. */
 public class LedgerIntroScene extends PixelScene {
 
     private Image closedBook;
@@ -43,7 +36,8 @@ public class LedgerIntroScene extends PixelScene {
         closedBook.scale.set(closedScale);
         center(closedBook);
         add(closedBook);
-        add(new LedgerWarmth(closedBook, 0.040f));
+        add(new LedgerWarmth(closedBook, 0.014f));
+        add(LedgerCandleFX.closedBook(closedBook));
 
         input = new PointerArea(
                 closedBook.x - 5f,
@@ -65,10 +59,9 @@ public class LedgerIntroScene extends PixelScene {
         super.update();
         time += Game.elapsed;
         if (input.active) {
-            // Tiny idle motion: the book should feel present, not like a button
-            // pasted onto the screen. The separate warmth layer supplies the
-            // higher-frequency candle flicker.
-            closedBook.brightness(1f + (float) Math.sin(time * 1.9f) * 0.012f);
+            // Very small idle breathing; the candle itself now carries the
+            // obvious motion so the entire composition does not pulse.
+            closedBook.brightness(1f + (float) Math.sin(time * 1.9f) * 0.007f);
         }
     }
 
