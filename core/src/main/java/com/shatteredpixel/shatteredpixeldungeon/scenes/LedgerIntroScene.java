@@ -1,12 +1,10 @@
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
 
-import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.watabou.input.PointerEvent;
 import com.watabou.noosa.Camera;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.PointerArea;
-import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.tweeners.Tweener;
 
 public class LedgerIntroScene extends PixelScene {
@@ -32,9 +30,6 @@ public class LedgerIntroScene extends PixelScene {
         closedBook.scale.set(closedScale);
         center(closedBook);
         add(closedBook);
-
-        // Closed artwork has its own 128x85 candle anchor and independent flame
-        // scale. This replaces the old full-image brightness breathing effect.
         add(LedgerCandleFX.closedBook(closedBook));
 
         input = new PointerArea(closedBook.x - 5f, closedBook.y - 5f,
@@ -49,7 +44,7 @@ public class LedgerIntroScene extends PixelScene {
         if (!input.active) return;
         input.active = false;
         closedBook.resetColor();
-        Sample.INSTANCE.play(Assets.Sounds.OPEN, 0.58f, 0.92f);
+        LedgerAudio.bookOpen();
 
         add(new Tweener(this, 0.78f) {
             @Override protected void updateValues(float progress) {
