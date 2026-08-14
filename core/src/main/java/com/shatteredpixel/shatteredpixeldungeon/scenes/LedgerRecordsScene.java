@@ -35,61 +35,56 @@ public class LedgerRecordsScene extends PixelScene {
         float x = page.header.left;
         float w = page.header.width();
 
-        RenderedTextBlock imprint = text("ECHOES OF YENDOR", 4, LedgerEnvironment.FADED_INK, (int) w);
-        imprint.align(RenderedTextBlock.CENTER_ALIGN);
-        imprint.setPos(x + (w - imprint.width()) / 2f, page.header.top);
-        add(imprint);
-
-        RenderedTextBlock title = text("遗迹下行者登记簿", 7, LedgerEnvironment.INK, (int) w);
+        RenderedTextBlock title = text("遗迹下行者登记簿", 10, LedgerEnvironment.INK, (int) w);
         title.align(RenderedTextBlock.CENTER_ALIGN);
-        title.setPos(x + (w - title.width()) / 2f, imprint.bottom() + 3f);
+        title.setPos(x + (w - title.width()) / 2f, page.header.top);
         add(title);
 
-        RenderedTextBlock inn = text("晨溪镇 · 老鸦旅店", 4, LedgerEnvironment.FADED_INK, (int) w);
+        RenderedTextBlock inn = text("晨溪镇 · 老鸦旅店", 6, LedgerEnvironment.FADED_INK, (int) w);
         inn.align(RenderedTextBlock.CENTER_ALIGN);
-        inn.setPos(x + (w - inn.width()) / 2f, title.bottom() + 2f);
+        inn.setPos(x + (w - inn.width()) / 2f, title.bottom() + 3f);
         add(inn);
 
-        add(LedgerPageGrid.rule(x + w * 0.12f,
-                Math.min(page.header.bottom - 1f, inn.bottom() + 4f), w * 0.76f, 0.42f));
+        float bx = page.body.left + 5f;
+        float bw = page.body.width() - 10f;
+        float y = page.body.top + 8f;
 
-        float bx = page.body.left + 2f;
-        float bw = page.body.width() - 4f;
-        float y = page.body.top + 5f;
-
-        RenderedTextBlock useLabel = text("用途", 4, LedgerEnvironment.FADED_INK, 22);
-        useLabel.setPos(bx, y);
-        add(useLabel);
-        RenderedTextBlock useValue = text("遗迹下行者离店登记", 5, LedgerEnvironment.INK, (int) bw - 25);
-        useValue.setPos(bx + 24f, y - 1f);
-        add(useValue);
-
-        y += 11f;
-        RenderedTextBlock keepLabel = text("保管", 4, LedgerEnvironment.FADED_INK, 22);
-        keepLabel.setPos(bx, y);
-        add(keepLabel);
-        RenderedTextBlock keepValue = text("老鸦旅店柜台内册", 5, LedgerEnvironment.INK, (int) bw - 25);
-        keepValue.setPos(bx + 24f, y - 1f);
-        add(keepValue);
-
-        y += 15f;
-        add(LedgerPageGrid.rule(bx, y, bw, 0.26f));
-
-        RenderedTextBlock note = text("名字、理想与去向留在这里。\n有些页，后来再也没人补写。",
-                5, LedgerEnvironment.FADED_INK, (int) bw);
-        note.setPos(bx, y + 6f);
+        RenderedTextBlock note = text("名字、身份与去向，都留在这一册里。",
+                6, LedgerEnvironment.FADED_INK, (int) bw);
+        note.setPos(bx, y);
         add(note);
 
-        RenderedTextBlock archiveMark = text("内册", 9, LedgerEnvironment.STAMP, 30);
-        archiveMark.alpha(0.10f);
-        archiveMark.setPos(page.body.right - archiveMark.width() - 2f,
-                page.body.bottom - archiveMark.height() - 4f);
+        y = note.bottom() + 12f;
+        RenderedTextBlock fieldName = text("姓名", 6, LedgerEnvironment.FADED_INK, 24);
+        fieldName.setPos(bx, y);
+        add(fieldName);
+        RenderedTextBlock fieldValue = text("——", 7, LedgerEnvironment.INK, (int) bw - 30);
+        fieldValue.setPos(bx + 28f, y - 1f);
+        add(fieldValue);
+
+        y += 15f;
+        RenderedTextBlock fieldRole = text("身份", 6, LedgerEnvironment.FADED_INK, 24);
+        fieldRole.setPos(bx, y);
+        add(fieldRole);
+        RenderedTextBlock roleValue = text("——", 7, LedgerEnvironment.INK, (int) bw - 30);
+        roleValue.setPos(bx + 28f, y - 1f);
+        add(roleValue);
+
+        y += 15f;
+        RenderedTextBlock fieldDest = text("去向", 6, LedgerEnvironment.FADED_INK, 24);
+        fieldDest.setPos(bx, y);
+        add(fieldDest);
+        RenderedTextBlock destValue = text("地下遗迹", 7, LedgerEnvironment.INK, (int) bw - 30);
+        destValue.setPos(bx + 28f, y - 1f);
+        add(destValue);
+
+        RenderedTextBlock archiveMark = text("老鸦旅店", 7, LedgerEnvironment.STAMP, 50);
+        archiveMark.alpha(0.13f);
+        archiveMark.setPos(page.body.right - archiveMark.width() - 5f,
+                page.body.bottom - archiveMark.height() - 8f);
         add(archiveMark);
 
-        add(LedgerPageGrid.rule(page.footer.left, page.footer.top + 1f,
-                page.footer.width(), 0.22f));
-
-        LedgerButton settings = new LedgerButton(Chrome.Type.BLANK, "设置", 4) {
+        LedgerButton settings = new LedgerButton(Chrome.Type.BLANK, "设置", 5) {
             @Override protected void onClick() {
                 super.onClick();
                 LedgerRecordsScene.this.add(new WndSettings());
@@ -101,7 +96,7 @@ public class LedgerRecordsScene extends PixelScene {
                 page.footer.width() / 2f - 2f, page.footer.height() - 3f);
         add(settings);
 
-        LedgerButton about = new LedgerButton(Chrome.Type.BLANK, "制作信息", 4) {
+        LedgerButton about = new LedgerButton(Chrome.Type.BLANK, "制作信息", 5) {
             @Override protected void onClick() {
                 super.onClick();
                 Game.switchScene(AboutScene.class);
@@ -119,39 +114,31 @@ public class LedgerRecordsScene extends PixelScene {
         float x = page.header.left;
         float w = page.header.width();
 
-        RenderedTextBlock title = text("现存记录", 8, LedgerEnvironment.INK, (int) w);
+        RenderedTextBlock title = text("现存记录", 10, LedgerEnvironment.INK, (int) w);
         title.align(RenderedTextBlock.CENTER_ALIGN);
         title.setPos(x + (w - title.width()) / 2f, page.header.top);
         add(title);
-
-        RenderedTextBlock note = text("翻回已经写过的那一页", 4, LedgerEnvironment.FADED_INK, (int) w);
-        note.align(RenderedTextBlock.CENTER_ALIGN);
-        note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
-        add(note);
-
-        add(LedgerPageGrid.rule(x + w * 0.08f,
-                Math.min(page.header.bottom - 1f, note.bottom() + 4f), w * 0.84f, 0.40f));
 
         ArrayList<GamesInProgress.Info> saves = GamesInProgress.checkAll();
         int count = Math.min(4, saves.size());
 
         if (count == 0) {
-            RenderedTextBlock emptyTitle = text("尚无登记", 6, LedgerEnvironment.INK,
+            RenderedTextBlock emptyTitle = text("尚无登记", 7, LedgerEnvironment.INK,
                     (int) page.body.width());
             emptyTitle.align(RenderedTextBlock.CENTER_ALIGN);
             emptyTitle.setPos(page.body.left + (page.body.width() - emptyTitle.width()) / 2f,
-                    page.body.top + page.body.height() * 0.28f);
+                    page.body.top + page.body.height() * 0.32f);
             add(emptyTitle);
 
-            RenderedTextBlock emptyNote = text("这一册还没有属于你的名字。", 4,
-                    LedgerEnvironment.FADED_INK, (int) page.body.width() - 6);
+            RenderedTextBlock emptyNote = text("这一册还没有属于你的名字。", 6,
+                    LedgerEnvironment.FADED_INK, (int) page.body.width() - 8);
             emptyNote.align(RenderedTextBlock.CENTER_ALIGN);
             emptyNote.setPos(page.body.left + (page.body.width() - emptyNote.width()) / 2f,
-                    emptyTitle.bottom() + 5f);
+                    emptyTitle.bottom() + 6f);
             add(emptyNote);
         } else {
-            float rowH = Math.min(17f, (page.body.height() - 3f) / count);
-            float y = page.body.top + 1f;
+            float rowH = Math.min(38f, (page.body.height() - 4f) / count);
+            float y = page.body.top + 2f;
 
             for (int i = 0; i < count; i++) {
                 GamesInProgress.Info info = saves.get(i);
@@ -160,28 +147,22 @@ public class LedgerRecordsScene extends PixelScene {
                 final String heroName = profile.name == null || profile.name.trim().isEmpty()
                         ? "无名者" : profile.name;
                 final float rowY = y;
-                final float restAlpha = i % 2 == 0 ? 0.028f : 0.014f;
+                final float restAlpha = i % 2 == 0 ? 0.035f : 0.018f;
 
                 final ColorBlock rowShade = new ColorBlock(page.body.width(),
-                        Math.max(1f, rowH - 1f), 0xFF7A5634);
+                        Math.max(1f, rowH - 2f), 0xFF7A5634);
                 rowShade.x = page.body.left;
                 rowShade.y = rowY;
                 rowShade.alpha(restAlpha);
                 add(rowShade);
 
-                final ColorBlock rowRule = LedgerPageGrid.rule(page.body.left,
-                        rowY + rowH - 1f, page.body.width(), 0.28f);
-                add(rowRule);
-
-                LedgerButton open = new LedgerButton(Chrome.Type.BLANK, "", 4) {
+                LedgerButton open = new LedgerButton(Chrome.Type.BLANK, "", 5) {
                     @Override protected void onPointerDown() {
                         super.onPointerDown();
-                        rowShade.alpha(0.085f);
-                        rowRule.alpha(0.62f);
+                        rowShade.alpha(0.11f);
                     }
                     @Override protected void onPointerUp() {
                         rowShade.alpha(restAlpha);
-                        rowRule.alpha(0.28f);
                         super.onPointerUp();
                     }
                     @Override protected void onClick() {
@@ -192,31 +173,34 @@ public class LedgerRecordsScene extends PixelScene {
                     }
                     @Override protected String hoverText() { return "继续「" + heroName + "」"; }
                 };
-                open.setRect(page.body.left, rowY, page.body.width() - 20f, rowH - 1f);
+                open.setRect(page.body.left, rowY, page.body.width(), rowH - 2f);
                 add(open);
 
-                RenderedTextBlock index = text(String.format("%02d", i + 1), 4,
-                        LedgerEnvironment.FADED_INK, 10);
-                index.setPos(page.body.left + 1f, rowY + 2f);
-                index.alpha(0.70f);
-                add(index);
+                RenderedTextBlock number = text(String.valueOf(slot), 7,
+                        LedgerEnvironment.INK, 32);
+                number.setPos(page.body.left + 6f, rowY + 5f);
+                add(number);
 
-                float textX = page.body.left + 11f;
-                float textW = page.body.width() - 34f;
-                RenderedTextBlock name = text(heroName, 5, LedgerEnvironment.INK, (int) textW);
-                name.setPos(textX, rowY + 1f);
+                float textX = page.body.left + 34f;
+                float textW = page.body.width() - 74f;
+                RenderedTextBlock name = text(heroName, 7, LedgerEnvironment.INK, (int) textW);
+                name.setPos(textX, rowY + 4f);
                 add(name);
 
                 RenderedTextBlock meta = text(Messages.titleCase(info.heroClass.title()) + " · Lv." + info.level,
-                        4, LedgerEnvironment.FADED_INK, (int) textW);
-                meta.setPos(textX, rowY + Math.min(8f, rowH * 0.50f));
+                        5, LedgerEnvironment.FADED_INK, (int) textW);
+                meta.setPos(textX, rowY + 18f);
                 add(meta);
 
-                RenderedTextBlock stamp = text("未归", 5, LedgerEnvironment.STAMP, 18);
-                stamp.setPos(page.body.right - stamp.width() - 1f, rowY + 1f);
+                Image stamp = new Image(LedgerEnvironment.STAMP_UNRETURNED);
+                float stampScale = Math.min(1f, (rowH - 7f) / stamp.height);
+                stamp.scale.set(stampScale);
+                stamp.x = page.body.right - stamp.width() - 6f;
+                stamp.y = rowY + (rowH - stamp.height()) / 2f - 1f;
+                stamp.alpha(0.88f);
                 add(stamp);
 
-                LedgerButton erase = new LedgerButton(Chrome.Type.BLANK, "移除", 4) {
+                LedgerButton erase = new LedgerButton(Chrome.Type.BLANK, "移除", 5) {
                     @Override protected void onClick() {
                         super.onClick();
                         LedgerRecordsScene.this.add(new WndOptions(
@@ -234,18 +218,14 @@ public class LedgerRecordsScene extends PixelScene {
                     @Override protected String hoverText() { return "从名册中移除这条记录"; }
                 };
                 erase.textColor(LedgerEnvironment.STAMP);
-                erase.setRect(page.body.right - 18f,
-                        rowY + Math.max(7f, rowH - 8f), 17f, 7f);
+                erase.setRect(page.body.right - 27f, rowY + rowH - 10f, 22f, 8f);
                 add(erase);
 
                 y += rowH;
             }
         }
 
-        add(LedgerPageGrid.rule(page.footer.left, page.footer.top + 1f,
-                page.footer.width(), 0.28f));
-
-        LedgerButton newRecord = new LedgerButton(Chrome.Type.BLANK, "＋ 登记新的下行者  ›", 5) {
+        LedgerButton newRecord = new LedgerButton(Chrome.Type.BLANK, "＋ 登记新的下行者", 6) {
             @Override protected void onClick() {
                 super.onClick();
                 if (GamesInProgress.firstEmpty() < 0) return;
@@ -257,7 +237,7 @@ public class LedgerRecordsScene extends PixelScene {
         };
         newRecord.textColor(LedgerEnvironment.INK);
         newRecord.setRect(page.footer.left, page.footer.top + 3f,
-                page.footer.width(), page.footer.height() - 3f);
+                page.footer.width(), page.footer.height() - 4f);
         add(newRecord);
     }
 
