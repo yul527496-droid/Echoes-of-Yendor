@@ -5,6 +5,7 @@ on:
     branches:
       - "rpg-development"
       - "build-test"
+      - "ui-ledger-first-pass"
   workflow_dispatch:
 
 concurrency:
@@ -63,6 +64,41 @@ jobs:
           }
 
           Write-Host "Pinned Fusion Pixel Font injected and SHA256 verified: $actual"
+
+      - name: Reconstruct verified Echoes ledger audio bundle
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $chunkDir = "tools/ledger_audio_b64_v2"
+          $bundle = "tools/ledger_audio_game_bundle.zip"
+          $expected = "2645157290d890197ed16ade31b097d03e81cc73f2858201aa6bf1f510bbf272"
+
+          $parts = 0..8 | ForEach-Object {
+            Join-Path $chunkDir ("part{0:D2}.txt" -f $_)
+          }
+          foreach ($part in $parts) {
+            if (-not (Test-Path $part)) {
+              throw "Ledger audio base64 chunk is missing: $part"
+            }
+          }
+
+          $encoded = ($parts | ForEach-Object {
+            (Get-Content -Path $_ -Raw).Trim()
+          }) -join ""
+
+          try {
+            $bytes = [Convert]::FromBase64String($encoded)
+          } catch {
+            throw "Ledger audio base64 chunks could not be decoded: $($_.Exception.Message)"
+          }
+
+          [IO.File]::WriteAllBytes($bundle, $bytes)
+          $actual = (Get-FileHash -Path $bundle -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $expected) {
+            throw "Reconstructed ledger audio bundle SHA256 mismatch. Expected $expected, got $actual"
+          }
+
+          Write-Host "Ledger audio bundle reconstructed from 9 chunks and verified: $actual"
 
       - name: Inject verified Echoes ledger audio bundle
         shell: pwsh
