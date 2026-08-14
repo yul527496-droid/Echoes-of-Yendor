@@ -6,6 +6,7 @@ import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.LedgerFlow;
 import com.shatteredpixel.shatteredpixeldungeon.ReturningHeroProfile;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndSettings;
@@ -176,13 +177,20 @@ public class LedgerRecordsScene extends PixelScene {
                 open.setRect(page.body.left, rowY, page.body.width(), rowH - 2f);
                 add(open);
 
+                Image avatar = HeroSprite.avatar(info.heroClass, info.armorTier);
+                float avatarScale = Math.min(1.15f, Math.max(0.72f, (rowH - 8f) / avatar.height));
+                avatar.scale.set(avatarScale);
+                avatar.x = page.body.left + 5f;
+                avatar.y = rowY + (rowH - avatar.height()) / 2f - 1f;
+                add(avatar);
+
                 RenderedTextBlock number = text(String.valueOf(slot), 7,
-                        LedgerEnvironment.INK, 32);
-                number.setPos(page.body.left + 6f, rowY + 5f);
+                        LedgerEnvironment.INK, 24);
+                number.setPos(page.body.left + 22f, rowY + 4f);
                 add(number);
 
-                float textX = page.body.left + 34f;
-                float textW = page.body.width() - 74f;
+                float textX = page.body.left + 42f;
+                float textW = page.body.width() - 80f;
                 RenderedTextBlock name = text(heroName, 7, LedgerEnvironment.INK, (int) textW);
                 name.setPos(textX, rowY + 4f);
                 add(name);
@@ -193,10 +201,10 @@ public class LedgerRecordsScene extends PixelScene {
                 add(meta);
 
                 Image stamp = new Image(LedgerEnvironment.STAMP_UNRETURNED);
-                float stampScale = Math.min(1f, (rowH - 7f) / stamp.height);
+                float stampScale = Math.min(0.78f, Math.max(0.52f, (rowH - 6f) / stamp.height));
                 stamp.scale.set(stampScale);
-                stamp.x = page.body.right - stamp.width() - 6f;
-                stamp.y = rowY + (rowH - stamp.height()) / 2f - 1f;
+                stamp.x = page.body.right - stamp.width() - 5f;
+                stamp.y = rowY + (rowH - stamp.height()) / 2f - 2f;
                 stamp.alpha(0.88f);
                 add(stamp);
 
