@@ -1,7 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
 
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
-import com.watabou.noosa.FontPreviewMode;
 import com.watabou.utils.DeviceCompat;
 
 /** Typography entry point for every Echoes ledger page. */
@@ -21,25 +20,21 @@ final class LedgerUI {
         int rasterScale = Math.max(1,
                 Math.round(PixelScene.defaultZoom * DeviceCompat.getRealPixelScaleX()));
 
-        // Only text constructed through LedgerUI asks DesktopPlatformSupport
-        // for the Fusion Pixel face. If that face was not packaged, platform
-        // support safely falls back to the normal game fonts.
-        boolean previous = FontPreviewMode.ledgerPixelFont;
-        FontPreviewMode.ledgerPixelFont = true;
-        try {
-            RenderedTextBlock block = new RenderedTextBlock(
-                    value, logicalSize * rasterScale, false);
-            block.zoom(1f / rasterScale);
-            block.tracking(tracking);
+        RenderedTextBlock block = new RenderedTextBlock(
+                value, logicalSize * rasterScale, false);
 
-            // Plain ledger text treats underscores/asterisks literally. Authored
-            // game descriptions that intentionally use SPD markup opt in via
-            // markupText(), so player-entered names are never parsed as markup.
-            block.setHightlighting(false);
-            return block;
-        } finally {
-            FontPreviewMode.ledgerPixelFont = previous;
-        }
+        // Persist the ledger font choice on the block itself. maxWidth(), text(),
+        // and highlighting can all rebuild RenderedText later; the block must
+        // therefore remember that every rebuild still belongs to Fusion Pixel.
+        block.setLedgerPixelFont(true);
+        block.zoom(1f / rasterScale);
+        block.tracking(tracking);
+
+        // Plain ledger text treats underscores/asterisks literally. Authored
+        // game descriptions that intentionally use SPD markup opt in via
+        // markupText(), so player-entered names are never parsed as markup.
+        block.setHightlighting(false);
+        return block;
     }
 
     static RenderedTextBlock text(String value, int logicalSize, int color, int maxWidth) {
