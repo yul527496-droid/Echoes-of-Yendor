@@ -3,7 +3,6 @@ package com.shatteredpixel.shatteredpixeldungeon.scenes;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.watabou.utils.DeviceCompat;
 
-/** Shared typography rules for every Echoes ledger scene. */
 final class LedgerUI {
 
     private LedgerUI() {}
