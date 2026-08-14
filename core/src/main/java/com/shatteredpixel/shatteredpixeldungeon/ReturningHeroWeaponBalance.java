@@ -25,6 +25,22 @@ public final class ReturningHeroWeaponBalance {
         if (itemId == null || level < 0) return 0;
 
         switch (itemId) {
+            // T1 class heritage ---------------------------------------------------
+            // Gloves attack at 2x speed. Their raw per-hit curve is heavily cut,
+            // but sustained output and on-hit interactions pull ahead as upgrades
+            // accumulate, so the late levels need a modest surcharge.
+            case "weapon.t1.gloves":
+                if (level >= 5) return 2;
+                return level >= 2 ? 1 : 0;
+
+            // Dagger, rapier and cudgel exchange raw damage for surprise,
+            // defence or accuracy. The reduced T1 curve already prices that trade.
+            case "weapon.t1.worn_shortsword":
+            case "weapon.t1.dagger":
+            case "weapon.t1.rapier":
+            case "weapon.t1.cudgel":
+                return 0;
+
             // T2 -----------------------------------------------------------------
             // Hand axe trades 20% max damage for +32% accuracy.  Once upgraded,
             // the unchanged damage scaling lets the accuracy advantage pull ahead.
