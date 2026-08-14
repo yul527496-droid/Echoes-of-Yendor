@@ -12,4 +12,5 @@ public final class FontPreviewMode {
     private FontPreviewMode() {}
 
     public static boolean ledgerPixelFont;
+    public static boolean ledgerPixelFontAvailable;
 }
