@@ -2,10 +2,12 @@ package com.shatteredpixel.shatteredpixeldungeon.scenes;
 
 import com.watabou.input.PointerEvent;
 import com.watabou.noosa.Camera;
+import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.PointerArea;
 import com.watabou.noosa.tweeners.Tweener;
+import com.watabou.utils.RectF;
 
 public class LedgerIntroScene extends PixelScene {
 
@@ -46,23 +48,65 @@ public class LedgerIntroScene extends PixelScene {
         closedBook.resetColor();
         LedgerAudio.bookOpen();
 
-        add(new Tweener(this, 0.78f) {
+        final RectF left = LedgerEnvironment.leftPage(openBook);
+        final RectF right = LedgerEnvironment.rightPage(openBook);
+        final ColorBlock leftCover = new ColorBlock(left.width(), left.height(), 0xFFE8C783);
+        final ColorBlock rightCover = new ColorBlock(right.width(), right.height(), 0xFFE8C783);
+        final ColorBlock leftEdge = new ColorBlock(1.2f, left.height(), 0xFFFFE7AE);
+        final ColorBlock rightEdge = new ColorBlock(1.2f, right.height(), 0xFFFFE7AE);
+        leftCover.x = left.left;
+        leftCover.y = left.top;
+        rightCover.x = right.left;
+        rightCover.y = right.top;
+        leftEdge.y = left.top;
+        rightEdge.y = right.top;
+        leftCover.alpha(0f);
+        rightCover.alpha(0f);
+        leftEdge.alpha(0f);
+        rightEdge.alpha(0f);
+        add(leftCover);
+        add(rightCover);
+        add(leftEdge);
+        add(rightEdge);
+
+        add(new Tweener(this, 0.88f) {
             @Override protected void updateValues(float progress) {
-                float close = Math.min(1f, progress / 0.52f);
+                float close = Math.min(1f, progress / 0.50f);
                 float closeEase = close * close * (3f - 2f * close);
                 closedBook.alpha(1f - closeEase);
-                closedBook.scale.set(closedScale * (1f - 0.15f * closeEase),
-                        closedScale * (1f + 0.025f * closeEase));
+                closedBook.scale.set(closedScale * (1f - 0.13f * closeEase),
+                        closedScale * (1f + 0.020f * closeEase));
                 center(closedBook);
 
-                float reveal = Math.max(0f, Math.min(1f, (progress - 0.20f) / 0.80f));
-                float revealEase = 1f - (1f - reveal) * (1f - reveal);
+                float reveal = Math.max(0f, Math.min(1f, (progress - 0.16f) / 0.84f));
+                float revealEase = reveal * reveal * (3f - 2f * reveal);
                 openBook.alpha(revealEase);
-                openBook.scale.set(openScale * (0.94f + 0.06f * revealEase));
+                openBook.scale.set(openScale * (0.965f + 0.035f * revealEase));
                 center(openBook);
+
+                float coverFraction = 1f - revealEase;
+                float leftW = left.width() * coverFraction;
+                float rightW = right.width() * coverFraction;
+                leftCover.x = left.left;
+                leftCover.size(Math.max(0.01f, leftW), left.height());
+                rightCover.x = right.right - rightW;
+                rightCover.size(Math.max(0.01f, rightW), right.height());
+
+                float pageAlpha = reveal > 0f ? 0.94f : 0f;
+                leftCover.alpha(pageAlpha);
+                rightCover.alpha(pageAlpha);
+                float edgeAlpha = (float) Math.sin(Math.PI * revealEase) * 0.52f;
+                leftEdge.x = left.left + leftW - leftEdge.width;
+                rightEdge.x = right.right - rightW;
+                leftEdge.alpha(edgeAlpha);
+                rightEdge.alpha(edgeAlpha);
             }
 
             @Override protected void onComplete() {
+                leftCover.killAndErase();
+                rightCover.killAndErase();
+                leftEdge.killAndErase();
+                rightEdge.killAndErase();
                 PixelScene.noFade = true;
                 Game.switchScene(LedgerRecordsScene.class);
             }
