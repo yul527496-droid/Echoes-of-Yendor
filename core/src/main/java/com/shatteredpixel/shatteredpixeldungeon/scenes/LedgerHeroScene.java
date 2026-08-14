@@ -14,6 +14,7 @@ public class LedgerHeroScene extends PixelScene {
     private RenderedTextBlock selectedName;
     private RenderedTextBlock selectedDesc;
     private LedgerButton confirm;
+    private LedgerButton[] classButtons;
     private Image[] previews;
     private ColorBlock[] marks;
     private LedgerPageGrid.Page left;
@@ -114,6 +115,7 @@ public class LedgerHeroScene extends PixelScene {
                 w * 0.80f, 0.36f));
 
         HeroClass[] classes = HeroClass.values();
+        classButtons = new LedgerButton[classes.length];
         marks = new ColorBlock[classes.length];
         float gapX = 3f;
         float gapY = 2f;
@@ -147,6 +149,7 @@ public class LedgerHeroScene extends PixelScene {
             button.icon(icon);
             button.textColor(LedgerEnvironment.INK);
             button.setRect(bx, by, cardW, cardH - 1f);
+            classButtons[i] = button;
             add(button);
         }
 
@@ -183,6 +186,9 @@ public class LedgerHeroScene extends PixelScene {
             boolean on = cl == selected;
             previews[cl.ordinal()].visible = on;
             marks[cl.ordinal()].alpha(on ? 0.78f : 0.10f);
+            if (classButtons != null && classButtons[cl.ordinal()] != null) {
+                classButtons[cl.ordinal()].setSelected(on);
+            }
         }
 
         if (selected == null) {
