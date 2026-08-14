@@ -31,8 +31,6 @@ final class LedgerEnvironment {
         PixelScene.align(book);
         scene.add(book);
 
-        // Global warmth stays almost imperceptible; the readable motion now
-        // comes from a local candle flame/light anchored to the painted candle.
         scene.add(new LedgerWarmth(book, 0.014f));
         scene.add(LedgerCandleFX.openBook(book));
         return book;
@@ -42,19 +40,21 @@ final class LedgerEnvironment {
         float sx = book.width() / ART_W;
         float sy = book.height() / ART_H;
         return new RectF(
-                book.x + 17f * sx,
+                book.x + 18f * sx,
                 book.y + 11f * sy,
-                book.x + 75f * sx,
+                book.x + 74f * sx,
                 book.y + 75f * sy);
     }
 
     static RectF rightPage(Image book) {
         float sx = book.width() / ART_W;
         float sy = book.height() / ART_H;
+        // Intentionally conservative. The approved art's right edge contains
+        // heavy page curl/shadow; interactive content should stop well before it.
         return new RectF(
-                book.x + 86f * sx,
+                book.x + 87f * sx,
                 book.y + 11f * sy,
-                book.x + 144f * sx,
+                book.x + 139f * sx,
                 book.y + 75f * sy);
     }
 
