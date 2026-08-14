@@ -33,6 +33,7 @@ public class LedgerHeroScene extends PixelScene {
 
         selected = LedgerFlow.draft().heroClass;
         refresh();
+        LedgerTransitions.revealIfPending(this, left.paper, right.paper);
         fadeIn();
     }
 
@@ -45,7 +46,7 @@ public class LedgerHeroScene extends PixelScene {
         title.setPos(x + (w - title.width()) / 2f, left.header.top);
         add(title);
 
-        RenderedTextBlock note = t("出发前登记 · 理想职业", 5,
+        RenderedTextBlock note = t("晨溪镇 · 老鸦旅店", 5,
                 LedgerEnvironment.FADED_INK, (int) w);
         note.align(RenderedTextBlock.CENTER_ALIGN);
         note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
@@ -67,13 +68,13 @@ public class LedgerHeroScene extends PixelScene {
             add(hero);
         }
 
-        selectedName = t("尚未登记", 7, LedgerEnvironment.INK, (int) left.body.width());
+        selectedName = t("职业未填", 7, LedgerEnvironment.INK, (int) left.body.width());
         selectedName.align(RenderedTextBlock.CENTER_ALIGN);
         add(selectedName);
 
-        selectedDesc = LedgerUI.markupText("从右页选择一个英雄身份。", 5,
+        selectedDesc = LedgerUI.markupText("职业一栏尚空。", 5,
                 LedgerEnvironment.FADED_INK, LedgerEnvironment.INK,
-                (int) left.body.width() - 6);
+                (int) left.body.width() - 8);
         selectedDesc.align(RenderedTextBlock.CENTER_ALIGN);
         add(selectedDesc);
 
@@ -97,12 +98,12 @@ public class LedgerHeroScene extends PixelScene {
         float x = right.header.left;
         float w = right.header.width();
 
-        RenderedTextBlock title = t("选择身份", 9, LedgerEnvironment.INK, (int) w);
+        RenderedTextBlock title = t("职业", 9, LedgerEnvironment.INK, (int) w);
         title.align(RenderedTextBlock.CENTER_ALIGN);
         title.setPos(x + (w - title.width()) / 2f, right.header.top);
         add(title);
 
-        RenderedTextBlock note = t("写下当年想成为怎样的人", 5,
+        RenderedTextBlock note = t("按本人自报记入", 5,
                 LedgerEnvironment.FADED_INK, (int) w);
         note.align(RenderedTextBlock.CENTER_ALIGN);
         note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
@@ -152,10 +153,11 @@ public class LedgerHeroScene extends PixelScene {
         add(LedgerPageGrid.rule(right.footer.left, right.footer.top + 1f,
                 right.footer.width(), 0.28f));
 
-        confirm = new LedgerButton(Chrome.Type.BLANK, "以此身份登记", 6) {
+        confirm = new LedgerButton(Chrome.Type.BLANK, "记入职业", 6) {
             @Override protected void onClick() {
                 super.onClick();
                 if (selected != null) {
+                    LedgerAudio.write();
                     LedgerTransitions.turn(LedgerHeroScene.this,
                             right.paper, LedgerRegistrationScene.class, true);
                 }
@@ -184,13 +186,13 @@ public class LedgerHeroScene extends PixelScene {
         }
 
         if (selected == null) {
-            selectedName.text("尚未登记");
-            selectedDesc.text("从右页选择一个英雄身份。");
+            selectedName.text("职业未填");
+            selectedDesc.text("职业一栏尚空。");
             confirm.enable(false);
         } else {
             selectedName.text(Messages.titleCase(selected.title()));
             selectedDesc.text(selected.shortDesc());
-            selectedDesc.maxWidth((int) left.body.width() - 6);
+            selectedDesc.maxWidth((int) left.body.width() - 8);
             confirm.enable(true);
         }
 
