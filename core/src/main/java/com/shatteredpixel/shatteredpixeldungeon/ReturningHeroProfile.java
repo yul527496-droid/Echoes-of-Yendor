@@ -38,8 +38,11 @@ public class ReturningHeroProfile {
     /** Temporary compatibility field until free talent allocation replaces it. */
     public GrowthPreset growthPreset = GrowthPreset.BALANCED;
 
-    /** New stable-ID build state. */
+    /** New stable-ID equipment build state. */
     public ReturningHeroLoadout loadout = new ReturningHeroLoadout();
+
+    /** Free allocation of the original hero's four talent tiers. */
+    public ReturningHeroTalentPlan talentPlan = new ReturningHeroTalentPlan();
 
     public HeroSubClass subClass() {
         HeroSubClass[] values = heroClass.subClasses();
@@ -111,6 +114,8 @@ public class ReturningHeroProfile {
         growthPreset = GrowthPreset.BALANCED;
         if (loadout == null) loadout = new ReturningHeroLoadout();
         loadout.resetForClass(heroClass);
+        if (talentPlan == null) talentPlan = new ReturningHeroTalentPlan();
+        talentPlan.clear();
     }
 
     public void saveToSlot(int slot) {
@@ -121,6 +126,7 @@ public class ReturningHeroProfile {
         LedgerSettings.weapon(slot, weaponIndex);
         LedgerSettings.growth(slot, growthPreset.ordinal());
         LedgerSettings.loadout(slot, loadout);
+        LedgerSettings.talentPlan(slot, talentPlan);
     }
 
     public static ReturningHeroProfile loadFromSlot(int slot) {
@@ -139,6 +145,7 @@ public class ReturningHeroProfile {
         int growthIndex = LedgerSettings.growth(slot);
         profile.growthPreset = presets[Math.max(0, Math.min(growthIndex, presets.length - 1))];
         profile.loadout = LedgerSettings.loadout(slot, profile.heroClass);
+        profile.talentPlan = LedgerSettings.talentPlan(slot);
         return profile;
     }
 }
