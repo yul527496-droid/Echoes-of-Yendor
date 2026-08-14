@@ -56,11 +56,14 @@ public class LedgerBuildScene extends PixelScene {
 
         float bx = left.body.left + 5f;
         float bw = left.body.width() - 10f;
-        float y = left.body.top + 6f;
+        float y = left.body.top + 4f;
 
         y = field(bx, bw, y, "姓名", LedgerFlow.draft().name);
         y = field(bx, bw, y, "职业",
                 Messages.titleCase(LedgerFlow.draft().heroClass.title()));
+        y = field(bx, bw, y, "所习专精",
+                Messages.titleCase(LedgerFlow.draft().subClass().title()));
+        y = field(bx, bw, y, "英雄战技", LedgerFlow.draft().armorAbility().name());
         y = field(bx, bw, y, "惯用兵器", weaponStatus());
         y = field(bx, bw, y, "护甲", armorStatus());
 
@@ -106,9 +109,16 @@ public class LedgerBuildScene extends PixelScene {
         add(LedgerPageGrid.rule(x + w * 0.10f,
                 Math.min(right.header.bottom - 1f, note.bottom() + 4f), w * 0.80f, 0.36f));
 
-        float rowH = Math.min(14.2f, (right.body.height() - 2f) / 7f);
+        float rowH = Math.min(13.2f, (right.body.height() - 2f) / 8f);
         float y = right.body.top + 1f;
 
+        y = directoryButton(y, rowH, "专精与战技", pathStatus(), new Runnable() {
+            @Override public void run() {
+                LedgerFlow.heroPathReturnToBuild(true);
+                LedgerTransitions.turn(LedgerBuildScene.this,
+                        right.paper, LedgerHeroPathScene.class, true);
+            }
+        });
         y = directoryButton(y, rowH, "惯用兵器", weaponStatus(), new Runnable() {
             @Override public void run() {
                 LedgerFlow.resetWeaponPicker();
@@ -147,6 +157,7 @@ public class LedgerBuildScene extends PixelScene {
         y = directoryButton(y, rowH, "天赋", talentStatus(), new Runnable() {
             @Override public void run() {
                 LedgerFlow.resetTalentPicker();
+                LedgerFlow.talentReturnToBuild(true);
                 LedgerTransitions.turn(LedgerBuildScene.this,
                         right.paper, LedgerTalentScene.class, true);
             }
@@ -226,7 +237,12 @@ public class LedgerBuildScene extends PixelScene {
                 6, LedgerEnvironment.INK, (int) width - 47);
         value.setPos(x + 47f, y - 1f);
         add(value);
-        return Math.max(label.bottom(), value.bottom()) + 9f;
+        return Math.max(label.bottom(), value.bottom()) + 6f;
+    }
+
+    private String pathStatus() {
+        return Messages.titleCase(LedgerFlow.draft().subClass().title())
+                + " / " + LedgerFlow.draft().armorAbility().name();
     }
 
     private String weaponStatus() {
