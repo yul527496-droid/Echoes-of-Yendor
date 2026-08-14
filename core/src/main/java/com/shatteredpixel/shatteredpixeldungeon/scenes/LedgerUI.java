@@ -8,22 +8,10 @@ final class LedgerUI {
 
     private LedgerUI() {}
 
-    /**
-     * Borderless text suited to dark ink on bright parchment while preserving
-     * Shattered's DPI-aware glyph generation. CJK glyphs need to be rasterized
-     * at the physical pixel scale first and then zoomed back to logical UI size.
-     *
-     * The actual CJK font asset remains a separate concern: phase two first
-     * locks layout, hierarchy, spacing, and animation so a future pixel-font
-     * replacement can be tested in isolation rather than mixed into UI bugs.
-     */
     static RenderedTextBlock rawText(String value, int logicalSize) {
         int rasterScale = Math.max(1,
                 Math.round(PixelScene.defaultZoom * DeviceCompat.getRealPixelScaleX()));
-        RenderedTextBlock block = new RenderedTextBlock(
-                value,
-                logicalSize * rasterScale,
-                false);
+        RenderedTextBlock block = new RenderedTextBlock(value, logicalSize * rasterScale, false);
         block.zoom(1f / rasterScale);
         block.setHightlighting(false);
         return block;
