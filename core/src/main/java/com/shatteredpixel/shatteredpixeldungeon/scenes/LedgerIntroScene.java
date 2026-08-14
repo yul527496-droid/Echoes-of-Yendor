@@ -14,7 +14,6 @@ public class LedgerIntroScene extends PixelScene {
     private Image closedBook;
     private Image openBook;
     private PointerArea input;
-    private float time;
     private float closedScale;
     private float openScale;
 
@@ -33,10 +32,10 @@ public class LedgerIntroScene extends PixelScene {
         closedBook.scale.set(closedScale);
         center(closedBook);
         add(closedBook);
-        add(new LedgerWarmth(closedBook, 0.014f));
 
-        // V2 baseline builds keep the known-bad closed-book candle overlay off
-        // until that artwork receives its own independent candle anchor.
+        // Closed artwork has its own 128x85 candle anchor and independent flame
+        // scale. This replaces the old full-image brightness breathing effect.
+        add(LedgerCandleFX.closedBook(closedBook));
 
         input = new PointerArea(closedBook.x - 5f, closedBook.y - 5f,
                 closedBook.width() + 10f, closedBook.height() + 10f) {
@@ -44,13 +43,6 @@ public class LedgerIntroScene extends PixelScene {
         };
         add(input);
         fadeIn();
-    }
-
-    @Override
-    public void update() {
-        super.update();
-        time += Game.elapsed;
-        if (input.active) closedBook.brightness(1f + (float)Math.sin(time * 1.9f) * 0.007f);
     }
 
     private void open() {
