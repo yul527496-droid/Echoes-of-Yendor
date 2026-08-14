@@ -16,27 +16,31 @@ public class LedgerReturnScene extends PixelScene {
     private ColorBlock[] subMarks;
     private ColorBlock[] abilityMarks;
     private ColorBlock[] growthMarks;
+    private LedgerPageGrid.Page left;
     private LedgerPageGrid.Page right;
 
     @Override
     public void create() {
         super.create();
         Image book = LedgerEnvironment.addOpenBook(this);
-        LedgerPageGrid.Page left = LedgerEnvironment.leftGrid(book);
+        left = LedgerEnvironment.leftGrid(book);
         right = LedgerEnvironment.rightGrid(book);
         buildReturnedHero(left);
         buildConfiguration();
+        LedgerTransitions.revealIfPending(this, left.paper, right.paper);
         fadeIn();
     }
 
     private void buildReturnedHero(LedgerPageGrid.Page page) {
         float x = page.header.left;
         float w = page.header.width();
-        RenderedTextBlock title = t("名册记录止于此", 8, LedgerEnvironment.INK, (int) w);
+        RenderedTextBlock title = t("归来补录", 9, LedgerEnvironment.INK, (int) w);
         title.align(RenderedTextBlock.CENTER_ALIGN);
         title.setPos(x + (w - title.width()) / 2f, page.header.top);
         add(title);
-        RenderedTextBlock note = t("下面属于真正归来的人", 4, LedgerEnvironment.FADED_INK, (int) w);
+
+        RenderedTextBlock note = t("晨溪镇 · 老鸦旅店", 5,
+                LedgerEnvironment.FADED_INK, (int) w);
         note.align(RenderedTextBlock.CENTER_ALIGN);
         note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
         add(note);
@@ -51,35 +55,35 @@ public class LedgerReturnScene extends PixelScene {
 
         RenderedTextBlock who = t(LedgerFlow.draft().name + "\n"
                         + Messages.titleCase(LedgerFlow.draft().heroClass.title()),
-                6, LedgerEnvironment.INK, (int) page.body.width());
+                7, LedgerEnvironment.INK, (int) page.body.width());
         who.align(RenderedTextBlock.CENTER_ALIGN);
         who.setPos(page.body.left + (page.body.width() - who.width()) / 2f,
                 hero.y + hero.height() + 5f);
         add(who);
 
-        RenderedTextBlock stamp = t("未归", 7, LedgerEnvironment.STAMP, (int) page.body.width());
-        stamp.align(RenderedTextBlock.CENTER_ALIGN);
-        stamp.setPos(page.body.left + (page.body.width() - stamp.width()) / 2f,
-                Math.min(page.body.bottom - stamp.height() - 6f, who.bottom() + 7f));
-        stamp.alpha(0.82f);
-        add(stamp);
+        LedgerStamp returned = new LedgerStamp("已归", 7);
+        returned.setRect(page.body.left + (page.body.width() - 43f) / 2f,
+                Math.min(page.body.bottom - 35f, who.bottom() + 8f), 43f, 21f);
+        returned.alpha(0.86f);
+        add(returned);
 
-        RenderedTextBlock lead = t("老板娘的笔停在这里。\n之后的经历，由你来补完。", 4,
-                LedgerEnvironment.FADED_INK, (int) page.body.width() - 6);
+        RenderedTextBlock lead = t("旧页留存，此页补记。", 5,
+                LedgerEnvironment.FADED_INK, (int) page.body.width() - 8);
         lead.align(RenderedTextBlock.CENTER_ALIGN);
         lead.setPos(page.body.left + (page.body.width() - lead.width()) / 2f,
-                page.body.bottom - lead.height() - 2f);
+                page.body.bottom - lead.height() - 3f);
         add(lead);
     }
 
     private void buildConfiguration() {
         float x = right.header.left;
         float w = right.header.width();
-        RenderedTextBlock title = t("归还者配置", 8, LedgerEnvironment.INK, (int) w);
+        RenderedTextBlock title = t("归来时状况", 9, LedgerEnvironment.INK, (int) w);
         title.align(RenderedTextBlock.CENTER_ALIGN);
         title.setPos(x + (w - title.width()) / 2f, right.header.top);
         add(title);
-        RenderedTextBlock note = t("补上地下冒险真正留下的结果", 4,
+
+        RenderedTextBlock note = t("按归来者口述补记", 5,
                 LedgerEnvironment.FADED_INK, (int) w);
         note.align(RenderedTextBlock.CENTER_ALIGN);
         note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
@@ -92,7 +96,7 @@ public class LedgerReturnScene extends PixelScene {
         float y = right.body.top;
 
         HeroSubClass[] subs = LedgerFlow.draft().heroClass.subClasses();
-        subMarks = section("后来专精", y, sectionH, names(subs),
+        subMarks = section("所习专精", y, sectionH, names(subs),
                 LedgerFlow.draft().subclassIndex, i -> {
                     LedgerFlow.draft().subclassIndex = i;
                     refresh(subMarks, i);
@@ -100,7 +104,7 @@ public class LedgerReturnScene extends PixelScene {
         y += sectionH + sectionGap;
 
         ArmorAbility[] abilities = LedgerFlow.draft().heroClass.armorAbilities();
-        abilityMarks = section("最终战技", y, sectionH, names(abilities),
+        abilityMarks = section("护甲战技", y, sectionH, names(abilities),
                 LedgerFlow.draft().abilityIndex, i -> {
                     LedgerFlow.draft().abilityIndex = i;
                     refresh(abilityMarks, i);
@@ -110,7 +114,7 @@ public class LedgerReturnScene extends PixelScene {
         ReturningHeroProfile.GrowthPreset[] growth = ReturningHeroProfile.GrowthPreset.values();
         String[] growthNames = new String[growth.length];
         for (int i = 0; i < growth.length; i++) growthNames[i] = growth[i].title;
-        growthMarks = section("天赋倾向", y, sectionH, growthNames,
+        growthMarks = section("历练倾向", y, sectionH, growthNames,
                 LedgerFlow.draft().growthPreset.ordinal(), i -> {
                     LedgerFlow.draft().growthPreset = growth[i];
                     refresh(growthMarks, i);
@@ -118,9 +122,10 @@ public class LedgerReturnScene extends PixelScene {
 
         add(LedgerPageGrid.rule(right.footer.left, right.footer.top + 1f,
                 right.footer.width(), 0.30f));
-        LedgerButton start = new LedgerButton(Chrome.Type.BLANK, "让这名归还者醒来", 5) {
+        LedgerButton start = new LedgerButton(Chrome.Type.BLANK, "合上名册", 6) {
             @Override protected void onClick() {
                 super.onClick();
+                LedgerAudio.leave();
                 SequelGame.start(LedgerFlow.draft());
             }
         };
@@ -134,12 +139,12 @@ public class LedgerReturnScene extends PixelScene {
 
     private ColorBlock[] section(String label, float y, float h,
                                  String[] labels, int selected, Pick pick) {
-        RenderedTextBlock sectionLabel = t(label, 4,
+        RenderedTextBlock sectionLabel = t(label, 5,
                 LedgerEnvironment.FADED_INK, (int) right.body.width());
         sectionLabel.setPos(right.body.left, y);
         add(sectionLabel);
-        float optionY = y + 7f;
-        float optionH = Math.max(8f, h - 8f);
+        float optionY = y + 8f;
+        float optionH = Math.max(9f, h - 9f);
         int n = labels.length;
         float gap = 2f;
         float bw = (right.body.width() - gap * (n - 1)) / n;
@@ -147,7 +152,7 @@ public class LedgerReturnScene extends PixelScene {
         for (int i = 0; i < n; i++) {
             final int choice = i;
             float bx = right.body.left + i * (bw + gap);
-            LedgerButton button = new LedgerButton(Chrome.Type.BLANK, labels[i], 4) {
+            LedgerButton button = new LedgerButton(Chrome.Type.BLANK, labels[i], 5) {
                 @Override protected void onClick() {
                     super.onClick();
                     pick.choose(choice);
