@@ -2,23 +2,17 @@ package com.shatteredpixel.shatteredpixeldungeon.scenes;
 
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.LedgerFlow;
-import com.shatteredpixel.shatteredpixeldungeon.ReturningHeroProfile;
+import com.shatteredpixel.shatteredpixeldungeon.ReturningHeroTalentRules;
 import com.shatteredpixel.shatteredpixeldungeon.SequelGame;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.watabou.noosa.Camera;
 import com.watabou.noosa.ColorBlock;
-import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.tweeners.Tweener;
 
 public class LedgerReturnScene extends PixelScene {
 
-    private ColorBlock[] subMarks;
-    private ColorBlock[] abilityMarks;
-    private ColorBlock[] growthMarks;
     private LedgerPageGrid.Page left;
     private LedgerPageGrid.Page right;
     private Image book;
@@ -88,7 +82,7 @@ public class LedgerReturnScene extends PixelScene {
         title.setPos(x + (w - title.width()) / 2f, right.header.top);
         add(title);
 
-        RenderedTextBlock note = t("按归来者口述补记", 5,
+        RenderedTextBlock note = t("已核对的归来记录", 5,
                 LedgerEnvironment.FADED_INK, (int) w);
         note.align(RenderedTextBlock.CENTER_ALIGN);
         note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
@@ -96,34 +90,28 @@ public class LedgerReturnScene extends PixelScene {
         add(LedgerPageGrid.rule(x + w * 0.08f,
                 Math.min(right.header.bottom - 1f, note.bottom() + 4f), w * 0.84f, 0.36f));
 
-        float sectionGap = 3f;
-        float sectionH = (right.body.height() - sectionGap * 2f) / 3f;
-        float y = right.body.top;
+        float bx = right.body.left + 6f;
+        float bw = right.body.width() - 12f;
+        float y = right.body.top + 8f;
 
-        HeroSubClass[] subs = LedgerFlow.draft().heroClass.subClasses();
-        subMarks = section("所习专精", y, sectionH, names(subs),
-                LedgerFlow.draft().subclassIndex, i -> {
-                    LedgerFlow.draft().subclassIndex = i;
-                    refresh(subMarks, i);
-                });
-        y += sectionH + sectionGap;
+        y = field(bx, bw, y, "所习专精",
+                Messages.titleCase(LedgerFlow.draft().subClass().title()));
+        y = field(bx, bw, y, "英雄战技", LedgerFlow.draft().armorAbility().name());
+        y = field(bx, bw, y, "自由天赋",
+                ReturningHeroTalentRules.isComplete(
+                        LedgerFlow.draft().talentPlan,
+                        LedgerFlow.draft().heroClass,
+                        LedgerFlow.draft().subClass(),
+                        LedgerFlow.draft().armorAbility())
+                        ? "四阶记录完整" : "记录仍不完整");
+        field(bx, bw, y, "旧行装", "核对完成");
 
-        ArmorAbility[] abilities = LedgerFlow.draft().heroClass.armorAbilities();
-        abilityMarks = section("护甲战技", y, sectionH, names(abilities),
-                LedgerFlow.draft().abilityIndex, i -> {
-                    LedgerFlow.draft().abilityIndex = i;
-                    refresh(abilityMarks, i);
-                });
-        y += sectionH + sectionGap;
-
-        ReturningHeroProfile.GrowthPreset[] growth = ReturningHeroProfile.GrowthPreset.values();
-        String[] growthNames = new String[growth.length];
-        for (int i = 0; i < growth.length; i++) growthNames[i] = growth[i].title;
-        growthMarks = section("历练倾向", y, sectionH, growthNames,
-                LedgerFlow.draft().growthPreset.ordinal(), i -> {
-                    LedgerFlow.draft().growthPreset = growth[i];
-                    refresh(growthMarks, i);
-                });
+        RenderedTextBlock locked = t("此页只作归还确认；专精与战技不再在盖印后改写。",
+                5, LedgerEnvironment.FADED_INK, (int) bw);
+        locked.align(RenderedTextBlock.CENTER_ALIGN);
+        locked.setPos(bx + (bw - locked.width()) / 2f,
+                right.body.bottom - locked.height() - 5f);
+        add(locked);
 
         add(LedgerPageGrid.rule(right.footer.left, right.footer.top + 1f,
                 right.footer.width(), 0.30f));
@@ -137,6 +125,16 @@ public class LedgerReturnScene extends PixelScene {
         start.setRect(right.footer.left, right.footer.top + 3f,
                 right.footer.width(), right.footer.height() - 3f);
         add(start);
+    }
+
+    private float field(float x, float width, float y, String labelText, String valueText) {
+        RenderedTextBlock label = t(labelText, 5, LedgerEnvironment.FADED_INK, 42);
+        label.setPos(x, y);
+        add(label);
+        RenderedTextBlock value = t(valueText, 6, LedgerEnvironment.INK, (int) width - 47);
+        value.setPos(x + 47f, y - 1f);
+        add(value);
+        return Math.max(label.bottom(), value.bottom()) + 10f;
     }
 
     private void closeLedger() {
@@ -211,60 +209,6 @@ public class LedgerReturnScene extends PixelScene {
                 SequelGame.start(LedgerFlow.draft());
             }
         });
-    }
-
-    private interface Pick { void choose(int i); }
-
-    private ColorBlock[] section(String label, float y, float h,
-                                 String[] labels, int selected, Pick pick) {
-        RenderedTextBlock sectionLabel = t(label, 5,
-                LedgerEnvironment.FADED_INK, (int) right.body.width());
-        sectionLabel.setPos(right.body.left, y);
-        add(sectionLabel);
-        float optionY = y + 8f;
-        float optionH = Math.max(9f, h - 9f);
-        int n = labels.length;
-        float gap = 2f;
-        float bw = (right.body.width() - gap * (n - 1)) / n;
-        ColorBlock[] lines = new ColorBlock[n];
-        for (int i = 0; i < n; i++) {
-            final int choice = i;
-            float bx = right.body.left + i * (bw + gap);
-            LedgerButton button = new LedgerButton(Chrome.Type.BLANK, labels[i], 5) {
-                @Override protected void onClick() {
-                    super.onClick();
-                    pick.choose(choice);
-                }
-            };
-            button.multiline = true;
-            button.setRect(bx, optionY, bw, optionH - 1f);
-            button.textColor(LedgerEnvironment.INK);
-            add(button);
-            ColorBlock line = new ColorBlock(bw - 1f, 1f, 0xFF9B302C);
-            line.x = bx;
-            line.y = optionY + optionH - 1f;
-            line.alpha(i == selected ? 0.80f : 0.10f);
-            lines[i] = line;
-            add(line);
-        }
-        return lines;
-    }
-
-    private void refresh(ColorBlock[] lines, int selected) {
-        if (lines == null) return;
-        for (int i = 0; i < lines.length; i++) lines[i].alpha(i == selected ? 0.80f : 0.10f);
-    }
-
-    private String[] names(HeroSubClass[] values) {
-        String[] names = new String[values.length];
-        for (int i = 0; i < values.length; i++) names[i] = Messages.titleCase(values[i].title());
-        return names;
-    }
-
-    private String[] names(ArmorAbility[] values) {
-        String[] names = new String[values.length];
-        for (int i = 0; i < values.length; i++) names[i] = values[i].name();
-        return names;
     }
 
     private RenderedTextBlock t(String value, int size, int color, int width) {
