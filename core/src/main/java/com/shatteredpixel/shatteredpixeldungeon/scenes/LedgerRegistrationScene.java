@@ -72,7 +72,7 @@ public class LedgerRegistrationScene extends PixelScene {
         String cur = LedgerFlow.draft().name;
         boolean unnamed = cur == null || cur.trim().isEmpty() || cur.equals("无名者");
         LedgerButton name = new LedgerButton(Chrome.Type.BLANK,
-                unnamed ? "点击写下姓名  ›" : cur, 5) {
+                unnamed ? "点击写下姓名" : cur, 5) {
             @Override protected void onClick() {
                 super.onClick();
                 String existing = LedgerFlow.draft().name;
@@ -113,7 +113,7 @@ public class LedgerRegistrationScene extends PixelScene {
         add(LedgerPageGrid.rule(page.footer.left, page.footer.top + 1f,
                 page.footer.width(), 0.22f));
 
-        LedgerButton back = new LedgerButton(Chrome.Type.BLANK, "‹ 重新选择身份", 4) {
+        LedgerButton back = new LedgerButton(Chrome.Type.BLANK, "重新选择身份", 4) {
             @Override protected void onClick() {
                 super.onClick();
                 LedgerTransitions.turn(LedgerRegistrationScene.this,
@@ -160,7 +160,7 @@ public class LedgerRegistrationScene extends PixelScene {
         add(LedgerPageGrid.rule(page.footer.left, page.footer.top + 1f,
                 page.footer.width(), 0.28f));
 
-        LedgerButton next = new LedgerButton(Chrome.Type.BLANK, "继续填写惯用兵器  ›", 5) {
+        LedgerButton next = new LedgerButton(Chrome.Type.BLANK, "继续填写惯用兵器", 5) {
             @Override protected void onClick() {
                 super.onClick();
                 String n = LedgerFlow.draft().name;
