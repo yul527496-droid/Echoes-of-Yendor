@@ -31,6 +31,10 @@ final class LedgerUI {
                     value, logicalSize * rasterScale, false);
             block.zoom(1f / rasterScale);
             block.tracking(tracking);
+
+            // Plain ledger text treats underscores/asterisks literally. Authored
+            // game descriptions that intentionally use SPD markup opt in via
+            // markupText(), so player-entered names are never parsed as markup.
             block.setHightlighting(false);
             return block;
         } finally {
@@ -50,6 +54,20 @@ final class LedgerUI {
         RenderedTextBlock block = rawText(value, logicalSize, tracking);
         if (maxWidth > 0) block.maxWidth(maxWidth);
         block.hardlight(color);
+        return block;
+    }
+
+    /**
+     * For trusted, game-authored strings such as HeroClass.shortDesc().
+     * SPD uses _text_ / **text** as emphasis markers. Enabling highlighting
+     * consumes those marker tokens instead of drawing the underscores.
+     */
+    static RenderedTextBlock markupText(String value, int logicalSize,
+                                        int color, int highlightColor, int maxWidth) {
+        RenderedTextBlock block = rawText(value, logicalSize);
+        if (maxWidth > 0) block.maxWidth(maxWidth);
+        block.hardlight(color);
+        block.setHightlighting(true, highlightColor);
         return block;
     }
 }
