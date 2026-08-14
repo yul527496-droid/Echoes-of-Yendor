@@ -64,8 +64,39 @@ jobs:
 
           Write-Host "Pinned Fusion Pixel Font injected and SHA256 verified: $actual"
 
-      - name: Inject pinned Pixabay ledger audio
-        run: python tools/fetch_pixabay_audio.py
+      - name: Inject verified Echoes ledger audio bundle
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $bundle = "tools/ledger_audio_game_bundle.zip"
+          $expected = "2645157290d890197ed16ade31b097d03e81cc73f2858201aa6bf1f510bbf272"
+          if (-not (Test-Path $bundle)) {
+            throw "Ledger audio bundle is missing: $bundle"
+          }
+
+          $actual = (Get-FileHash -Path $bundle -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $expected) {
+            throw "Ledger audio bundle SHA256 mismatch. Expected $expected, got $actual"
+          }
+
+          Expand-Archive -Path $bundle -DestinationPath "core/src/main/assets" -Force
+
+          $required = @(
+            "core/src/main/assets/music/echoes/ledger_tavern.mp3",
+            "core/src/main/assets/music/echoes/ledger_ambience.mp3",
+            "core/src/main/assets/sounds/echoes/ledger_book_open.mp3",
+            "core/src/main/assets/sounds/echoes/ledger_page_turn.mp3",
+            "core/src/main/assets/sounds/echoes/ledger_book_close.mp3",
+            "core/src/main/assets/sounds/echoes/ledger_pen_write.mp3",
+            "core/src/main/assets/sounds/echoes/ledger_stamp.mp3"
+          )
+          foreach ($asset in $required) {
+            if (-not (Test-Path $asset)) {
+              throw "Ledger audio bundle did not contain required asset: $asset"
+            }
+          }
+
+          Write-Host "Echoes ledger audio bundle injected and SHA256 verified: $actual"
 
       - name: Validate custom PNG assets
         run: python tools/validate_pngs.py
