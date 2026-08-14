@@ -36,23 +36,14 @@ final class LedgerEnvironment {
         PixelScene.align(base);
         scene.add(base);
 
-        Image shadow = layer(LEDGER_SHADOW, base);
+        Image shadow = new Image(LEDGER_SHADOW);
+        shadow.scale.set(base.scale.x, base.scale.y);
+        shadow.x = base.x;
+        shadow.y = base.y;
         scene.add(shadow);
 
-        LedgerLightLayer light = new LedgerLightLayer(LEDGER_LIGHT, base);
-        scene.add(light);
-
-        scene.add(new LedgerCandleFlame(CANDLE_FLAME, base, light));
+        scene.add(LedgerCandleFX.openBook(base));
         return base;
-    }
-
-    private static Image layer(String path, Image base) {
-        Image layer = new Image(path);
-        layer.scale.set(base.scale.x, base.scale.y);
-        layer.x = base.x;
-        layer.y = base.y;
-        layer.alpha(1f);
-        return layer;
     }
 
     static RectF leftPage(Image book) {
