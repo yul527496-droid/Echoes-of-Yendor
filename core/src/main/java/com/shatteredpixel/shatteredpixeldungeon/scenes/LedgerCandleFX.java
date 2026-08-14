@@ -18,25 +18,18 @@ final class LedgerCandleFX extends Component {
     private static final float[] JITTER_X = {0f, 0.28f, -0.16f, 0.12f, -0.30f, 0.18f};
     private static final float[] JITTER_Y = {0f, -0.12f, 0.16f, -0.20f, 0.10f, -0.06f};
 
-    // 480x270 external plate. This profile may use the six-frame flame because
-    // the intended final external plate is the no-static-flame artwork.
     private static final Profile OPEN_EXTERNAL = new Profile(
             46.5f, 40.0f, 1.00f,
             54.0f, 51.0f, 76.0f, 66.0f, 0.080f,
             96.0f, 78.0f, 174.0f, 138.0f, 0.020f,
             true, true);
 
-    // LedgerOpenArtwork is 160x90 and already contains a painted candle flame.
-    // Do not place a second flame on top of it. Animate only the local light and
-    // page shadow so the painted flame feels alive without obvious compositing.
     private static final Profile OPEN_EMBEDDED = new Profile(
             9.5f, 12.5f, 0.42f,
             10.2f, 13.5f, 22.0f, 20.0f, 0.070f,
             17.0f, 18.0f, 42.0f, 34.0f, 0.018f,
             true, false);
 
-    // LedgerClosedArtwork is 128x85 and also contains its own painted flame.
-    // Keep that flame and animate only the surrounding illumination.
     private static final Profile CLOSED_EMBEDDED = new Profile(
             17.7f, 10.7f, 0.50f,
             18.0f, 12.8f, 20.0f, 18.0f, 0.068f,
@@ -100,6 +93,7 @@ final class LedgerCandleFX extends Component {
     @Override
     public void update() {
         super.update();
+        LedgerAudio.update();
         time += Game.elapsed;
         updateVisuals(time);
     }
@@ -118,8 +112,6 @@ final class LedgerCandleFX extends Component {
         if (shadow != null) {
             shadow.visible = source.visible;
             if (LedgerEnvironment.usingEmbeddedFallback()) {
-                // The shadow asset belongs to the external 480x270 plate. Do not
-                // stretch it over the embedded 160x90 fallback artwork.
                 shadow.visible = false;
             } else {
                 shadow.scale.set(source.scale.x, source.scale.y);
@@ -198,8 +190,6 @@ final class LedgerCandleFX extends Component {
 
                 float falloff = 1f - distance;
                 float smooth = falloff * falloff * (3f - 2f * falloff);
-                // More levels than V2 removes the obvious circular patch while
-                // nearest filtering still keeps the light consistent with pixel art.
                 float stepped = Math.round(smooth * 15f) / 15f;
                 float alpha = stepped * 0.50f;
                 pixmap.setColor(1.00f, 0.70f, 0.34f, alpha);
