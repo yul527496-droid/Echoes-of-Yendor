@@ -35,15 +35,7 @@ jobs:
 
       - name: Build Windows native EXE image
         shell: pwsh
-        run: |
-          $maxAttempts = 3
-          for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
-            Write-Host "Gradle jpackage image attempt $attempt of $maxAttempts"
-            .\gradlew.bat desktop:jpackageimage
-            if ($LASTEXITCODE -eq 0) { break }
-            if ($attempt -eq $maxAttempts) { exit $LASTEXITCODE }
-            Start-Sleep -Seconds (15 * $attempt)
-          }
+        run: .\gradlew.bat desktop:jpackageimage --no-build-cache --stacktrace
 
       - name: Verify runnable Windows launcher
         shell: pwsh
