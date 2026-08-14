@@ -66,10 +66,6 @@ final class LedgerEnvironment {
         return embeddedFallback;
     }
 
-    /**
-     * Both the external 480x270 plate and the 160x90 embedded fallback use the
-     * exact same logical page geometry. Only the artwork changes.
-     */
     static RectF leftPage(Image book) {
         return LedgerDesignSpace.leftPage(book);
     }
@@ -79,10 +75,10 @@ final class LedgerEnvironment {
     }
 
     static LedgerPageGrid.Page leftGrid(Image book) {
-        return LedgerPageGrid.from(leftPage(book));
+        return LedgerPageGrid.from(leftPage(book), LedgerDesignSpace.leftContent(book));
     }
 
     static LedgerPageGrid.Page rightGrid(Image book) {
-        return LedgerPageGrid.from(rightPage(book));
+        return LedgerPageGrid.from(rightPage(book), LedgerDesignSpace.rightContent(book));
     }
 }
