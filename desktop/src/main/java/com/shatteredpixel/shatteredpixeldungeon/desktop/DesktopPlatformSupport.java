@@ -29,6 +29,7 @@ import com.badlogic.gdx.graphics.g2d.PixmapPacker;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.watabou.input.ControllerHandler;
+import com.watabou.noosa.FontPreviewMode;
 import com.watabou.noosa.Game;
 import com.watabou.utils.PlatformSupport;
 import com.watabou.utils.Point;
@@ -110,6 +111,8 @@ public class DesktopPlatformSupport extends PlatformSupport {
 	private static FreeTypeFontGenerator basicFontGenerator;
 	//droid sans fallback, for asian fonts
 	private static FreeTypeFontGenerator asianFontGenerator;
+	//temporary V2 comparison face, injected by the Windows build before packaging
+	private static FreeTypeFontGenerator ledgerPixelFontGenerator;
 	
 	@Override
 	public void setupFontGenerators(int pageSize, boolean systemfont) {
@@ -132,6 +135,13 @@ public class DesktopPlatformSupport extends PlatformSupport {
 		
 		fonts.put(basicFontGenerator, new HashMap<>());
 		fonts.put(asianFontGenerator, new HashMap<>());
+
+		ledgerPixelFontGenerator = null;
+		if (Gdx.files.internal("fonts/fusion_pixel_12_prop_zh_hans.ttf").exists()) {
+			ledgerPixelFontGenerator = new FreeTypeFontGenerator(
+					Gdx.files.internal("fonts/fusion_pixel_12_prop_zh_hans.ttf"));
+			fonts.put(ledgerPixelFontGenerator, new HashMap<>());
+		}
 		
 		packer = new PixmapPacker(pageSize, pageSize, Pixmap.Format.RGBA8888, 1, false);
 	}
@@ -142,6 +152,9 @@ public class DesktopPlatformSupport extends PlatformSupport {
 
 	@Override
 	protected FreeTypeFontGenerator getGeneratorForString( String input ){
+		if (FontPreviewMode.ledgerPixelFont && ledgerPixelFontGenerator != null) {
+			return ledgerPixelFontGenerator;
+		}
 		if (asianMatcher.reset(input).find()){
 			return asianFontGenerator;
 		} else {
