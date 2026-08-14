@@ -10,6 +10,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
+import com.watabou.utils.RectF;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -241,7 +242,7 @@ public class LedgerTalentScene extends PixelScene {
                 LedgerFlow.draft().armorAbility());
     }
 
-    private void returnFromTalent(LedgerPageGrid.Rect paper) {
+    private void returnFromTalent(RectF paper) {
         Class<? extends PixelScene> target = LedgerFlow.talentReturnToBuild()
                 ? LedgerBuildScene.class : LedgerHeroPathScene.class;
         LedgerTransitions.turn(LedgerTalentScene.this, paper, target, false);
