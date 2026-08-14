@@ -137,10 +137,18 @@ public class DesktopPlatformSupport extends PlatformSupport {
 		fonts.put(asianFontGenerator, new HashMap<>());
 
 		ledgerPixelFontGenerator = null;
+		FontPreviewMode.ledgerPixelFontAvailable = false;
 		if (Gdx.files.internal("fonts/fusion_pixel_12_prop_zh_hans.ttf").exists()) {
-			ledgerPixelFontGenerator = new FreeTypeFontGenerator(
-					Gdx.files.internal("fonts/fusion_pixel_12_prop_zh_hans.ttf"));
-			fonts.put(ledgerPixelFontGenerator, new HashMap<>());
+			try {
+				ledgerPixelFontGenerator = new FreeTypeFontGenerator(
+						Gdx.files.internal("fonts/fusion_pixel_12_prop_zh_hans.ttf"));
+				fonts.put(ledgerPixelFontGenerator, new HashMap<>());
+				FontPreviewMode.ledgerPixelFontAvailable = true;
+			} catch (Throwable error) {
+				ledgerPixelFontGenerator = null;
+				FontPreviewMode.ledgerPixelFontAvailable = false;
+				Game.reportException(error);
+			}
 		}
 		
 		packer = new PixmapPacker(pageSize, pageSize, Pixmap.Format.RGBA8888, 1, false);
