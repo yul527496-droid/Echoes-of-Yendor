@@ -4,14 +4,7 @@ import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Image;
 import com.watabou.utils.RectF;
 
-/**
- * Temporary V2 layout acceptance page.
- *
- * No production copy or typography is shown here. The only purpose of this
- * scene is to prove that both pages, their safe content rectangles, and the
- * header/body/footer bands are mapped from one 480x270 design space and stay
- * inside the painted paper at every runtime scale.
- */
+/** Temporary V2 layout acceptance page. */
 public class LedgerLayoutBaselineScene extends PixelScene {
 
     @Override
@@ -25,14 +18,14 @@ public class LedgerLayoutBaselineScene extends PixelScene {
     }
 
     private void drawGrid(LedgerPageGrid.Page page) {
-        // Painted page boundary: green.
+        // Green = calibrated painted parchment boundary.
         outline(page.paper, 0xFF2C8B57, 0.70f);
 
-        // Safe content boundary: blue. Every future text/control must live here.
+        // Blue = fixed writable design-space rectangle.
         fill(page.content, 0xFF4E78A8, 0.035f);
         outline(page.content, 0xFF4E78A8, 0.70f);
 
-        // Structural bands: amber header, neutral body, red footer.
+        // Structural bands inside the fixed writable region.
         fill(page.header, 0xFFD69A42, 0.055f);
         outline(page.header, 0xFFD69A42, 0.65f);
 
