@@ -96,8 +96,6 @@ public class LedgerRecordsScene extends PixelScene {
         note.setPos(bx, y + 6f);
         add(note);
 
-        // A faint in-world office mark fills the otherwise dead lower page
-        // without becoming a functional button or a modern decoration.
         RenderedTextBlock archiveMark = text("内册", 9,
                 LedgerEnvironment.STAMP, 30);
         archiveMark.alpha(0.10f);
@@ -200,12 +198,13 @@ public class LedgerRecordsScene extends PixelScene {
                 final String heroName = profile.name == null || profile.name.trim().isEmpty()
                         ? "无名者" : profile.name;
                 final float rowY = y;
+                final float restAlpha = i % 2 == 0 ? 0.028f : 0.014f;
 
                 final ColorBlock rowShade = new ColorBlock(
                         page.body.width(), Math.max(1f, rowH - 1f), 0xFF7A5634);
                 rowShade.x = page.body.left;
                 rowShade.y = rowY;
-                rowShade.alpha(i % 2 == 0 ? 0.028f : 0.014f);
+                rowShade.alpha(restAlpha);
                 add(rowShade);
 
                 final ColorBlock rowRule = LedgerPageGrid.rule(
@@ -215,9 +214,6 @@ public class LedgerRecordsScene extends PixelScene {
                         0.28f);
                 add(rowRule);
 
-                // The large click target lives under the ink. It gives desktop
-                // users a tooltip and adds a visible press response without
-                // turning the archive into modern rectangular buttons.
                 LedgerButton open = new LedgerButton(Chrome.Type.BLANK, "", 4) {
                     @Override
                     protected void onPointerDown() {
@@ -228,7 +224,7 @@ public class LedgerRecordsScene extends PixelScene {
 
                     @Override
                     protected void onPointerUp() {
-                        rowShade.alpha(0.028f);
+                        rowShade.alpha(restAlpha);
                         rowRule.alpha(0.28f);
                         super.onPointerUp();
                     }
@@ -325,7 +321,8 @@ public class LedgerRecordsScene extends PixelScene {
                 super.onClick();
                 if (GamesInProgress.firstEmpty() < 0) return;
                 LedgerFlow.resetDraft();
-                Game.switchScene(LedgerHeroScene.class);
+                LedgerTransitions.turn(LedgerRecordsScene.this,
+                        page.paper, LedgerHeroScene.class, true);
             }
 
             @Override
