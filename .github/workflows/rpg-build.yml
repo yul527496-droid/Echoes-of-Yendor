@@ -65,74 +65,75 @@ jobs:
 
           Write-Host "Pinned Fusion Pixel Font injected and SHA256 verified: $actual"
 
-      - name: Reconstruct verified Echoes ledger audio bundle
+      - name: Inject verified Echoes ledger audio from pinned GitHub mirrors
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          $chunkDir = "tools/ledger_audio_b64_v2"
-          $bundle = "tools/ledger_audio_game_bundle.zip"
-          $expected = "2645157290d890197ed16ade31b097d03e81cc73f2858201aa6bf1f510bbf272"
 
-          $parts = 0..8 | ForEach-Object {
-            Join-Path $chunkDir ("part{0:D2}.txt" -f $_)
-          }
-          foreach ($part in $parts) {
-            if (-not (Test-Path $part)) {
-              throw "Ledger audio base64 chunk is missing: $part"
+          $assets = @(
+            @{
+              Name = "Old Tavern - Cinematic Atmosphere Fairytale"
+              Url = "https://raw.githubusercontent.com/drdreo/dicegame/879776a38da76cee2cda2a63b00cc288d3c235d7/public/sounds/background/old-tavern-cinematic-atmosphere-fairytale-273871.mp3"
+              Target = "core/src/main/assets/music/echoes/ledger_tavern.mp3"
+              Sha256 = "4b114794884397d5a02af3569ec9afefedb791083c66db06f113ed4b2b7eebae"
+            },
+            @{
+              Name = "Tavern ambience with openfire effect"
+              Url = "https://raw.githubusercontent.com/John-Popovici/duel-of-the-eights/be8b6c799fe500288c6e65b74c12e710d94a7f0d/src/Assets/Audio/Ambience/tavern-ambience-with-openfire-effect-no-loops-86151.mp3"
+              Target = "core/src/main/assets/music/echoes/ledger_ambience.mp3"
+              Sha256 = "a258853368ab9b1e4723c3f992059e09e36bdd0fdce99ddf6b2c88190e248860"
+            },
+            @{
+              Name = "Book Opening"
+              Url = "https://raw.githubusercontent.com/bushnghiem/Project04/cba32629189ca35261bae0e666d9f63afc429830/Audio/book-opening-345808.mp3"
+              Target = "core/src/main/assets/sounds/echoes/ledger_book_open.mp3"
+              Sha256 = "137b6b7a15b5415671589c5094394ff9e343000bec42650e04917b0541045ded"
+            },
+            @{
+              Name = "Flipping Book Page"
+              Url = "https://raw.githubusercontent.com/mr-vishwakarma/illuster-coaching-classes/c5367b5acf7be172b2b4d3152bdd74b833a1443c/public/sounds/dragon-studio-flipping-book-page-499646.mp3"
+              Target = "core/src/main/assets/sounds/echoes/ledger_page_turn.mp3"
+              Sha256 = "600be61dd4591f09cdc1711fa8e07098fd3d948f619a7e096513ed6ab5aa82d8"
+            },
+            @{
+              Name = "Book Closing"
+              Url = "https://raw.githubusercontent.com/MikhaellaJingCarumbana/AUTOMA/7d2890fac0d4faf362debdd274665cd65510c896/Chapters/Chapter%201/audios/sounds/book-closing-48311.mp3"
+              Target = "core/src/main/assets/sounds/echoes/ledger_book_close.mp3"
+              Sha256 = "bec81ccf7cc302fa3dad21b90cb73394cf9060ef7222006590ee85980c78d0da"
+            },
+            @{
+              Name = "Writing,Pen,Signature,Paper"
+              Url = "https://raw.githubusercontent.com/gabl18/GAMEDEVTVJam2025/ad55540f245ac9469712015c362bc7d20e0e8538/gamedevtvjam/Assets/Audio/SFX/writingpensignaturepaper-102967.mp3"
+              Target = "core/src/main/assets/sounds/echoes/ledger_pen_write.mp3"
+              Sha256 = "2bb4ba4c07e3ec0f2f747885b4164e10cb6e3bdd058de740f5910706a831ea59"
+            },
+            @{
+              Name = "Traditional Stamp"
+              Url = "https://raw.githubusercontent.com/matt-macarte/felpojam-2026/fe3c64d378447fbcacbb6155c5f72a5ffe0092e2/assets/musga/freesound_community-traditional-stamp-44189.mp3"
+              Target = "core/src/main/assets/sounds/echoes/ledger_stamp.mp3"
+              Sha256 = "8ebefdd86e4c5676888aaf8a50b39453200ae9bfc7f8f815e1874c9d1830213d"
             }
-          }
-
-          $encoded = ($parts | ForEach-Object {
-            (Get-Content -Path $_ -Raw).Trim()
-          }) -join ""
-
-          try {
-            $bytes = [Convert]::FromBase64String($encoded)
-          } catch {
-            throw "Ledger audio base64 chunks could not be decoded: $($_.Exception.Message)"
-          }
-
-          [IO.File]::WriteAllBytes($bundle, $bytes)
-          $actual = (Get-FileHash -Path $bundle -Algorithm SHA256).Hash.ToLowerInvariant()
-          if ($actual -ne $expected) {
-            throw "Reconstructed ledger audio bundle SHA256 mismatch. Expected $expected, got $actual"
-          }
-
-          Write-Host "Ledger audio bundle reconstructed from 9 chunks and verified: $actual"
-
-      - name: Inject verified Echoes ledger audio bundle
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = "Stop"
-          $bundle = "tools/ledger_audio_game_bundle.zip"
-          $expected = "2645157290d890197ed16ade31b097d03e81cc73f2858201aa6bf1f510bbf272"
-          if (-not (Test-Path $bundle)) {
-            throw "Ledger audio bundle is missing: $bundle"
-          }
-
-          $actual = (Get-FileHash -Path $bundle -Algorithm SHA256).Hash.ToLowerInvariant()
-          if ($actual -ne $expected) {
-            throw "Ledger audio bundle SHA256 mismatch. Expected $expected, got $actual"
-          }
-
-          Expand-Archive -Path $bundle -DestinationPath "core/src/main/assets" -Force
-
-          $required = @(
-            "core/src/main/assets/music/echoes/ledger_tavern.mp3",
-            "core/src/main/assets/music/echoes/ledger_ambience.mp3",
-            "core/src/main/assets/sounds/echoes/ledger_book_open.mp3",
-            "core/src/main/assets/sounds/echoes/ledger_page_turn.mp3",
-            "core/src/main/assets/sounds/echoes/ledger_book_close.mp3",
-            "core/src/main/assets/sounds/echoes/ledger_pen_write.mp3",
-            "core/src/main/assets/sounds/echoes/ledger_stamp.mp3"
           )
-          foreach ($asset in $required) {
-            if (-not (Test-Path $asset)) {
-              throw "Ledger audio bundle did not contain required asset: $asset"
+
+          foreach ($asset in $assets) {
+            $targetDir = Split-Path -Parent $asset.Target
+            New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
+
+            Write-Host "Downloading $($asset.Name)"
+            curl.exe -L --fail --retry 3 --retry-delay 2 $asset.Url -o $asset.Target
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to download ledger audio asset: $($asset.Name)"
             }
+
+            $actual = (Get-FileHash -Path $asset.Target -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actual -ne $asset.Sha256) {
+              throw "Ledger audio SHA256 mismatch for $($asset.Name). Expected $($asset.Sha256), got $actual"
+            }
+
+            Write-Host "Verified $($asset.Name): $actual"
           }
 
-          Write-Host "Echoes ledger audio bundle injected and SHA256 verified: $actual"
+          Write-Host "All $($assets.Count) Echoes ledger audio assets downloaded and SHA256 verified."
 
       - name: Validate custom PNG assets
         run: python tools/validate_pngs.py
