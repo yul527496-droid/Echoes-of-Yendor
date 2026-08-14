@@ -42,6 +42,7 @@ public final class ReturningHeroPresetSettings extends GameSettings {
                 ? ReturningHeroProfile.GrowthPreset.BALANCED.ordinal()
                 : preset.legacyGrowthPreset.ordinal());
         put(key("loadout", slot), ReturningHeroLoadoutCodec.encode(preset.loadout));
+        put(key("talents", slot), ReturningHeroTalentPlanCodec.encode(preset.talentPlan));
     }
 
     public static ReturningHeroPreset load(int slot) {
@@ -64,6 +65,8 @@ public final class ReturningHeroPresetSettings extends GameSettings {
 
         String encoded = getString(key("loadout", slot), "", 512);
         preset.loadout = ReturningHeroLoadoutCodec.decode(encoded, preset.heroClass);
+        String talents = getString(key("talents", slot), "", 1536);
+        preset.talentPlan = ReturningHeroTalentPlanCodec.decode(talents);
         return preset;
     }
 
@@ -73,5 +76,6 @@ public final class ReturningHeroPresetSettings extends GameSettings {
         put(key("name", slot), "");
         put(key("ruleset", slot), 0);
         put(key("loadout", slot), "");
+        put(key("talents", slot), "");
     }
 }
