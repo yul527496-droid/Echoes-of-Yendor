@@ -4,6 +4,7 @@ package com.shatteredpixel.shatteredpixeldungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 
 /**
  * The in-world ledger entry used to reconstruct the hero who returned from the dungeon.
@@ -40,6 +41,36 @@ public class ReturningHeroProfile {
         return values[Math.max(0, Math.min(abilityIndex, values.length - 1))];
     }
 
+    /** Original class loadout facts are owned by ReturningHeroHeritage. */
+    public Class<? extends Item> initialWeaponClass() {
+        return ReturningHeroHeritage.initialWeapon(heroClass);
+    }
+
+    public Class<? extends Item> signatureHeritageClass() {
+        return ReturningHeroHeritage.signatureItem(heroClass);
+    }
+
+    public Class<? extends Item> initialThrownWeaponClass() {
+        return ReturningHeroHeritage.initialThrownWeapon(heroClass);
+    }
+
+    public boolean hasClassArtifact() {
+        return ReturningHeroHeritage.hasClassArtifact(heroClass);
+    }
+
+    public int classArtifactReturnLevel() {
+        return ReturningHeroHeritage.classArtifactReturnLevel(heroClass);
+    }
+
+    public int mageStaffReturnLevel() {
+        return ReturningHeroHeritage.mageStaffReturnLevel(heroClass);
+    }
+
+    /**
+     * Legacy three-choice weapon UI.  This remains temporarily so the current
+     * ledger flow keeps working while the full stable-ID loadout catalog is
+     * introduced behind it.
+     */
     public String[] weaponOptions() {
         switch (heroClass) {
             case WARRIOR:
