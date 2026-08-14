@@ -24,16 +24,23 @@ final class LedgerCandleFX extends Component {
         super();
         this.source = source;
 
-        light = new Image(LedgerEnvironment.LEDGER_LIGHT);
-        light.scale.set(source.scale.x, source.scale.y);
-        light.x = source.x;
-        light.y = source.y;
-        light.alpha(0.20f);
-        add(light);
+        light = LedgerEnvironment.tryLoad(LedgerEnvironment.LEDGER_LIGHT);
+        if (light != null) {
+            light.scale.set(source.scale.x, source.scale.y);
+            light.x = source.x;
+            light.y = source.y;
+            light.alpha(0.20f);
+            add(light);
+        }
 
-        flame = new Image(LedgerEnvironment.CANDLE_FLAME, 0, 0, 16, 16);
-        flame.scale.set(source.scale.x, source.scale.y);
-        add(flame);
+        Image loadedFlame = LedgerEnvironment.tryLoad(LedgerEnvironment.CANDLE_FLAME);
+        if (loadedFlame != null) {
+            // A six-frame horizontal sprite sheet, 16x16 per frame.
+            loadedFlame.frame(0, 0, 16, 16);
+            loadedFlame.scale.set(source.scale.x, source.scale.y);
+            add(loadedFlame);
+        }
+        flame = loadedFlame;
     }
 
     @Override
@@ -41,18 +48,22 @@ final class LedgerCandleFX extends Component {
         super.update();
         time += Game.elapsed;
 
-        light.scale.set(source.scale.x, source.scale.y);
-        light.x = source.x;
-        light.y = source.y;
-        light.alpha(source.alpha() * (0.17f + 0.035f * (float)Math.sin(time * 5.2f)));
+        if (light != null) {
+            light.scale.set(source.scale.x, source.scale.y);
+            light.x = source.x;
+            light.y = source.y;
+            light.alpha(source.alpha() * (0.17f + 0.035f * (float)Math.sin(time * 5.2f)));
+        }
 
-        int frame = ((int)(time / 0.12f)) % 6;
-        flame.frame(frame * 16, 0, 16, 16);
-        flame.scale.set(source.scale.x, source.scale.y);
+        if (flame != null) {
+            int frame = ((int)(time / 0.12f)) % 6;
+            flame.frame(frame * 16, 0, 16, 16);
+            flame.scale.set(source.scale.x, source.scale.y);
 
-        // Flame anchor in the 480x270 base plate.
-        flame.x = source.x + 43f * source.scale.x;
-        flame.y = source.y + 39f * source.scale.y;
-        flame.alpha(source.alpha());
+            // Flame anchor in the 480x270 base plate.
+            flame.x = source.x + 43f * source.scale.x;
+            flame.y = source.y + 39f * source.scale.y;
+            flame.alpha(source.alpha());
+        }
     }
 }
