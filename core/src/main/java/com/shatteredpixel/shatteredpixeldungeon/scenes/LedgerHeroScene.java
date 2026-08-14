@@ -40,12 +40,12 @@ public class LedgerHeroScene extends PixelScene {
         float x = left.header.left;
         float w = left.header.width();
 
-        RenderedTextBlock title = t("下行者档案", 8, LedgerEnvironment.INK, (int) w);
+        RenderedTextBlock title = t("下行者档案", 9, LedgerEnvironment.INK, (int) w);
         title.align(RenderedTextBlock.CENTER_ALIGN);
         title.setPos(x + (w - title.width()) / 2f, left.header.top);
         add(title);
 
-        RenderedTextBlock note = t("出发前登记 · 理想职业", 4,
+        RenderedTextBlock note = t("出发前登记 · 理想职业", 5,
                 LedgerEnvironment.FADED_INK, (int) w);
         note.align(RenderedTextBlock.CENTER_ALIGN);
         note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
@@ -67,19 +67,20 @@ public class LedgerHeroScene extends PixelScene {
             add(hero);
         }
 
-        selectedName = t("尚未登记", 6, LedgerEnvironment.INK, (int) left.body.width());
+        selectedName = t("尚未登记", 7, LedgerEnvironment.INK, (int) left.body.width());
         selectedName.align(RenderedTextBlock.CENTER_ALIGN);
         add(selectedName);
 
-        selectedDesc = t("从右页选择一个英雄身份。", 4,
-                LedgerEnvironment.FADED_INK, (int) left.body.width() - 6);
+        selectedDesc = LedgerUI.markupText("从右页选择一个英雄身份。", 5,
+                LedgerEnvironment.FADED_INK, LedgerEnvironment.INK,
+                (int) left.body.width() - 6);
         selectedDesc.align(RenderedTextBlock.CENTER_ALIGN);
         add(selectedDesc);
 
         add(LedgerPageGrid.rule(left.footer.left, left.footer.top + 1f,
                 left.footer.width(), 0.22f));
 
-        LedgerButton back = new LedgerButton(Chrome.Type.BLANK, "‹ 返回名册", 4) {
+        LedgerButton back = new LedgerButton(Chrome.Type.BLANK, "返回名册", 5) {
             @Override protected void onClick() {
                 super.onClick();
                 LedgerTransitions.turn(LedgerHeroScene.this,
@@ -96,12 +97,12 @@ public class LedgerHeroScene extends PixelScene {
         float x = right.header.left;
         float w = right.header.width();
 
-        RenderedTextBlock title = t("选择身份", 8, LedgerEnvironment.INK, (int) w);
+        RenderedTextBlock title = t("选择身份", 9, LedgerEnvironment.INK, (int) w);
         title.align(RenderedTextBlock.CENTER_ALIGN);
         title.setPos(x + (w - title.width()) / 2f, right.header.top);
         add(title);
 
-        RenderedTextBlock note = t("写下当年想成为怎样的人", 4,
+        RenderedTextBlock note = t("写下当年想成为怎样的人", 5,
                 LedgerEnvironment.FADED_INK, (int) w);
         note.align(RenderedTextBlock.CENTER_ALIGN);
         note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
@@ -131,7 +132,7 @@ public class LedgerHeroScene extends PixelScene {
             add(mark);
 
             LedgerButton button = new LedgerButton(Chrome.Type.BLANK,
-                    Messages.titleCase(cl.title()), 4) {
+                    Messages.titleCase(cl.title()), 5) {
                 @Override protected void onClick() {
                     super.onClick();
                     choose(cl);
@@ -151,7 +152,7 @@ public class LedgerHeroScene extends PixelScene {
         add(LedgerPageGrid.rule(right.footer.left, right.footer.top + 1f,
                 right.footer.width(), 0.28f));
 
-        confirm = new LedgerButton(Chrome.Type.BLANK, "以此身份登记  ›", 5) {
+        confirm = new LedgerButton(Chrome.Type.BLANK, "以此身份登记", 6) {
             @Override protected void onClick() {
                 super.onClick();
                 if (selected != null) {
