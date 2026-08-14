@@ -17,6 +17,7 @@ final class LedgerUI {
     private static final float TITLE_TRACKING = 0.20f;
     private static final float BODY_TRACKING = 0.35f;
     private static final float BUTTON_TRACKING = 0.45f;
+    private static final float LINE_SPACING = 2.75f;
 
     private LedgerUI() {}
 
@@ -57,6 +58,7 @@ final class LedgerUI {
         block.setLedgerPixelFont(true);
         block.zoom(1f / rasterScale);
         block.tracking(tracking);
+        block.lineSpacing(LINE_SPACING);
 
         // Plain ledger text treats underscores/asterisks literally. Authored
         // game descriptions that intentionally use SPD markup opt in via
