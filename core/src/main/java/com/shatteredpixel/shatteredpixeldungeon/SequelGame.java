@@ -15,11 +15,13 @@
 
 package com.shatteredpixel.shatteredpixeldungeon;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
 import com.shatteredpixel.shatteredpixeldungeon.levels.FinalStairLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekOutskirtsLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SurfaceEntranceLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.TrainingGroundLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.SequelTransitionScene;
 
@@ -63,6 +65,35 @@ public final class SequelGame {
         Dungeon.branch = 0;
 
         enter(new FinalStairLevel(), -1);
+    }
+
+    /**
+     * Development-only geometry preview for the optional pre-dungeon memory.
+     * It deliberately starts a normal level-one warrior instead of applying the
+     * returning-hero reconstruction, so the graybox is viewed at tutorial scale.
+     * No ledger profile is written; an empty game slot is only reserved so the
+     * mature Dungeon/GameScene lifecycle can run without special cases.
+     */
+    public static boolean previewTrainingGround() {
+        int slot = GamesInProgress.firstEmpty();
+        if (slot < 0) return false;
+
+        Dungeon.daily = false;
+        Dungeon.dailyReplay = false;
+        SPDSettings.challenges(0);
+        SPDSettings.customSeed("");
+        SPDSettings.intro(false);
+
+        GamesInProgress.curSlot = slot;
+        GamesInProgress.selectedClass = HeroClass.WARRIOR;
+
+        Dungeon.initSeed();
+        Dungeon.init();
+        Dungeon.depth = 0;
+        Dungeon.branch = 0;
+
+        enter(new TrainingGroundLevel(), -1);
+        return true;
     }
 
     public static void enterSurfaceEntrance() {
