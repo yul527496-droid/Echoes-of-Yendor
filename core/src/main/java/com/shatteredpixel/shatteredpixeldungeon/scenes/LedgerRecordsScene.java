@@ -95,6 +95,7 @@ public class LedgerRecordsScene extends PixelScene {
         LedgerButton about = new LedgerButton(Chrome.Type.BLANK, "制作信息", 5) {
             @Override protected void onClick() {
                 super.onClick();
+                LedgerAudio.leave();
                 Game.switchScene(AboutScene.class);
             }
             @Override protected String hoverText() { return "查看制作信息"; }
@@ -222,6 +223,7 @@ public class LedgerRecordsScene extends PixelScene {
                 super.onClick();
                 GamesInProgress.curSlot = slot;
                 InterlevelScene.mode = InterlevelScene.Mode.CONTINUE;
+                LedgerAudio.leave();
                 Game.switchScene(InterlevelScene.class);
             }
             @Override protected String hoverText() { return "继续「" + heroName + "」"; }
