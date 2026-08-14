@@ -47,10 +47,10 @@ final class LedgerAudio {
     static void update() {
         if (ambience == null || !ambience.isPlaying() || ambienceFade >= 1f) return;
 
-        // Intro owns both open- and closed-book candle FX for a short time.
-        // Avoid advancing the same ambience fade twice in one render frame.
+        // Intro briefly owns both open- and closed-book candle FX. A tiny
+        // real-time guard prevents the same fade being advanced twice in one frame.
         long now = System.nanoTime();
-        if (lastUpdateNanos != 0L && now - lastUpdateNanos < 2_000_000L) return;
+        if (lastUpdateNanos != 0L && now - lastUpdateNanos < 1_000_000L) return;
         lastUpdateNanos = now;
 
         ambienceFade = Math.min(1f, ambienceFade + Game.elapsed / 1.35f);
