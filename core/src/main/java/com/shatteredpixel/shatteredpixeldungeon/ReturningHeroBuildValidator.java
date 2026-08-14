@@ -175,9 +175,9 @@ public final class ReturningHeroBuildValidator {
             }
         } else if (loadout.artifactSlotId != null) {
             if (!ReturningHeroItemCatalog.isSelectable(loadout.artifactSlotId, Kind.ARTIFACT)
-                    || loadout.artifactSlotLevel < 0
-                    || loadout.artifactSlotLevel
-                    > ReturningHeroBuildRules.ORDINARY_ARTIFACT_GROWTH_BUDGET) {
+                    || !ReturningHeroArtifactBalance.isLegalVisibleLevel(
+                    loadout.artifactSlotId, loadout.artifactSlotLevel,
+                    ReturningHeroBuildRules.ORDINARY_ARTIFACT_GROWTH_BUDGET)) {
                 problems.add(Problem.INVALID_ARTIFACT_SLOT);
             }
         } else if (loadout.artifactSlotLevel != 0) {
@@ -197,10 +197,12 @@ public final class ReturningHeroBuildValidator {
                 }
                 break;
             case ARTIFACT:
+                int maxVisible = hasClassArtifact
+                        ? ReturningHeroBuildRules.MAX_SECOND_ARTIFACT_LEVEL_WITH_CLASS_ARTIFACT
+                        : ReturningHeroBuildRules.ORDINARY_ARTIFACT_GROWTH_BUDGET;
                 if (!ReturningHeroItemCatalog.isSelectable(loadout.miscSlotId, Kind.ARTIFACT)
-                        || loadout.miscSlotLevel < 0
-                        || loadout.miscSlotLevel
-                        > ReturningHeroBuildRules.ORDINARY_ARTIFACT_GROWTH_BUDGET) {
+                        || !ReturningHeroArtifactBalance.isLegalVisibleLevel(
+                        loadout.miscSlotId, loadout.miscSlotLevel, maxVisible)) {
                     problems.add(Problem.INVALID_MISC_SLOT);
                 }
                 break;
