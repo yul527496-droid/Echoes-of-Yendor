@@ -28,6 +28,7 @@ public final class ReturningHeroBuildValidator {
         ARTIFACT_GROWTH_TOO_HIGH,
         SECOND_ARTIFACT_TOO_HIGH_WITH_CLASS_ARTIFACT,
         INVALID_TRINKET,
+        TRINKET_ALCHEMY_BUDGET_EXCEEDED,
         EQUIPMENT_BUDGET_EXCEEDED
     }
 
@@ -192,9 +193,13 @@ public final class ReturningHeroBuildValidator {
         }
 
         if (loadout.trinketId != null) {
-            if (!ReturningHeroItemCatalog.isSelectable(loadout.trinketId, Kind.TRINKET)
-                    || loadout.trinketLevel < 0 || loadout.trinketLevel > 3) {
+            int trinketCost = ReturningHeroBuildCost.trinketAlchemyCost(
+                    loadout.trinketId, loadout.trinketLevel);
+            if (trinketCost < 0) {
                 problems.add(Problem.INVALID_TRINKET);
+            } else if (trinketCost
+                    > ReturningHeroBuildRules.TRINKET_ALCHEMY_RECONSTRUCTION_BUDGET) {
+                problems.add(Problem.TRINKET_ALCHEMY_BUDGET_EXCEEDED);
             }
         } else if (loadout.trinketLevel != 0) {
             problems.add(Problem.INVALID_TRINKET);
