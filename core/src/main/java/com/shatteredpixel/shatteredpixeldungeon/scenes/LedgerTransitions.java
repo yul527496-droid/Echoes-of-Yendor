@@ -11,7 +11,12 @@ final class LedgerTransitions {
     private LedgerTransitions() {}
 
     static void turn(PixelScene scene, RectF paper,
-                     Class<? extends PixelScene> target, boolean forward) {
+                     Class<? extends PixelScene> destination, boolean forward) {
+
+        // Tweener inherits a Gizmo field named "target". Capturing a method
+        // parameter with the same name inside the anonymous Tweener makes the
+        // simple name resolve to that Gizmo instead of the scene class.
+        final Class<? extends PixelScene> destinationScene = destination;
 
         final ColorBlock fold = new ColorBlock(4f, paper.height(), 0xFFFFE1A1);
         final ColorBlock shadow = new ColorBlock(3f, paper.height(), 0xFF3A2415);
@@ -58,7 +63,7 @@ final class LedgerTransitions {
                 // Every ledger scene calls fadeIn(); suppress that one fade so
                 // the moving page edge is the transition the player actually sees.
                 PixelScene.noFade = true;
-                Game.switchScene(target);
+                Game.switchScene(destinationScene);
             }
         });
     }
