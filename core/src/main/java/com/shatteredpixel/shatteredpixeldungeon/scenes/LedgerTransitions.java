@@ -89,6 +89,8 @@ final class LedgerTransitions {
         edge.alpha(0f);
         scene.add(edge);
 
+        final float[] weights = new float[STRIP_COUNT];
+
         scene.add(new Tweener(scene, HALF_TURN_SECONDS) {
             private boolean soundPlayed;
 
@@ -122,7 +124,6 @@ final class LedgerTransitions {
                         paper.width() * projection * rebound);
                 float anchor = forward ? paper.left : paper.right;
 
-                float[] weights = new float[STRIP_COUNT];
                 float weightTotal = 0f;
                 for (int i = 0; i < STRIP_COUNT; i++) {
                     float u = (i + 0.5f) / STRIP_COUNT;
@@ -207,6 +208,14 @@ final class LedgerTransitions {
 
             @Override
             protected void onComplete() {
+                if (covering && onComplete != null) {
+                    // Game.switchScene is deferred. Keep the edge-on page visible
+                    // until this scene is actually replaced so the old page cannot
+                    // flash back for one frame at the midpoint.
+                    onComplete.run();
+                    return;
+                }
+
                 veil.killAndErase();
                 shadow.killAndErase();
                 edge.killAndErase();
