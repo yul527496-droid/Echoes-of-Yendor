@@ -196,7 +196,7 @@ public class LedgerPresetScene extends PixelScene {
         }
 
         candidate.applyTo(LedgerFlow.draft());
-        LedgerAudio.page();
+        LedgerAudio.pageTurn();
         LedgerFlow.choicePage(0);
         PixelScene.noFade = true;
         Game.switchScene(LedgerBuildScene.class);
