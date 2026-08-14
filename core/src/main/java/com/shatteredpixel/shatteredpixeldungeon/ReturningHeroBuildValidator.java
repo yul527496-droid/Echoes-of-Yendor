@@ -140,8 +140,8 @@ public final class ReturningHeroBuildValidator {
         }
 
         if (loadout.primaryWeaponId != null
-                && ReturningHeroBuildCost.weaponCost(
-                loadout.primaryWeaponId, loadout.primaryWeaponLevel) < 0) {
+                && ReturningHeroBuildCost.primaryWeaponCost(
+                heroClass, loadout.primaryWeaponId, loadout.primaryWeaponLevel) < 0) {
             problems.add(Problem.INVALID_PRIMARY_WEAPON);
         }
 
