@@ -43,6 +43,7 @@ public class LedgerIntroScene extends PixelScene {
         closedBook.scale.set(closedScale);
         center(closedBook);
         add(closedBook);
+        add(new LedgerWarmth(closedBook, 0.040f));
 
         input = new PointerArea(
                 closedBook.x - 5f,
@@ -64,7 +65,10 @@ public class LedgerIntroScene extends PixelScene {
         super.update();
         time += Game.elapsed;
         if (input.active) {
-            closedBook.brightness(1f + (float) Math.sin(time * 2.1f) * 0.025f);
+            // Tiny idle motion: the book should feel present, not like a button
+            // pasted onto the screen. The separate warmth layer supplies the
+            // higher-frequency candle flicker.
+            closedBook.brightness(1f + (float) Math.sin(time * 1.9f) * 0.012f);
         }
     }
 
@@ -72,21 +76,24 @@ public class LedgerIntroScene extends PixelScene {
         if (!input.active) return;
 
         input.active = false;
-        Sample.INSTANCE.play(Assets.Sounds.OPEN, 0.55f, 0.92f);
+        closedBook.resetColor();
+        Sample.INSTANCE.play(Assets.Sounds.OPEN, 0.58f, 0.92f);
 
-        add(new Tweener(this, 0.72f) {
+        add(new Tweener(this, 0.78f) {
             @Override
             protected void updateValues(float progress) {
-                float close = Math.min(1f, progress / 0.48f);
-                closedBook.alpha(1f - close);
+                float close = Math.min(1f, progress / 0.52f);
+                float closeEase = close * close * (3f - 2f * close);
+                closedBook.alpha(1f - closeEase);
                 closedBook.scale.set(
-                        closedScale * (1f - 0.18f * close),
-                        closedScale * (1f + 0.03f * close));
+                        closedScale * (1f - 0.15f * closeEase),
+                        closedScale * (1f + 0.025f * closeEase));
                 center(closedBook);
 
-                float reveal = Math.max(0f, Math.min(1f, (progress - 0.18f) / 0.82f));
-                openBook.alpha(reveal);
-                openBook.scale.set(openScale * (0.92f + 0.08f * reveal));
+                float reveal = Math.max(0f, Math.min(1f, (progress - 0.20f) / 0.80f));
+                float revealEase = 1f - (1f - reveal) * (1f - reveal);
+                openBook.alpha(revealEase);
+                openBook.scale.set(openScale * (0.94f + 0.06f * revealEase));
                 center(openBook);
             }
 
