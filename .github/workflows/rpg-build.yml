@@ -25,6 +25,45 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Inject pinned Fusion Pixel font for V2 A/B test
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $version = "2026.08.11"
+          $archive = "fusion-pixel-font-12px-proportional-ttf-v$version.zip"
+          $url = "https://github.com/TakWolf/fusion-pixel-font/releases/download/$version/$archive"
+          $expected = "58cc7021a24749ad9405845e499a2ef0a1709e2d90adc242cf198cb278dc065e"
+          $zip = Join-Path $env:RUNNER_TEMP $archive
+          $extract = Join-Path $env:RUNNER_TEMP "fusion-pixel-font"
+
+          curl.exe -L --fail --retry 3 --retry-delay 2 $url -o $zip
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to download pinned Fusion Pixel Font release."
+          }
+
+          $actual = (Get-FileHash -Path $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $expected) {
+            throw "Fusion Pixel Font SHA256 mismatch. Expected $expected, got $actual"
+          }
+
+          Expand-Archive -Path $zip -DestinationPath $extract -Force
+          $font = Get-ChildItem -Path $extract -Recurse -File -Filter "fusion-pixel-12px-proportional-zh_hans.ttf" | Select-Object -First 1
+          if (-not $font) {
+            throw "Pinned archive did not contain fusion-pixel-12px-proportional-zh_hans.ttf"
+          }
+
+          $fontDir = "core/src/main/assets/fonts"
+          New-Item -ItemType Directory -Force -Path $fontDir | Out-Null
+          Copy-Item $font.FullName (Join-Path $fontDir "fusion_pixel_12_prop_zh_hans.ttf") -Force
+
+          $licenseUrl = "https://raw.githubusercontent.com/TakWolf/fusion-pixel-font/$version/LICENSE-OFL"
+          curl.exe -L --fail --retry 3 --retry-delay 2 $licenseUrl -o (Join-Path $fontDir "FUSION_PIXEL_FONT_LICENSE.txt")
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to download Fusion Pixel Font OFL license."
+          }
+
+          Write-Host "Pinned Fusion Pixel Font injected and SHA256 verified: $actual"
+
       - name: Validate custom PNG assets
         run: python tools/validate_pngs.py
 
