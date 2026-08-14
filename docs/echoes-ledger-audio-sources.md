@@ -26,4 +26,4 @@ Before committing any downloaded binary, preserve its exact item URL and creator
 
 ## Current status
 
-No Pixabay audio binary is committed by this note. The runtime hooks, timing, volume, and fallback behavior are implemented first. This avoids repeating the earlier PNG transport failure where an asset could compile into a build without being a valid media file.
+No Pixabay audio binary is committed by this note. The item pages expose a free download in the browser, but the automated fetch route available during this pass did not expose a stable media-file URL. The runtime hooks, timing, volume, and fallback behavior are therefore implemented first. This avoids repeating the earlier PNG transport failure where an asset could compile into a build without being a valid media file.
