@@ -21,6 +21,7 @@ public class ReturningHeroPreset {
             ReturningHeroProfile.GrowthPreset.BALANCED;
 
     public ReturningHeroLoadout loadout = new ReturningHeroLoadout();
+    public ReturningHeroTalentPlan talentPlan = new ReturningHeroTalentPlan();
 
     public ReturningHeroPreset() {
         loadout.resetForClass(heroClass);
@@ -35,6 +36,9 @@ public class ReturningHeroPreset {
         abilityIndex = other.abilityIndex;
         legacyGrowthPreset = other.legacyGrowthPreset;
         loadout = other.loadout == null ? new ReturningHeroLoadout() : other.loadout.copy();
+        talentPlan = other.talentPlan == null
+                ? new ReturningHeroTalentPlan()
+                : other.talentPlan.copy();
     }
 
     public ReturningHeroPreset copy() {
@@ -53,6 +57,9 @@ public class ReturningHeroPreset {
         preset.loadout = profile.loadout == null
                 ? new ReturningHeroLoadout()
                 : profile.loadout.copy();
+        preset.talentPlan = profile.talentPlan == null
+                ? new ReturningHeroTalentPlan()
+                : profile.talentPlan.copy();
         return preset;
     }
 
@@ -66,12 +73,17 @@ public class ReturningHeroPreset {
                 ? ReturningHeroProfile.GrowthPreset.BALANCED
                 : legacyGrowthPreset;
         profile.loadout = loadout == null ? new ReturningHeroLoadout() : loadout.copy();
+        profile.talentPlan = talentPlan == null
+                ? new ReturningHeroTalentPlan()
+                : talentPlan.copy();
     }
 
     public boolean needsRulesetReview() {
         return rulesetVersion != ReturningHeroBuildRules.RULESET_VERSION
                 || loadout == null
-                || loadout.rulesetVersion != ReturningHeroBuildRules.RULESET_VERSION;
+                || loadout.rulesetVersion != ReturningHeroBuildRules.RULESET_VERSION
+                || talentPlan == null
+                || talentPlan.rulesetVersion != ReturningHeroBuildRules.RULESET_VERSION;
     }
 
     public static String sanitizeName(String value) {
