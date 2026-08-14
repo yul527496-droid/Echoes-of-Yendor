@@ -26,6 +26,8 @@ public final class LedgerFlow {
     private static String trinketCandidateId;
     private static int trinketCandidateLevel;
 
+    private static int talentTier = 0;
+
     private LedgerFlow() {}
 
     public static ReturningHeroProfile draft() { return draft; }
@@ -37,6 +39,7 @@ public final class LedgerFlow {
         resetWandPicker();
         resetAccessoryPicker();
         resetTrinketPicker();
+        resetTalentPicker();
         return draft;
     }
 
@@ -129,4 +132,9 @@ public final class LedgerFlow {
         trinketCandidateId = null;
         trinketCandidateLevel = 0;
     }
+
+    /** 0=talent tier overview, 1..4=editing that tier. */
+    public static int talentTier() { return talentTier; }
+    public static void talentTier(int value) { talentTier = Math.max(0, Math.min(value, 4)); }
+    public static void resetTalentPicker() { talentTier = 0; }
 }
