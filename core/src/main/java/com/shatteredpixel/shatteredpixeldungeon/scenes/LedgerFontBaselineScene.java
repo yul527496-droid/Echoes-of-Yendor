@@ -23,11 +23,16 @@ public class LedgerFontBaselineScene extends PixelScene {
         LedgerPageGrid.Page right = LedgerEnvironment.rightGrid(book);
 
         FontPreviewMode.ledgerPixelFont = false;
-        buildColumn(left, "当前字体", "Droid Sans");
+        buildColumn(left, "当前字体", "Droid Sans", false);
 
         FontPreviewMode.ledgerPixelFont = true;
         try {
-            buildColumn(right, "像素字体", "Fusion Pixel 12 Proportional");
+            buildColumn(right,
+                    FontPreviewMode.ledgerPixelFontAvailable ? "像素字体" : "像素字体未载入",
+                    FontPreviewMode.ledgerPixelFontAvailable
+                            ? "Fusion Pixel 12 Proportional"
+                            : "当前字体回退",
+                    !FontPreviewMode.ledgerPixelFontAvailable);
         } finally {
             // Never let the experiment leak into any other scene or window.
             FontPreviewMode.ledgerPixelFont = false;
@@ -36,16 +41,19 @@ public class LedgerFontBaselineScene extends PixelScene {
         fadeIn();
     }
 
-    private void buildColumn(LedgerPageGrid.Page page, String heading, String faceName) {
+    private void buildColumn(LedgerPageGrid.Page page, String heading,
+                             String faceName, boolean failed) {
         float x = page.content.left + 3f;
         float w = page.content.width() - 6f;
         float y = page.content.top + 2f;
 
-        RenderedTextBlock label = t(heading, 9, LedgerEnvironment.INK, (int) w);
+        RenderedTextBlock label = t(heading, 9,
+                failed ? LedgerEnvironment.STAMP : LedgerEnvironment.INK, (int) w);
         center(label, page.content, y);
         add(label);
 
-        RenderedTextBlock face = t(faceName, 5, LedgerEnvironment.FADED_INK, (int) w);
+        RenderedTextBlock face = t(faceName, 5,
+                failed ? LedgerEnvironment.STAMP : LedgerEnvironment.FADED_INK, (int) w);
         center(face, page.content, label.bottom() + 3f);
         add(face);
 
