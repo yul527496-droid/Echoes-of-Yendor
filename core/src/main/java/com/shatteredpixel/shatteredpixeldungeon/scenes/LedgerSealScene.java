@@ -56,7 +56,7 @@ public class LedgerSealScene extends PixelScene {
         stamp = t("未  归", 14, LedgerEnvironment.STAMP, (int) rw);
         stampX = rx + (rw - stamp.width()) / 2f;
         stampY = r.top + r.height() * 0.52f;
-        stamp.setPos(stampX, stampY - 12);
+        stamp.setPos(stampX, stampY - 18f);
         stamp.alpha(0f);
         add(stamp);
 
@@ -71,22 +71,27 @@ public class LedgerSealScene extends PixelScene {
     public void update() {
         super.update();
         time += Game.elapsed;
-        float fall = Math.min(1f, time / 0.28f);
-        stamp.alpha(fall);
-        stamp.setPos(stampX, stampY - (1f - fall) * 12f);
+
+        // A short anticipation beat makes the seal feel deliberate rather than
+        // appearing immediately as another static label.
+        float fall = Math.max(0f, Math.min(1f, (time - 0.18f) / 0.34f));
+        float eased = 1f - (1f - fall) * (1f - fall);
+        stamp.alpha(eased);
+        stamp.setPos(stampX, stampY - (1f - eased) * 18f);
+
         if (!struck && fall >= 1f) {
             struck = true;
-            Sample.INSTANCE.play(Assets.Sounds.STURDY, 0.85f, 0.92f);
+            Sample.INSTANCE.play(Assets.Sounds.STURDY, 0.88f, 0.90f);
+            PixelScene.shake(1.35f, 0.12f);
         }
-        if (time > 1.05f) {
+
+        // Leave the result on the page long enough for the player to read it.
+        if (time > 1.55f) {
             Game.switchScene(LedgerReturnScene.class);
         }
     }
 
     private RenderedTextBlock t(String value, int size, int color, int width) {
-        RenderedTextBlock block = PixelScene.renderTextBlock(value, size);
-        block.maxWidth(width);
-        block.hardlight(color);
-        return block;
+        return LedgerUI.text(value, size, color, width);
     }
 }
