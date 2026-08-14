@@ -19,16 +19,33 @@ final class LedgerEnvironment {
     static final String CANDLE_FLAME = "interfaces/echoes/ledger/candle_flame.png";
     static final String STAMP_UNRETURNED = "interfaces/echoes/ledger/stamp_unreturned.png";
 
-    private static final float ART_W = 480f;
-    private static final float ART_H = 270f;
+    private static boolean embeddedFallback;
 
     private LedgerEnvironment() {}
+
+    /**
+     * Loads an optional ledger texture without allowing a bad/corrupt art file to
+     * take down the entire title flow. A missing visual layer should degrade the
+     * presentation, never make the game unbootable.
+     */
+    static Image tryLoad(String asset) {
+        try {
+            return new Image(asset);
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
 
     static Image addOpenBook(PixelScene scene) {
         int w = Camera.main.width;
         int h = Camera.main.height;
 
-        Image base = new Image(LEDGER_BASE);
+        Image base = tryLoad(LEDGER_BASE);
+        embeddedFallback = base == null;
+        if (embeddedFallback) {
+            base = LedgerOpenArtwork.image();
+        }
+
         float scale = Math.min(w / base.width, h / base.height);
         base.scale.set(scale);
         base.x = (w - base.width()) / 2f;
@@ -36,19 +53,39 @@ final class LedgerEnvironment {
         PixelScene.align(base);
         scene.add(base);
 
-        Image shadow = new Image(LEDGER_SHADOW);
-        shadow.scale.set(base.scale.x, base.scale.y);
-        shadow.x = base.x;
-        shadow.y = base.y;
-        scene.add(shadow);
+        // The layered effects are optional. If any external PNG is damaged,
+        // the embedded book remains usable and the UI can still be tested.
+        if (!embeddedFallback) {
+            Image shadow = tryLoad(LEDGER_SHADOW);
+            if (shadow != null) {
+                shadow.scale.set(base.scale.x, base.scale.y);
+                shadow.x = base.x;
+                shadow.y = base.y;
+                scene.add(shadow);
+            }
+            scene.add(LedgerCandleFX.openBook(base));
+        }
 
-        scene.add(LedgerCandleFX.openBook(base));
         return base;
     }
 
+    static boolean usingEmbeddedFallback() {
+        return embeddedFallback;
+    }
+
     static RectF leftPage(Image book) {
-        float sx = book.width() / ART_W;
-        float sy = book.height() / ART_H;
+        if (embeddedFallback) {
+            float sx = book.width() / 160f;
+            float sy = book.height() / 90f;
+            return new RectF(
+                    book.x + 18f * sx,
+                    book.y + 11f * sy,
+                    book.x + 74f * sx,
+                    book.y + 75f * sy);
+        }
+
+        float sx = book.width() / 480f;
+        float sy = book.height() / 270f;
         return new RectF(
                 book.x + 78f * sx,
                 book.y + 32f * sy,
@@ -57,8 +94,18 @@ final class LedgerEnvironment {
     }
 
     static RectF rightPage(Image book) {
-        float sx = book.width() / ART_W;
-        float sy = book.height() / ART_H;
+        if (embeddedFallback) {
+            float sx = book.width() / 160f;
+            float sy = book.height() / 90f;
+            return new RectF(
+                    book.x + 87f * sx,
+                    book.y + 11f * sy,
+                    book.x + 139f * sx,
+                    book.y + 75f * sy);
+        }
+
+        float sx = book.width() / 480f;
+        float sy = book.height() / 270f;
         return new RectF(
                 book.x + 250f * sx,
                 book.y + 32f * sy,
