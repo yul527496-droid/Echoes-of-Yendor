@@ -5,105 +5,158 @@ import com.shatteredpixel.shatteredpixeldungeon.LedgerFlow;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.watabou.noosa.ColorBlock;
-import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
-import com.watabou.utils.RectF;
 
 public class LedgerWeaponScene extends PixelScene {
 
     private int selected;
     private ColorBlock[] marks;
+    private LedgerPageGrid.Page left;
+    private LedgerPageGrid.Page right;
 
     @Override
     public void create() {
         super.create();
 
         Image book = LedgerEnvironment.addOpenBook(this);
-        RectF l = LedgerEnvironment.leftPage(book);
-        RectF r = LedgerEnvironment.rightPage(book);
-        float lx = l.left + 7;
-        float lw = l.width() - 14;
-        float rx = r.left + 7;
-        float rw = r.width() - 14;
-        float top = l.top + 7;
+        left = LedgerEnvironment.leftGrid(book);
+        right = LedgerEnvironment.rightGrid(book);
 
-        RenderedTextBlock a = t("登记内容", 8, LedgerEnvironment.INK, (int) lw);
-        a.setPos(lx + (lw - a.width()) / 2f, top);
-        add(a);
+        buildSummary();
+        buildChoices();
 
-        RenderedTextBlock s = t(
+        String[] opts = LedgerFlow.draft().weaponOptions();
+        selected = Math.max(0, Math.min(LedgerFlow.draft().weaponIndex, opts.length - 1));
+        refresh();
+        fadeIn();
+    }
+
+    private void buildSummary() {
+        float x = left.header.left;
+        float w = left.header.width();
+
+        RenderedTextBlock title = t("登记内容", 8, LedgerEnvironment.INK, (int) w);
+        title.align(RenderedTextBlock.CENTER_ALIGN);
+        title.setPos(x + (w - title.width()) / 2f, left.header.top);
+        add(title);
+
+        RenderedTextBlock note = t("待盖章原稿", 4, LedgerEnvironment.FADED_INK, (int) w);
+        note.align(RenderedTextBlock.CENTER_ALIGN);
+        note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
+        add(note);
+        add(LedgerPageGrid.rule(x + w * 0.14f,
+                Math.min(left.header.bottom - 1f, note.bottom() + 4f),
+                w * 0.72f, 0.36f));
+
+        float bx = left.body.left + 3f;
+        float bw = left.body.width() - 6f;
+        RenderedTextBlock summary = t(
                 "姓名\n" + LedgerFlow.draft().name
                         + "\n\n理想职业\n" + Messages.titleCase(LedgerFlow.draft().heroClass.title())
                         + "\n\n去向\n地下遗迹",
                 5,
                 LedgerEnvironment.INK,
-                (int) lw - 6);
-        s.setPos(lx + 3, a.bottom() + 11);
-        add(s);
+                (int) bw);
+        summary.setPos(bx, left.body.top + 4f);
+        add(summary);
 
-        RenderedTextBlock m = t("最后一项由本人留下。", 5, LedgerEnvironment.FADED_INK, (int) lw - 6);
-        m.setPos(lx + 3, Math.min(l.bottom - 33, s.bottom() + 13));
-        add(m);
+        RenderedTextBlock hint = t("最后一项由本人留下。", 4,
+                LedgerEnvironment.FADED_INK, (int) bw);
+        hint.setPos(bx, left.body.bottom - hint.height() - 3f);
+        add(hint);
 
-        RenderedTextBlock h = t("惯用兵器", 8, LedgerEnvironment.INK, (int) rw);
-        h.setPos(rx + (rw - h.width()) / 2f, top);
-        add(h);
+        add(LedgerPageGrid.rule(left.footer.left,
+                left.footer.top + 1f,
+                left.footer.width(), 0.22f));
 
-        RenderedTextBlock n = t("这里只记录出发前的战斗偏好。", 5, LedgerEnvironment.FADED_INK, (int) rw);
-        n.setPos(rx + (rw - n.width()) / 2f, h.bottom() + 5);
-        add(n);
+        LedgerButton back = new LedgerButton(Chrome.Type.BLANK, "‹ 返回登记页", 4) {
+            @Override
+            protected void onClick() {
+                super.onClick();
+                LedgerTransitions.turn(LedgerWeaponScene.this,
+                        left.paper, LedgerRegistrationScene.class, false);
+            }
+        };
+        back.textColor(LedgerEnvironment.FADED_INK);
+        back.setRect(left.footer.left,
+                left.footer.top + 3f,
+                left.footer.width(),
+                left.footer.height() - 3f);
+        add(back);
+    }
+
+    private void buildChoices() {
+        float x = right.header.left;
+        float w = right.header.width();
+
+        RenderedTextBlock title = t("惯用兵器", 8, LedgerEnvironment.INK, (int) w);
+        title.align(RenderedTextBlock.CENTER_ALIGN);
+        title.setPos(x + (w - title.width()) / 2f, right.header.top);
+        add(title);
+
+        RenderedTextBlock note = t("只记录出发前的战斗偏好", 4,
+                LedgerEnvironment.FADED_INK, (int) w);
+        note.align(RenderedTextBlock.CENTER_ALIGN);
+        note.setPos(x + (w - note.width()) / 2f, title.bottom() + 3f);
+        add(note);
+        add(LedgerPageGrid.rule(x + w * 0.10f,
+                Math.min(right.header.bottom - 1f, note.bottom() + 4f),
+                w * 0.80f, 0.36f));
 
         String[] opts = LedgerFlow.draft().weaponOptions();
         marks = new ColorBlock[opts.length];
-        float oy = n.bottom() + 9;
+        float rowH = Math.min(18f, (right.body.height() - 2f) / Math.max(1, opts.length));
+        float y = right.body.top + 1f;
+
         for (int i = 0; i < opts.length; i++) {
             final int choice = i;
-            float y = oy + i * 24;
-            LedgerButton b = new LedgerButton(Chrome.Type.BLANK, (i + 1) + "  " + opts[i], 6) {
+            final float rowY = y;
+
+            ColorBlock mark = new ColorBlock(right.body.width() - 2f, 1f, 0xFF9B302C);
+            mark.x = right.body.left + 1f;
+            mark.y = rowY + rowH - 1f;
+            mark.alpha(0.10f);
+            marks[i] = mark;
+            add(mark);
+
+            LedgerButton button = new LedgerButton(
+                    Chrome.Type.BLANK,
+                    String.format("%02d   %s", i + 1, opts[i]),
+                    5) {
                 @Override
                 protected void onClick() {
                     super.onClick();
                     select(choice);
                 }
             };
-            b.leftJustify = true;
-            b.textColor(LedgerEnvironment.INK);
-            b.setRect(rx + 2, y, rw - 4, 18);
-            add(b);
+            button.leftJustify = true;
+            button.textColor(LedgerEnvironment.INK);
+            button.setRect(right.body.left + 1f, rowY,
+                    right.body.width() - 2f, rowH - 1f);
+            add(button);
 
-            ColorBlock line = new ColorBlock(rw - 6, 1, 0x663B2A1E);
-            line.x = rx + 3;
-            line.y = y + 19;
-            marks[i] = line;
-            add(line);
+            y += rowH;
         }
 
-        LedgerButton ok = new LedgerButton(Chrome.Type.BLANK, "确认登记并盖章  ›", 6) {
+        add(LedgerPageGrid.rule(right.footer.left,
+                right.footer.top + 1f,
+                right.footer.width(), 0.28f));
+
+        LedgerButton ok = new LedgerButton(Chrome.Type.BLANK, "确认登记并盖章  ›", 5) {
             @Override
             protected void onClick() {
                 super.onClick();
                 LedgerFlow.draft().weaponIndex = selected;
-                Game.switchScene(LedgerSealScene.class);
+                LedgerTransitions.turn(LedgerWeaponScene.this,
+                        right.paper, LedgerSealScene.class, true);
             }
         };
         ok.textColor(LedgerEnvironment.STAMP);
-        ok.setRect(rx, r.bottom - 20, rw, 15);
+        ok.setRect(right.footer.left,
+                right.footer.top + 3f,
+                right.footer.width(),
+                right.footer.height() - 3f);
         add(ok);
-
-        LedgerButton back = new LedgerButton(Chrome.Type.BLANK, "‹ 返回登记页", 5) {
-            @Override
-            protected void onClick() {
-                super.onClick();
-                Game.switchScene(LedgerRegistrationScene.class);
-            }
-        };
-        back.textColor(LedgerEnvironment.FADED_INK);
-        back.setRect(lx, l.bottom - 20, lw, 15);
-        add(back);
-
-        selected = Math.max(0, Math.min(LedgerFlow.draft().weaponIndex, opts.length - 1));
-        refresh();
-        fadeIn();
     }
 
     private void select(int i) {
@@ -113,8 +166,9 @@ public class LedgerWeaponScene extends PixelScene {
     }
 
     private void refresh() {
+        if (marks == null) return;
         for (int i = 0; i < marks.length; i++) {
-            marks[i].alpha(i == selected ? 0.95f : 0.22f);
+            marks[i].alpha(i == selected ? 0.80f : 0.10f);
         }
     }
 
