@@ -14,6 +14,7 @@ final class LedgerEnvironment {
     static final int PAPER_ACCENT = 0xB98A55;
 
     static final String LEDGER_BASE = "interfaces/echoes/ledger/ledger_base.png";
+    static final String LEDGER_CLOSED = "interfaces/echoes/ledger/ledger_closed.png";
     static final String LEDGER_SHADOW = "interfaces/echoes/ledger/ledger_shadow.png";
     static final String LEDGER_LIGHT = "interfaces/echoes/ledger/ledger_light.png";
     static final String CANDLE_FLAME = "interfaces/echoes/ledger/candle_flame.png";
@@ -50,12 +51,10 @@ final class LedgerEnvironment {
         PixelScene.align(base);
         scene.add(base);
 
-        // Ambient candle treatment exists in both paths. The embedded artwork
-        // already paints its flame, so that profile animates light only; the
-        // external no-static-flame plate may use the six-frame flame sprite.
         scene.add(embeddedFallback
                 ? LedgerCandleFX.openBookEmbedded(base)
                 : LedgerCandleFX.openBook(base));
+        scene.add(LedgerAudio.driver());
 
         return base;
     }
