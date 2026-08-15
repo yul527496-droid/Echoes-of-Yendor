@@ -20,6 +20,7 @@ public class TaskGuidanceToast extends Toast {
     }
 
     public static void showObjective(String text) {
+        SurfaceMiniMapToast.sync();
         if (text == null) text = "";
         if (text.equals(shownText) && instance != null) return;
 
@@ -42,6 +43,7 @@ public class TaskGuidanceToast extends Toast {
 
     public static void dismissObjective() {
         shownText = null;
+        SurfaceMiniMapToast.dismissMiniMap();
         if (instance != null) {
             instance.killAndErase();
             instance = null;
