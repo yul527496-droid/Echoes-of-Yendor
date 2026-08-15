@@ -1,7 +1,9 @@
 /* Echoes of Yendor modifications Copyright (C) 2026 */
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndRegionMap;
 import com.watabou.noosa.Game;
 
 /** Persistent non-modal current-objective display for the sequel campaign. */
@@ -12,8 +14,9 @@ public class TaskGuidanceToast extends Toast {
 
     private TaskGuidanceToast(String text) {
         super(text);
-        close.visible = false;
-        close.active = false;
+        close.icon(Icons.get(Icons.MAGNIFY));
+        close.visible = true;
+        close.active = true;
     }
 
     public static void showObjective(String text) {
@@ -47,7 +50,8 @@ public class TaskGuidanceToast extends Toast {
 
     @Override
     protected void onClose() {
-        // Story objectives are replaced by story-state changes, not manually dismissed.
+        // The right-side icon is intentionally a map button, not a close affordance.
+        GameScene.show(new WndRegionMap());
     }
 
     @Override
