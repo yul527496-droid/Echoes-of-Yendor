@@ -23,10 +23,14 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekOutskirtsLeve
 import com.shatteredpixel.shatteredpixeldungeon.levels.SurfaceEntranceLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.TrainingGroundLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.LedgerIntroScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.SequelTransitionScene;
+import com.watabou.utils.FileUtils;
 
 /** Small entry/switching helper for the sequel prototype. */
 public final class SequelGame {
+
+    private static int trainingPreviewSlot = -1;
 
     private SequelGame() {
     }
@@ -68,13 +72,16 @@ public final class SequelGame {
     }
 
     /**
-     * Development-only geometry preview for the optional pre-dungeon memory.
-     * It deliberately starts a normal level-one warrior instead of applying the
-     * returning-hero reconstruction, so the graybox is viewed at tutorial scale.
-     * No ledger profile is written; an empty game slot is only reserved so the
-     * mature Dungeon/GameScene lifecycle can run without special cases.
+     * Development entry for the complete optional pre-dungeon memory.
+     *
+     * It uses a real disposable Dungeon session so all mature SPD inventory,
+     * targeting and turn systems remain authentic, but strips the warrior's
+     * normal starting belongings so every tutorial object comes from the camp.
+     * Completion deletes the temporary slot again.
      */
     public static boolean previewTrainingGround() {
+        cleanupTrainingPreviewSlot();
+
         int slot = GamesInProgress.firstEmpty();
         if (slot < 0) return false;
 
@@ -86,14 +93,37 @@ public final class SequelGame {
 
         GamesInProgress.curSlot = slot;
         GamesInProgress.selectedClass = HeroClass.WARRIOR;
+        trainingPreviewSlot = slot;
 
         Dungeon.initSeed();
         Dungeon.init();
+
+        // The memory begins with an empty pack. This makes the fixed sword,
+        // armor, potion, ring, artifact and wand unambiguous for first-timers.
+        Dungeon.hero.belongings.clear();
+        Dungeon.quickslot.reset();
+        Dungeon.hero.HP = Dungeon.hero.HT;
+
         Dungeon.depth = 0;
         Dungeon.branch = 0;
 
         enter(new TrainingGroundLevel(), -1);
         return true;
+    }
+
+    /** Called only after the player personally steps onto the north stone stair. */
+    public static void finishTrainingPreview() {
+        cleanupTrainingPreviewSlot();
+        GamesInProgress.curSlot = 0;
+        ShatteredPixelDungeon.switchNoFade(LedgerIntroScene.class);
+    }
+
+    private static void cleanupTrainingPreviewSlot() {
+        if (trainingPreviewSlot > 0) {
+            FileUtils.deleteDir(GamesInProgress.gameFolder(trainingPreviewSlot));
+            GamesInProgress.delete(trainingPreviewSlot);
+            trainingPreviewSlot = -1;
+        }
     }
 
     public static void enterSurfaceEntrance() {
