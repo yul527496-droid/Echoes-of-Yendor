@@ -170,8 +170,13 @@ public class LedgerTalentScene extends PixelScene {
             float rowX = right.body.left + 4f;
             float rowW = right.body.width() - 8f;
             float sideW = 18f;
+            float helpW = 13f;
+            float helpGap = 1f;
 
-            LedgerButton minus = new LedgerButton(Chrome.Type.BLANK, "−", 7) {
+            // ASCII '-' is intentional. The typographic U+2212 used previously
+            // is absent from some Fusion Pixel builds and rendered as a missing
+            // glyph on the actual Ledger screen.
+            LedgerButton minus = new LedgerButton(Chrome.Type.BLANK, "-", 7) {
                 @Override protected void onClick() {
                     super.onClick();
                     int current = LedgerFlow.draft().talentPlan.pointsIn(talent);
@@ -186,11 +191,17 @@ public class LedgerTalentScene extends PixelScene {
             minus.setRect(rowX, y, sideW, rowH - 0.5f);
             add(minus);
 
+            float helpX = rowX + rowW - sideW - helpW - helpGap;
+            float nameW = helpX - (rowX + sideW + 2f) - 2f;
             RenderedTextBlock name = t(talent.title() + "  " + points + "/" + max,
-                    5, LedgerEnvironment.INK, (int) (rowW - sideW * 2f - 4f));
+                    5, LedgerEnvironment.INK, Math.max(20, (int) nameW));
             name.setPos(rowX + sideW + 2f,
                     y + Math.max(1f, (rowH - name.height()) * 0.5f));
             add(name);
+
+            LedgerButton help = LedgerHelp.talent(this, talent);
+            help.setRect(helpX, y, helpW, rowH - 0.5f);
+            add(help);
 
             LedgerButton plus = new LedgerButton(Chrome.Type.BLANK, "+", 7) {
                 @Override protected void onClick() {
