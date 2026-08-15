@@ -43,6 +43,8 @@ public class LedgerHeroPathScene extends PixelScene {
         float x = left.body.left + 5f;
         float w = left.body.width() - 10f;
         float gap = 4f;
+        float helpW = 13f;
+        float helpGap = 2f;
         float rowH = Math.min(29f,
                 (left.body.height() - gap * Math.max(0, subclasses.length - 1))
                         / Math.max(1, subclasses.length));
@@ -50,7 +52,7 @@ public class LedgerHeroPathScene extends PixelScene {
 
         for (int i = 0; i < subclasses.length; i++) {
             final int index = i;
-            HeroSubClass subClass = subclasses[i];
+            final HeroSubClass subClass = subclasses[i];
             LedgerButton button = new LedgerButton(Chrome.Type.BLANK,
                     Messages.titleCase(subClass.title()), 6) {
                 @Override protected void onClick() {
@@ -60,9 +62,13 @@ public class LedgerHeroPathScene extends PixelScene {
             };
             button.multiline = true;
             button.textColor(LedgerEnvironment.INK);
-            button.setRect(x, y, w, rowH);
+            button.setRect(x, y, w - helpW - helpGap, rowH);
             subclassButtons[i] = button;
             add(button);
+
+            LedgerButton help = LedgerHelp.subClass(this, subClass);
+            help.setRect(x + w - helpW, y, helpW, rowH);
+            add(help);
             y += rowH + gap;
         }
 
@@ -87,12 +93,14 @@ public class LedgerHeroPathScene extends PixelScene {
     private void buildAbilityPage() {
         header(right, "英雄战技", "第四阶天赋由此决定");
 
-        ArmorAbility[] abilities = LedgerFlow.draft().heroClass.armorAbilities();
+        final ArmorAbility[] abilities = LedgerFlow.draft().heroClass.armorAbilities();
         abilityButtons = new LedgerButton[abilities.length];
 
         float x = right.body.left + 5f;
         float w = right.body.width() - 10f;
         float gap = 3f;
+        float helpW = 13f;
+        float helpGap = 2f;
         float rowH = Math.min(23f,
                 (right.body.height() - gap * Math.max(0, abilities.length - 1))
                         / Math.max(1, abilities.length));
@@ -100,8 +108,9 @@ public class LedgerHeroPathScene extends PixelScene {
 
         for (int i = 0; i < abilities.length; i++) {
             final int index = i;
+            final ArmorAbility ability = abilities[i];
             LedgerButton button = new LedgerButton(Chrome.Type.BLANK,
-                    abilities[i].name(), 6) {
+                    ability.name(), 6) {
                 @Override protected void onClick() {
                     super.onClick();
                     chooseAbility(index);
@@ -109,9 +118,13 @@ public class LedgerHeroPathScene extends PixelScene {
             };
             button.multiline = true;
             button.textColor(LedgerEnvironment.INK);
-            button.setRect(x, y, w, rowH);
+            button.setRect(x, y, w - helpW - helpGap, rowH);
             abilityButtons[i] = button;
             add(button);
+
+            LedgerButton help = LedgerHelp.ability(this, ability);
+            help.setRect(x + w - helpW, y, helpW, rowH);
+            add(help);
             y += rowH + gap;
         }
 
