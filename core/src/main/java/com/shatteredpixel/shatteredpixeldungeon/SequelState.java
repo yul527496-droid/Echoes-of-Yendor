@@ -36,7 +36,8 @@ public class SequelState extends Buff {
         MAIN_STREET_REACHED,
         INN_REACHED,
         LEDGER_READ,
-        CH1_COMPLETE
+        CH1_COMPLETE,
+        ADVENTURE_RESUMED
     }
 
     private static final String PHASE = "phase";
@@ -80,11 +81,14 @@ public class SequelState extends Buff {
         return state != null ? state : Buff.affect(Dungeon.hero, SequelState.class);
     }
 
-    /** Hunger and starvation are suspended only for saves that are actually in the sequel campaign. */
+    /**
+     * Hunger remains frozen through the Chapter 1 inn rest. It only resumes once a future
+     * story beat explicitly advances to ADVENTURE_RESUMED after the hero leaves Morningcreek.
+     */
     public static boolean surfaceSafePhase() {
         if (Dungeon.hero == null) return false;
         SequelState state = Dungeon.hero.buff(SequelState.class);
-        return state != null && !state.isAtLeast(Phase.CH1_COMPLETE);
+        return state != null && !state.isAtLeast(Phase.ADVENTURE_RESUMED);
     }
 
     public Phase phase() { return phase; }
