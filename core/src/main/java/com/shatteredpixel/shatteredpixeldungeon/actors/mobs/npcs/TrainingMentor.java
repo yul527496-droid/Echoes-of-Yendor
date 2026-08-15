@@ -24,8 +24,10 @@ import com.watabou.utils.Bundle;
  */
 public class TrainingMentor extends NPC {
 
-    private static final String INTRO_CALLED = "intro_called";
-    private static final String FIRST_TALK_DONE = "first_talk_done";
+    // Versioned during development so saves made against the old one-line T0
+    // still exercise the new blocking camera beat once during acceptance.
+    private static final String INTRO_CALLED = "t0_cinematic_intro_done";
+    private static final String FIRST_TALK_DONE = "t0_cinematic_first_talk_done";
 
     private static final float CAMERA_PAN_INTENSITY = 3.5f;
     private static final int DIALOGUE_Y_OFFSET = 34;
