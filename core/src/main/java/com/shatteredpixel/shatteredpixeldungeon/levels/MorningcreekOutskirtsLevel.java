@@ -14,10 +14,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.SurfaceVillager;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Music;
 
-/** Settled farmland outside Morningcreek; the town proper remains beyond this vertical slice. */
+/** Settled farmland outside Morningcreek, now leading into the playable town. */
 public class MorningcreekOutskirtsLevel extends Level {
 
     public static final int WIDTH = 82;
@@ -42,14 +41,10 @@ public class MorningcreekOutskirtsLevel extends Level {
     }
 
     @Override
-    public String tilesTex() {
-        return SURFACE_TILES;
-    }
+    public String tilesTex() { return SURFACE_TILES; }
 
     @Override
-    public String waterTex() {
-        return SURFACE_WATER;
-    }
+    public String waterTex() { return SURFACE_WATER; }
 
     @Override
     public void playLevelMusic() {
@@ -97,12 +92,6 @@ public class MorningcreekOutskirtsLevel extends Level {
         }
     }
 
-
-    /**
-     * Field walls and tree lines force the road to actually wind through the
-     * outskirts. Wide gates keep the route readable and make the barriers feel
-     * agricultural rather than dungeon-like.
-     */
     private void paintFieldBoundaries() {
         hedgeShelf(58, 50, 58);
         hedgeShelf(50, 22, 30);
@@ -175,10 +164,8 @@ public class MorningcreekOutskirtsLevel extends Level {
 
     private void paintNoticeAndTownApproach() {
         rect(44, 9, 62, 16, Terrain.EMPTY_SP);
-        map[cell(51, 13)] = Terrain.EMPTY_DECO; // notice board
-        map[cell(56, 10)] = Terrain.EMPTY_DECO; // signpost
-
-        // Distant settlement edge: denser structures without opening the town proper.
+        map[cell(51, 13)] = Terrain.EMPTY_DECO;
+        map[cell(56, 10)] = Terrain.EMPTY_DECO;
         rect(35, 2, 43, 6, Terrain.WALL);
         rect(63, 2, 72, 7, Terrain.WALL);
         rect(24, 3, 31, 8, Terrain.WALL);
@@ -210,9 +197,7 @@ public class MorningcreekOutskirtsLevel extends Level {
         return x > 0 && y > 0 && x < WIDTH - 1 && y < HEIGHT - 1;
     }
 
-    public int cell(int x, int y) {
-        return x + y * width();
-    }
+    public int cell(int x, int y) { return x + y * width(); }
 
     @Override
     public boolean activateTransition(Hero hero, LevelTransition transition) {
@@ -223,27 +208,22 @@ public class MorningcreekOutskirtsLevel extends Level {
         }
         if (transition.type == LevelTransition.Type.REGULAR_EXIT) {
             SequelState story = SequelState.get();
-            if (story != null) {
-                story.advanceTo(SequelState.Phase.CH1_SLICE_COMPLETE);
-                story.markInvestigationKnown();
-            }
-            GLog.p("晨溪镇就在坡下。先去老鸦旅店，查阅下行者名册。");
-            return false;
+            if (story != null) story.markInvestigationKnown();
+            ChapterOneAudio.stopAmbience();
+            SequelGame.enterMorningcreekMainStreet();
+            return true;
         }
         return super.activateTransition(hero, transition);
     }
 
-    @Override
-    public Mob createMob() {
-        return null;
-    }
+    @Override public Mob createMob() { return null; }
 
     @Override
     protected void createMobs() {
         addVillager(35, 45, "田里的农夫", "下午好。");
         addVillager(31, 31, "修篱笆的人", "去镇里的话沿大路走，别踩田。");
         addVillager(58, 27, "好奇的孩子", "你那把武器是真的吗？");
-        addVillager(20, 22, "农舍老妇", "老鸦旅店？一直往北。");
+        addVillager(20, 22, "农舍老妇", "老鸦旅店？一直往北。进镇后看乌鸦招牌。");
     }
 
     private void addVillager(int x, int y, String name, String line) {
@@ -252,17 +232,7 @@ public class MorningcreekOutskirtsLevel extends Level {
         mobs.add(villager);
     }
 
-    @Override
-    protected void createItems() {
-    }
-
-    @Override
-    public Actor addRespawner() {
-        return null;
-    }
-
-    @Override
-    public int randomRespawnCell(Char ch) {
-        return cell(SOUTH_X, SOUTH_Y - 1);
-    }
+    @Override protected void createItems() { }
+    @Override public Actor addRespawner() { return null; }
+    @Override public int randomRespawnCell(Char ch) { return cell(SOUTH_X, SOUTH_Y - 1); }
 }
