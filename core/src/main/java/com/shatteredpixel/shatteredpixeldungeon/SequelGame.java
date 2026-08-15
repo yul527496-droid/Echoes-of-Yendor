@@ -12,7 +12,6 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
-
 package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
@@ -23,6 +22,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.levels.FinalStairLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekOutskirtsLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.OldKingsRoadLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SurfaceEntranceLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.TrainingGroundLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
@@ -30,18 +30,14 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.LedgerIntroScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.SequelTransitionScene;
 import com.watabou.utils.FileUtils;
 
-/** Small entry/switching helper for the sequel prototype. */
+/** Entry/switching helper for the sequel campaign. */
 public final class SequelGame {
 
-    // Slot zero is outside GamesInProgress' normal 1..MAX_SLOTS UI range.  The
-    // training memory can therefore use the complete real Dungeon runtime while
-    // remaining invisible and disposable to the player's normal save list.
     private static final int TRAINING_MEMORY_SLOT = 0;
 
     private SequelGame() {
     }
 
-    /** Compatibility entry used by older prototype screens. */
     public static void start() {
         ReturningHeroProfile profile = new ReturningHeroProfile();
         if (GamesInProgress.selectedClass != null) profile.heroClass = GamesInProgress.selectedClass;
@@ -65,6 +61,7 @@ public final class SequelGame {
 
         Dungeon.initSeed();
         Dungeon.init();
+        ChapterOneAudio.reset();
 
         ReturningHero.apply(Dungeon.hero, profile);
         SequelState.get();
@@ -77,12 +74,6 @@ public final class SequelGame {
         enter(new FinalStairLevel(), -1);
     }
 
-    /**
-     * Starts the optional pre-dungeon training memory with a disposable real
-     * Dungeon session.  Inventory, targeting, turns, identification, equipment,
-     * quickslots and combat are therefore the original systems rather than a
-     * second tutorial simulation.
-     */
     public static boolean startTrainingMemory() {
         cleanupTrainingMemorySlot();
 
@@ -97,9 +88,8 @@ public final class SequelGame {
 
         Dungeon.initSeed();
         Dungeon.init();
+        ChapterOneAudio.stopAmbience();
 
-        // The memory begins with an empty pack. This makes the fixed sword,
-        // armor, ring, artifact and wand unambiguous for first-timers.
         Dungeon.hero.belongings.clear();
         Dungeon.quickslot.reset();
         Dungeon.hero.HP = Dungeon.hero.HT;
@@ -109,11 +99,6 @@ public final class SequelGame {
 
         TrainingGroundLevel training = new TrainingGroundLevel();
         training.create();
-
-        // Most supplies are physically waiting in camp containers from frame one,
-        // but the healing potion is a reactive teaching beat. Remove the copy that
-        // the fixed utility chest creates; the mentor tosses a fresh bottle only
-        // after the dummy actually hurts the player.
         removePreplacedTrainingPotion(training);
 
         enterCreated(training, -1);
@@ -133,7 +118,6 @@ public final class SequelGame {
         }
     }
 
-    /** Called only after the player personally steps onto the north stone stair. */
     public static void finishTrainingMemory() {
         EchoesOnboarding.trainingDone(true);
         cleanupTrainingMemorySlot();
@@ -142,20 +126,15 @@ public final class SequelGame {
         ShatteredPixelDungeon.switchNoFade(LedgerIntroScene.class);
     }
 
+    // Compatibility bridge for the locked RC1 tutorial controller. The preview
+    // entry alias was removed; this one remains only until that caller is renamed.
+    public static void finishTrainingPreview() {
+        finishTrainingMemory();
+    }
+
     private static void cleanupTrainingMemorySlot() {
         FileUtils.deleteDir(GamesInProgress.gameFolder(TRAINING_MEMORY_SLOT));
         GamesInProgress.delete(TRAINING_MEMORY_SLOT);
-    }
-
-    /** Temporary compatibility aliases for old development callers. */
-    @Deprecated
-    public static boolean previewTrainingGround() {
-        return startTrainingMemory();
-    }
-
-    @Deprecated
-    public static void finishTrainingPreview() {
-        finishTrainingMemory();
     }
 
     public static void enterSurfaceEntrance() {
@@ -169,12 +148,24 @@ public final class SequelGame {
         enterCreated(level, surface == null ? -1 : surface.cell());
     }
 
+    public static void enterOldKingsRoad() {
+        enter(new OldKingsRoadLevel(), -1);
+    }
+
+    public static void enterSurfaceFromOldRoad() {
+        SurfaceEntranceLevel level = new SurfaceEntranceLevel();
+        level.create();
+        LevelTransition north = level.getTransition(LevelTransition.Type.REGULAR_EXIT);
+        int pos = north == null ? -1 : north.cell() + level.width();
+        enterCreated(level, pos);
+    }
+
     public static void enterMorningcreekOutskirts() {
         enter(new MorningcreekOutskirtsLevel(), -1);
     }
 
-    public static void enterSurfaceFromOutskirts() {
-        SurfaceEntranceLevel level = new SurfaceEntranceLevel();
+    public static void enterOldRoadFromOutskirts() {
+        OldKingsRoadLevel level = new OldKingsRoadLevel();
         level.create();
         LevelTransition north = level.getTransition(LevelTransition.Type.REGULAR_EXIT);
         int pos = north == null ? -1 : north.cell() + level.width();
@@ -187,10 +178,7 @@ public final class SequelGame {
     }
 
     private static void enterCreated(Level level, int pos) {
-        if (Dungeon.level != null) {
-            Level.beforeTransition();
-        }
-
+        if (Dungeon.level != null) Level.beforeTransition();
         SequelTransitionScene.enter(level, pos);
     }
 }

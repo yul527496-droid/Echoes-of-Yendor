@@ -6,39 +6,39 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.ChapterOneAudio;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SequelGame;
 import com.shatteredpixel.shatteredpixeldungeon.SequelState;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.SurfaceVillager;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RoadWolf;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Music;
 
-/** Settled farmland outside Morningcreek; the town proper remains beyond this vertical slice. */
-public class MorningcreekOutskirtsLevel extends Level {
+/** Long quiet road between the dungeon valley and the settled fields around Morningcreek. */
+public class OldKingsRoadLevel extends Level {
 
-    public static final int WIDTH = 82;
-    public static final int HEIGHT = 66;
+    public static final int WIDTH = 86;
+    public static final int HEIGHT = 56;
     public static final int SOUTH_X = 18;
-    public static final int SOUTH_Y = 64;
-    public static final int NORTH_X = 48;
+    public static final int SOUTH_Y = 54;
+    public static final int NORTH_X = 72;
     public static final int NORTH_Y = 1;
 
     private static final String SURFACE_TILES = "environment/tiles_surface.png";
     private static final String SURFACE_WATER = "environment/water_surface.png";
 
     private static final int[][] ROAD = {
-            {18,64},{54,58},{26,50},{54,42},{52,37},
-            {30,31},{58,24},{34,17},{59,10},{48,2}
+            {18,54},{59,47},{24,39},{59,30},{30,22},
+            {60,14},{70,7},{72,1}
     };
 
     {
-        color1 = 0x789b57;
-        color2 = 0xb0c87a;
-        viewDistance = 16;
+        color1 = 0x6e8f50;
+        color2 = 0x94ad61;
+        viewDistance = 15;
     }
 
     @Override
@@ -54,7 +54,7 @@ public class MorningcreekOutskirtsLevel extends Level {
     @Override
     public void playLevelMusic() {
         Music.INSTANCE.play(Assets.Music.THEME_1, true);
-        ChapterOneAudio.outskirtsAmbience();
+        ChapterOneAudio.oldRoadAmbience();
     }
 
     @Override
@@ -64,14 +64,13 @@ public class MorningcreekOutskirtsLevel extends Level {
             for (int x = 1; x < WIDTH - 1; x++) map[cell(x, y)] = Terrain.GRASS;
         }
 
-        paintFields();
-        paintHedges();
+        paintForest();
         paintRoad();
-        paintIrrigation();
-        paintFarmstead();
-        paintOrchard();
-        paintNoticeAndTownApproach();
-        paintFieldBoundaries();
+        paintShrine();
+        paintWolfArena();
+        paintBrokenWagon();
+        paintSignpost();
+        paintJourneyBarriers();
 
         int south = cell(SOUTH_X, SOUTH_Y);
         map[south] = Terrain.ENTRANCE;
@@ -82,38 +81,23 @@ public class MorningcreekOutskirtsLevel extends Level {
         transitions.add(new LevelTransition(this, north, LevelTransition.Type.REGULAR_EXIT));
 
         SequelState story = SequelState.get();
-        if (story != null) story.advanceTo(SequelState.Phase.OUTSKIRTS_REACHED);
+        if (story != null) story.advanceTo(SequelState.Phase.OLD_ROAD_REACHED);
         return true;
     }
 
-    @Override
-    public void buildFlagMaps() {
-        super.buildFlagMaps();
-        for (int i = 0; i < length(); i++) {
-            if (map[i] == Terrain.WATER) {
-                passable[i] = false;
-                avoid[i] = true;
-            }
-        }
+
+    private void paintJourneyBarriers() {
+        forestShelf(47, 55, 63);
+        forestShelf(39, 20, 28);
+        // This broad gate is the wolf clearing itself: the road cannot bypass the
+        // encounter, but the combat space remains wide and natural.
+        forestShelf(32, 50, 66);
+        forestShelf(22, 26, 34);
+        forestShelf(14, 56, 64);
+        forestShelf(7, 66, 74);
     }
 
-
-    /**
-     * Field walls and tree lines force the road to actually wind through the
-     * outskirts. Wide gates keep the route readable and make the barriers feel
-     * agricultural rather than dungeon-like.
-     */
-    private void paintFieldBoundaries() {
-        hedgeShelf(58, 50, 58);
-        hedgeShelf(50, 22, 30);
-        hedgeShelf(42, 50, 58);
-        hedgeShelf(31, 26, 34);
-        hedgeShelf(24, 54, 62);
-        hedgeShelf(17, 30, 38);
-        hedgeShelf(10, 55, 63);
-    }
-
-    private void hedgeShelf(int y, int gapLeft, int gapRight) {
+    private void forestShelf(int y, int gapLeft, int gapRight) {
         for (int yy = y; yy <= y + 1; yy++) {
             for (int x = 1; x < WIDTH - 1; x++) {
                 if (x < gapLeft || x > gapRight) map[cell(x, yy)] = Terrain.WALL;
@@ -128,60 +112,51 @@ public class MorningcreekOutskirtsLevel extends Level {
         for (int i = 0; i < ROAD.length - 1; i++) {
             paintLine(ROAD[i][0], ROAD[i][1], ROAD[i + 1][0], ROAD[i + 1][1], 2, Terrain.EMPTY);
         }
-        paintLine(46, 30, 19, 24, 1, Terrain.EMPTY_SP);
-        paintLine(49, 29, 70, 25, 1, Terrain.EMPTY_SP);
+        // Shrine spur.
+        paintLine(31, 37, 18, 30, 1, Terrain.EMPTY_SP);
     }
 
-    private void paintFields() {
-        for (int y = 39; y <= 58; y += 3) {
-            for (int x = 5; x <= 20; x++) map[cell(x, y)] = Terrain.HIGH_GRASS;
-            for (int x = 58; x <= 76; x++) map[cell(x, y - 1)] = Terrain.HIGH_GRASS;
-        }
-        for (int y = 20; y <= 36; y += 3) {
-            for (int x = 30; x <= 39; x++) map[cell(x, y)] = Terrain.HIGH_GRASS;
-        }
-    }
+    private void paintForest() {
+        rect(2, 2, 24, 18, Terrain.WALL);
+        rect(2, 35, 15, 53, Terrain.WALL);
+        rect(68, 13, 83, 31, Terrain.WALL);
+        rect(71, 37, 83, 53, Terrain.WALL);
+        rect(35, 2, 42, 8, Terrain.WALL);
 
-    private void paintHedges() {
-        rect(2, 45, 4, 62, Terrain.WALL);
-        rect(77, 39, 79, 61, Terrain.WALL);
-        rect(3, 16, 8, 36, Terrain.WALL);
-        rect(73, 13, 79, 34, Terrain.WALL);
-    }
-
-    private void paintIrrigation() {
-        for (int x = 1; x < WIDTH - 1; x++) {
-            int y = 37 + (x > 52 ? 1 : 0);
-            map[cell(x, y)] = Terrain.WATER;
-        }
-        for (int x = 49; x <= 55; x++) {
-            for (int y = 36; y <= 39; y++) map[cell(x, y)] = Terrain.EMPTY_DECO;
+        for (int y = 4; y < HEIGHT - 4; y += 3) {
+            int x = 18 + (y * 11) % 47;
+            if (inside(x, y) && map[cell(x, y)] != Terrain.WALL) {
+                map[cell(x, y)] = Terrain.HIGH_GRASS;
+            }
         }
     }
 
-    private void paintFarmstead() {
-        rect(9, 19, 27, 31, Terrain.EMPTY_SP);
-        rect(10, 20, 18, 25, Terrain.EMPTY_DECO);
-        rect(11, 43, 22, 51, Terrain.EMPTY_SP);
-        rect(12, 44, 19, 48, Terrain.EMPTY_DECO);
-        map[cell(21, 47)] = Terrain.HIGH_GRASS;
+    private void paintShrine() {
+        rect(13, 27, 20, 33, Terrain.EMPTY_SP);
+        map[cell(16, 29)] = Terrain.EMPTY_DECO;
+        map[cell(15, 29)] = Terrain.EMBERS;
     }
 
-    private void paintOrchard() {
-        for (int y = 17; y <= 31; y += 4) {
-            for (int x = 60; x <= 75; x += 4) map[cell(x, y)] = Terrain.WALL;
+    private void paintWolfArena() {
+        rect(48, 25, 66, 34, Terrain.EMPTY);
+        for (int x = 49; x <= 65; x += 4) {
+            map[cell(x, 25)] = Terrain.HIGH_GRASS;
+            map[cell(x, 34)] = Terrain.HIGH_GRASS;
         }
+        map[cell(54, 28)] = Terrain.HIGH_GRASS;
+        map[cell(63, 31)] = Terrain.HIGH_GRASS;
     }
 
-    private void paintNoticeAndTownApproach() {
-        rect(44, 9, 62, 16, Terrain.EMPTY_SP);
-        map[cell(51, 13)] = Terrain.EMPTY_DECO; // notice board
-        map[cell(56, 10)] = Terrain.EMPTY_DECO; // signpost
+    private void paintBrokenWagon() {
+        rect(37, 17, 47, 22, Terrain.EMPTY_SP);
+        map[cell(42, 19)] = Terrain.EMPTY_DECO;
+        map[cell(43, 19)] = Terrain.EMPTY_DECO;
+        map[cell(44, 19)] = Terrain.EMPTY_DECO;
+    }
 
-        // Distant settlement edge: denser structures without opening the town proper.
-        rect(35, 2, 43, 6, Terrain.WALL);
-        rect(63, 2, 72, 7, Terrain.WALL);
-        rect(24, 3, 31, 8, Terrain.WALL);
+    private void paintSignpost() {
+        rect(62, 6, 72, 11, Terrain.EMPTY_SP);
+        map[cell(67, 8)] = Terrain.EMPTY_DECO;
     }
 
     private void paintLine(int x1, int y1, int x2, int y2, int radius, int terrain) {
@@ -218,17 +193,19 @@ public class MorningcreekOutskirtsLevel extends Level {
     public boolean activateTransition(Hero hero, LevelTransition transition) {
         if (transition.type == LevelTransition.Type.REGULAR_ENTRANCE) {
             ChapterOneAudio.stopAmbience();
-            SequelGame.enterOldRoadFromOutskirts();
+            SequelGame.enterSurfaceFromOldRoad();
             return true;
         }
         if (transition.type == LevelTransition.Type.REGULAR_EXIT) {
             SequelState story = SequelState.get();
-            if (story != null) {
-                story.advanceTo(SequelState.Phase.CH1_SLICE_COMPLETE);
-                story.markInvestigationKnown();
+            if (story != null && !story.wolvesDefeated
+                    && !story.isAtLeast(SequelState.Phase.WOLVES_DEFEATED)) {
+                com.shatteredpixel.shatteredpixeldungeon.utils.GLog.p("旧王道前方还有野兽徘徊。");
+                return false;
             }
-            GLog.p("晨溪镇就在坡下。先去老鸦旅店，查阅下行者名册。");
-            return false;
+            ChapterOneAudio.stopAmbience();
+            SequelGame.enterMorningcreekOutskirts();
+            return true;
         }
         return super.activateTransition(hero, transition);
     }
@@ -240,16 +217,16 @@ public class MorningcreekOutskirtsLevel extends Level {
 
     @Override
     protected void createMobs() {
-        addVillager(35, 45, "田里的农夫", "下午好。");
-        addVillager(31, 31, "修篱笆的人", "去镇里的话沿大路走，别踩田。");
-        addVillager(58, 27, "好奇的孩子", "你那把武器是真的吗？");
-        addVillager(20, 22, "农舍老妇", "老鸦旅店？一直往北。");
-    }
+        SequelState story = SequelState.get();
+        if (story == null || story.wolvesDefeated || story.isAtLeast(SequelState.Phase.WOLVES_DEFEATED)) return;
 
-    private void addVillager(int x, int y, String name, String line) {
-        SurfaceVillager villager = new SurfaceVillager(name, line);
-        villager.pos = cell(x, y);
-        mobs.add(villager);
+        RoadWolf first = new RoadWolf();
+        first.pos = cell(61, 28);
+        mobs.add(first);
+
+        RoadWolf second = new RoadWolf();
+        second.pos = cell(52, 26);
+        mobs.add(second);
     }
 
     @Override

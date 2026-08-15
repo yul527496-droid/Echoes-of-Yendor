@@ -1,4 +1,7 @@
-/* Echoes of Yendor modifications Copyright (C) 2026 */
+/*
+ * Echoes of Yendor modifications Copyright (C) 2026
+ * Licensed under GPL-3.0-or-later with the rest of the project.
+ */
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
 import com.shatteredpixel.shatteredpixeldungeon.SequelState;
@@ -9,7 +12,7 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
 
 import java.util.ArrayList;
 
-/** A small optional story pickup in the abandoned roadside camp. */
+/** Optional story pickup from the abandoned expedition camp. */
 public class RoadsideNote extends Item {
 
     public static final String AC_READ = "READ";
@@ -38,7 +41,7 @@ public class RoadsideNote extends Item {
         boolean pickedUp = super.doPickUp(hero, pos);
         if (pickedUp) {
             SequelState state = SequelState.get();
-            if (state != null) state.campRead = true;
+            if (state != null) state.markCampRead(true);
         }
         return pickedUp;
     }
@@ -48,11 +51,13 @@ public class RoadsideNote extends Item {
         super.execute(hero, action);
         if (AC_READ.equals(action)) {
             SequelState state = SequelState.get();
-            if (state != null) state.campRead = true;
+            if (state != null) state.markCampRead(false);
             GameScene.show(new WndMessage(
-                    "纸页大半已经被雨水泡软，只剩下一小段还能辨认：\n\n"
-                    + "「地图上说，第五层之后应该有一条直路。如果是真的，三天应该够。」\n\n"
-                    + "下面没有后文。"
+                    "纸页被雨水泡得发皱。\n\n"
+                            + "「地图上说，第五层以后应该有一条直路。」\n\n"
+                            + "「如果是真的，三天应该够。」\n\n"
+                            + "最后一行只剩一个潦草的名字：\n"
+                            + "莱斯·赫恩"
             ));
         }
     }
@@ -64,7 +69,7 @@ public class RoadsideNote extends Item {
 
     @Override
     public String info() {
-        return "从旧王道旁一处废弃营地里找到的残破纸页。";
+        return "从旧王道旁一处废弃营地里找到的残破纸页。最后还能辨认出的署名是「莱斯·赫恩」。";
     }
 
     @Override

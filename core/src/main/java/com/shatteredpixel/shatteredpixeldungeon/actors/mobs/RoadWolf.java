@@ -1,22 +1,37 @@
-/* Echoes of Yendor modifications Copyright (C) 2026 */
+/*
+ * Echoes of Yendor modifications Copyright (C) 2026
+ * Licensed under GPL-3.0-or-later with the rest of the project.
+ */
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
+import com.shatteredpixel.shatteredpixeldungeon.ChapterOneAudio;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SequelState;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.RatSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.EchoesWolfSprite;
 import com.watabou.utils.Random;
 
-/** Low-threat surface wildlife. RatSprite is temporary prototype art. */
+/** Low-threat ordinary surface wildlife. No corruption, no XP reward, no boss treatment. */
 public class RoadWolf extends Mob {
 
+    private boolean warningPlayed;
+
     {
-        spriteClass = RatSprite.class;
+        spriteClass = EchoesWolfSprite.class;
         HP = HT = 28;
         defenseSkill = 7;
         EXP = 0;
         maxLvl = 30;
         state = WANDERING;
+    }
+
+    @Override
+    protected boolean act() {
+        if (!warningPlayed && Dungeon.level != null && Dungeon.level.heroFOV[pos]) {
+            warningPlayed = true;
+            ChapterOneAudio.playWolfWarning();
+        }
+        return super.act();
     }
 
     @Override
@@ -49,8 +64,11 @@ public class RoadWolf extends Mob {
         }
 
         if (!anotherWolfLives) {
-            SequelState state = SequelState.get();
-            if (state != null) state.wolvesDefeated = true;
+            SequelState story = SequelState.get();
+            if (story != null) {
+                story.wolvesDefeated = true;
+                story.advanceTo(SequelState.Phase.WOLVES_DEFEATED);
+            }
         }
     }
 

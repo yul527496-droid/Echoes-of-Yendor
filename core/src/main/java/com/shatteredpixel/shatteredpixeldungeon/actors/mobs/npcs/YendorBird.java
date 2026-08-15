@@ -1,17 +1,21 @@
-/* Echoes of Yendor modifications Copyright (C) 2026 */
+/*
+ * Echoes of Yendor modifications Copyright (C) 2026
+ * Licensed under GPL-3.0-or-later with the rest of the project.
+ */
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 
+import com.shatteredpixel.shatteredpixeldungeon.ChapterOneAudio;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SequelState;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.BatSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.EchoesBirdSprite;
 
-/** First deliberately unexplained reaction to the Amulet on the surface. */
+/** Optional, deliberately unexplained animal reaction to the Amulet. */
 public class YendorBird extends NPC {
 
     {
-        spriteClass = BatSprite.class; // temporary flying-animal silhouette for the prototype
+        spriteClass = EchoesBirdSprite.class;
         flying = true;
     }
 
@@ -24,14 +28,16 @@ public class YendorBird extends NPC {
             return true;
         }
 
-        if (Dungeon.level.heroFOV[pos] && sprite != null) {
-            // It is meant to feel as if the animal is following the hero's bag with its gaze.
-            sprite.turnTo(pos, Dungeon.hero.pos);
+        if (Dungeon.level.heroFOV[pos]) {
+            if (story != null && !story.birdSeen) {
+                story.birdSeen = true;
+                ChapterOneAudio.playBird();
+            }
+            if (sprite != null) sprite.turnTo(pos, Dungeon.hero.pos);
         }
 
         if (Dungeon.level.distance(pos, Dungeon.hero.pos) <= 2) {
             if (story != null) story.birdGone = true;
-            // No log, no quest popup, no explanation: the oddness should be noticed visually.
             destroy();
             if (sprite != null) sprite.die();
             return true;
@@ -56,12 +62,17 @@ public class YendorBird extends NPC {
     }
 
     @Override
+    public boolean reset() {
+        return true;
+    }
+
+    @Override
     public String name() {
         return "路边的小鸟";
     }
 
     @Override
     public String description() {
-        return "看起来再普通不过。可它似乎对你的背包，比对你本人更感兴趣。";
+        return "看起来再普通不过。可它的视线似乎总落在你的行囊上，而不是你的脸上。";
     }
 }
