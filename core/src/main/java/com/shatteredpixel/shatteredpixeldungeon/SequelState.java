@@ -82,9 +82,10 @@ public class SequelState extends Buff {
         return state != null ? state : Buff.affect(Dungeon.hero, SequelState.class);
     }
 
-    /** Hunger and starvation are suspended while Chapter 1 is a safe story/town journey. */
+    /** Hunger and starvation are suspended only for saves that are actually in the sequel campaign. */
     public static boolean surfaceSafePhase() {
-        SequelState state = get();
+        if (Dungeon.hero == null) return false;
+        SequelState state = Dungeon.hero.buff(SequelState.class);
         return state != null && !state.isAtLeast(Phase.CH1_COMPLETE);
     }
 
