@@ -21,7 +21,9 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.levels.FinalStairLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekMainStreetLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekOutskirtsLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.OldCrowInnLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.OldKingsRoadLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SurfaceEntranceLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.TrainingGroundLevel;
@@ -126,8 +128,6 @@ public final class SequelGame {
         ShatteredPixelDungeon.switchNoFade(LedgerIntroScene.class);
     }
 
-    // Compatibility bridge for the locked RC1 tutorial controller. The preview
-    // entry alias was removed; this one remains only until that caller is renamed.
     public static void finishTrainingPreview() {
         finishTrainingMemory();
     }
@@ -169,6 +169,30 @@ public final class SequelGame {
         level.create();
         LevelTransition north = level.getTransition(LevelTransition.Type.REGULAR_EXIT);
         int pos = north == null ? -1 : north.cell() + level.width();
+        enterCreated(level, pos);
+    }
+
+    public static void enterMorningcreekMainStreet() {
+        enter(new MorningcreekMainStreetLevel(), -1);
+    }
+
+    public static void enterOutskirtsFromTown() {
+        MorningcreekOutskirtsLevel level = new MorningcreekOutskirtsLevel();
+        level.create();
+        LevelTransition north = level.getTransition(LevelTransition.Type.REGULAR_EXIT);
+        int pos = north == null ? -1 : north.cell() + level.width();
+        enterCreated(level, pos);
+    }
+
+    public static void enterOldCrowInn() {
+        enter(new OldCrowInnLevel(), -1);
+    }
+
+    public static void enterTownFromInn() {
+        MorningcreekMainStreetLevel level = new MorningcreekMainStreetLevel();
+        level.create();
+        LevelTransition inn = level.getTransition(LevelTransition.Type.REGULAR_EXIT);
+        int pos = inn == null ? -1 : inn.cell() + level.width();
         enterCreated(level, pos);
     }
 
