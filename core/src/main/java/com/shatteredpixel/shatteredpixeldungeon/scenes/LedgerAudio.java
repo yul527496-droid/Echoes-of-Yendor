@@ -32,6 +32,14 @@ final class LedgerAudio {
 
     static void enter() {
         ensureShortSfx();
+
+        // Gameplay levels (including the training memory) use Noosa's global
+        // Music.INSTANCE channel. The ledger currently owns a separate LibGDX
+        // presentation BGM, so explicitly retire the gameplay channel before
+        // starting it. Without this handoff, returning from training leaves the
+        // level theme running underneath the tavern music.
+        com.watabou.noosa.audio.Music.INSTANCE.end();
+
         if (bgm == null) bgm = openMusic(TAVERN_BGM, true);
         if (ambience == null) ambience = openMusic(TAVERN_AMBIENCE, true);
 
