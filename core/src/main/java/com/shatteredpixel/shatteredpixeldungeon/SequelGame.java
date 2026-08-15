@@ -33,9 +33,10 @@ import com.watabou.utils.FileUtils;
 /** Small entry/switching helper for the sequel prototype. */
 public final class SequelGame {
 
-    // Slot zero is outside GamesInProgress' normal 1..MAX_SLOTS UI range. It is
-    // therefore a safe disposable home for the development tutorial session.
-    private static final int TRAINING_PREVIEW_SLOT = 0;
+    // Slot zero is outside GamesInProgress' normal 1..MAX_SLOTS UI range.  The
+    // training memory can therefore use the complete real Dungeon runtime while
+    // remaining invisible and disposable to the player's normal save list.
+    private static final int TRAINING_MEMORY_SLOT = 0;
 
     private SequelGame() {
     }
@@ -77,14 +78,13 @@ public final class SequelGame {
     }
 
     /**
-     * Development entry for the complete optional pre-dungeon memory.
-     *
-     * It uses a real disposable Dungeon session so all mature SPD inventory,
-     * targeting and turn systems remain authentic, but strips the warrior's
-     * normal starting belongings so every tutorial object comes from the camp.
+     * Starts the optional pre-dungeon training memory with a disposable real
+     * Dungeon session.  Inventory, targeting, turns, identification, equipment,
+     * quickslots and combat are therefore the original systems rather than a
+     * second tutorial simulation.
      */
-    public static boolean previewTrainingGround() {
-        cleanupTrainingPreviewSlot();
+    public static boolean startTrainingMemory() {
+        cleanupTrainingMemorySlot();
 
         Dungeon.daily = false;
         Dungeon.dailyReplay = false;
@@ -92,7 +92,7 @@ public final class SequelGame {
         SPDSettings.customSeed("");
         SPDSettings.intro(false);
 
-        GamesInProgress.curSlot = TRAINING_PREVIEW_SLOT;
+        GamesInProgress.curSlot = TRAINING_MEMORY_SLOT;
         GamesInProgress.selectedClass = HeroClass.WARRIOR;
 
         Dungeon.initSeed();
@@ -112,8 +112,8 @@ public final class SequelGame {
 
         // Most supplies are physically waiting in camp containers from frame one,
         // but the healing potion is a reactive teaching beat. Remove the copy that
-        // the fixed utility chest creates; the mentor will toss a fresh bottle to
-        // the hero only after the dummy actually hurts them.
+        // the fixed utility chest creates; the mentor tosses a fresh bottle only
+        // after the dummy actually hurts the player.
         removePreplacedTrainingPotion(training);
 
         enterCreated(training, -1);
@@ -134,15 +134,28 @@ public final class SequelGame {
     }
 
     /** Called only after the player personally steps onto the north stone stair. */
-    public static void finishTrainingPreview() {
-        cleanupTrainingPreviewSlot();
+    public static void finishTrainingMemory() {
+        EchoesOnboarding.trainingDone(true);
+        cleanupTrainingMemorySlot();
         GamesInProgress.curSlot = 0;
+        LedgerIntroScene.resumeAfterTraining();
         ShatteredPixelDungeon.switchNoFade(LedgerIntroScene.class);
     }
 
-    private static void cleanupTrainingPreviewSlot() {
-        FileUtils.deleteDir(GamesInProgress.gameFolder(TRAINING_PREVIEW_SLOT));
-        GamesInProgress.delete(TRAINING_PREVIEW_SLOT);
+    private static void cleanupTrainingMemorySlot() {
+        FileUtils.deleteDir(GamesInProgress.gameFolder(TRAINING_MEMORY_SLOT));
+        GamesInProgress.delete(TRAINING_MEMORY_SLOT);
+    }
+
+    /** Temporary compatibility aliases for old development callers. */
+    @Deprecated
+    public static boolean previewTrainingGround() {
+        return startTrainingMemory();
+    }
+
+    @Deprecated
+    public static void finishTrainingPreview() {
+        finishTrainingMemory();
     }
 
     public static void enterSurfaceEntrance() {
