@@ -121,6 +121,8 @@ public class LedgerHeroScene extends PixelScene {
         float gapY = 2f;
         float cardW = (right.body.width() - gapX) / 2f;
         float cardH = (right.body.height() - gapY * 2f) / 3f;
+        float helpW = 12f;
+        float helpGap = 1f;
 
         for (int i = 0; i < classes.length; i++) {
             final HeroClass cl = classes[i];
@@ -148,9 +150,13 @@ public class LedgerHeroScene extends PixelScene {
             icon.scale.set(Math.min(1.35f, Math.max(1f, cardH / 15f)));
             button.icon(icon);
             button.textColor(LedgerEnvironment.INK);
-            button.setRect(bx, by, cardW, cardH - 1f);
+            button.setRect(bx, by, cardW - helpW - helpGap, cardH - 1f);
             classButtons[i] = button;
             add(button);
+
+            LedgerButton help = LedgerHelp.heroClass(this, cl);
+            help.setRect(bx + cardW - helpW, by, helpW, cardH - 1f);
+            add(help);
         }
 
         add(LedgerPageGrid.rule(right.footer.left, right.footer.top + 1f,
