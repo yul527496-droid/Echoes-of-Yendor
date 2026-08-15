@@ -17,10 +17,11 @@ import com.watabou.noosa.audio.Music;
 /**
  * Fixed graybox for the optional pre-dungeon memory tutorial.
  *
- * Geometry pass 2 keeps the same bespoke assets, but compresses the walk and
- * replaces the first pass's large stone rectangles with grass, worn dirt and
- * only a few purposeful stone patches. The goal is to read as one small camp,
- * not a set of disconnected debug platforms.
+ * Geometry pass 3 keeps the 28x22 footprint and approved bespoke assets from
+ * pass 2, but trims the broad dirt fields into narrow worn paths and small
+ * activity clearings. Camp life is suggested only with existing terrain
+ * vocabulary (embers, a few stone slabs, grass intrusions) so visual acceptance
+ * stays separate from the later fixed tutorial-item/state-machine pass.
  */
 public class TrainingGroundLevel extends Level {
 
@@ -86,6 +87,7 @@ public class TrainingGroundLevel extends Level {
         paintWandRange();
         paintFinalPracticeArea();
         paintDungeonApproach();
+        paintWearBreaks();
         paintEdgeGrowth();
 
         // The preview still needs a transition cell so Dungeon.switchLevel can
@@ -103,114 +105,138 @@ public class TrainingGroundLevel extends Level {
     }
 
     private void paintMainPath() {
+        // A narrow walked line rather than one continuous brown field. Most rows
+        // are only one or two cells wide; local clearings expand it where needed.
         paintRows(Terrain.EMPTY, new int[][]{
-                {4, 12, 14},
-                {5, 12, 14},
-                {6, 11, 14},
-                {7, 12, 15},
-                {8, 13, 15},
-                {9, 13, 15},
-                {10, 14, 16},
-                {11, 14, 16},
-                {12, 13, 15},
-                {13, 12, 14},
-                {14, 11, 13},
-                {15, 11, 13},
-                {16, 11, 13},
-                {17, 11, 14},
-                {18, 12, 14},
-                {19, 13, 15},
-                {20, 13, 15}
+                {4, 13, 14},
+                {5, 13, 14},
+                {6, 12, 14},
+                {7, 13, 14},
+                {8, 14, 15},
+                {9, 14, 15},
+                {10, 15, 16},
+                {11, 15, 15},
+                {12, 14, 15},
+                {13, 13, 14},
+                {14, 12, 13},
+                {15, 12, 13},
+                {16, 12, 12},
+                {17, 12, 13},
+                {18, 13, 14},
+                {19, 14, 14},
+                {20, 14, 15}
         });
     }
 
     private void paintCampStart() {
+        // Small trampled living area around the mentor and fire.
         paintRows(Terrain.EMPTY, new int[][]{
-                {16, 6, 10},
-                {17, 5, 11},
-                {18, 6, 11},
-                {19, 7, 10}
+                {16, 6, 9},
+                {17, 5, 10},
+                {18, 6, 10},
+                {19, 7, 9}
         });
-        // Short worn connector to the main path.
         paintRows(Terrain.EMPTY, new int[][]{
                 {17, 9, 12},
-                {18, 9, 12}
+                {18, 10, 13}
         });
 
         map[cell(6, 18)] = Terrain.EMBERS;
         map[cell(5, 16)] = Terrain.HIGH_GRASS;
         map[cell(10, 19)] = Terrain.HIGH_GRASS;
+        map[cell(6, 16)] = Terrain.HIGH_GRASS;
     }
 
     private void paintEquipmentApron() {
-        // A small hard-standing for laid-out equipment, not a whole courtyard.
+        // Only a few stone slabs beside the route. They reserve a visual home for
+        // the later equipment tutorial without recreating the pass-1 courtyard.
         paintCells(Terrain.EMPTY_SP, new int[][]{
-                {17, 16}, {18, 16},
-                {17, 17}, {18, 17}, {19, 17},
-                {18, 18}
+                {15, 16}, {16, 16},
+                {16, 17}, {17, 17}
         });
         paintRows(Terrain.EMPTY, new int[][]{
-                {17, 14, 17},
-                {18, 14, 18}
+                {16, 13, 15},
+                {17, 13, 16}
         });
-        map[cell(19, 16)] = Terrain.HIGH_GRASS;
+        map[cell(17, 16)] = Terrain.HIGH_GRASS;
     }
 
     private void paintDummyYard() {
+        // A compact patch of bare earth around the dummy, with grass biting into
+        // the edges so it reads as repeated foot traffic rather than paving.
         paintRows(Terrain.EMPTY, new int[][]{
-                {12, 7, 11},
-                {13, 6, 12},
-                {14, 7, 11}
+                {12, 8, 10},
+                {13, 7, 11},
+                {14, 8, 10}
         });
-        map[cell(6, 12)] = Terrain.HIGH_GRASS;
+        map[cell(7, 13)] = Terrain.HIGH_GRASS;
         map[cell(11, 14)] = Terrain.HIGH_GRASS;
     }
 
     private void paintItemBenchArea() {
-        // Only a few stone slabs where the later fixed tutorial items will sit.
+        // Three joined slabs, close enough to the main path to look intentional.
         paintCells(Terrain.EMPTY_SP, new int[][]{
-                {16, 11}, {17, 11},
-                {16, 12}, {17, 12}, {18, 12}
+                {16, 11}, {17, 11}, {17, 12}
         });
-        map[cell(18, 11)] = Terrain.HIGH_GRASS;
+        paintRows(Terrain.EMPTY, new int[][]{
+                {11, 15, 17},
+                {12, 15, 17}
+        });
+        map[cell(18, 12)] = Terrain.HIGH_GRASS;
     }
 
     private void paintWandRange() {
-        // Worn firing lane over grass. Targets themselves stay on dirt, not a
-        // rectangular stone platform.
+        // Narrow diagonal firing lane. The targets get a small scuffed patch each,
+        // not a full rectangular range floor.
         paintRows(Terrain.EMPTY, new int[][]{
-                {9, 20, 24},
-                {10, 18, 23},
-                {11, 17, 20}
+                {8, 21, 23},
+                {9, 20, 23},
+                {10, 18, 20},
+                {11, 16, 18}
         });
         paintCells(Terrain.HIGH_GRASS, new int[][]{
-                {19, 8}, {24, 8}, {25, 10}, {20, 11}
+                {20, 8}, {24, 9}, {21, 10}, {19, 11}
         });
     }
 
     private void paintFinalPracticeArea() {
         paintRows(Terrain.EMPTY, new int[][]{
-                {6, 10, 15},
-                {7, 9, 16},
-                {8, 10, 16}
+                {6, 11, 14},
+                {7, 10, 15},
+                {8, 11, 15}
         });
-        map[cell(9, 6)] = Terrain.HIGH_GRASS;
-        map[cell(16, 8)] = Terrain.HIGH_GRASS;
+        map[cell(10, 7)] = Terrain.HIGH_GRASS;
+        map[cell(15, 8)] = Terrain.HIGH_GRASS;
+        map[cell(12, 6)] = Terrain.GRASS;
     }
 
     private void paintDungeonApproach() {
-        // The dungeon mouth is the one place that earns a deliberate stone apron.
+        // The dungeon mouth remains the one place that earns a deliberate stone
+        // apron, tapering immediately into the narrow dirt route below it.
         paintRows(Terrain.EMPTY_SP, new int[][]{
                 {1, 11, 15},
                 {2, 11, 15},
                 {3, 11, 15},
-                {4, 11, 15},
-                {5, 12, 14}
+                {4, 12, 14}
         });
-        map[cell(11, 4)] = Terrain.GRASS;
-        map[cell(15, 4)] = Terrain.GRASS;
+        map[cell(11, 3)] = Terrain.GRASS;
+        map[cell(15, 3)] = Terrain.GRASS;
+        map[cell(13, 4)] = Terrain.EMPTY;
+        map[cell(14, 4)] = Terrain.EMPTY;
         map[cell(13, 5)] = Terrain.EMPTY;
         map[cell(14, 5)] = Terrain.EMPTY;
+    }
+
+    private void paintWearBreaks() {
+        // Grass islands interrupt long runs of dirt. Every chosen cell is away from
+        // spawn points and bespoke actors, so this is purely a visual edge pass.
+        paintCells(Terrain.GRASS, new int[][]{
+                {13, 7}, {14, 9}, {15, 12},
+                {12, 15}, {13, 18},
+                {8, 18}, {10, 17},
+                {8, 12}, {10, 14},
+                {20, 9}, {18, 11}
+        });
     }
 
     private void paintEdgeGrowth() {
@@ -232,7 +258,8 @@ public class TrainingGroundLevel extends Level {
                 {3, 9}, {5, 11}, {24, 12},
                 {3, 15}, {4, 16}, {23, 16},
                 {5, 20}, {21, 19}, {24, 18},
-                {10, 4}, {18, 6}
+                {10, 4}, {18, 6},
+                {11, 19}, {18, 17}, {19, 13}
         });
     }
 
