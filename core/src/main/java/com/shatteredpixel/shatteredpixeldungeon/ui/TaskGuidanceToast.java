@@ -40,7 +40,7 @@ public class TaskGuidanceToast extends Toast {
         Game.scene().addToFront(instance);
     }
 
-    public static void clear() {
+    public static void dismissObjective() {
         shownText = null;
         if (instance != null) {
             instance.killAndErase();
