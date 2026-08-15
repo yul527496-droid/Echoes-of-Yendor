@@ -103,6 +103,10 @@ public class LedgerArmorScene extends PixelScene {
 
         float rowH = Math.min(20f, (right.body.height() - 4f) / 4f);
         float y = right.body.top + 2f;
+        float rowX = right.body.left + 5f;
+        float rowW = right.body.width() - 10f;
+        float helpW = 13f;
+        float helpGap = 1f;
         for (Entry entry : ReturningHeroItemCatalog.entries(Kind.ARMOR)) {
             if (!entry.selectable || entry.tier < 2 || entry.tier > 5) continue;
             final String id = entry.id;
@@ -124,9 +128,12 @@ public class LedgerArmorScene extends PixelScene {
             };
             button.leftJustify = true;
             button.textColor(LedgerEnvironment.INK);
-            button.setRect(right.body.left + 5f, y,
-                    right.body.width() - 10f, rowH - 1f);
+            button.setRect(rowX, y, rowW - helpW - helpGap, rowH - 1f);
             add(button);
+
+            LedgerButton help = LedgerHelp.item(this, id);
+            help.setRect(rowX + rowW - helpW, y, helpW, rowH - 1f);
+            add(help);
             y += rowH;
         }
 
