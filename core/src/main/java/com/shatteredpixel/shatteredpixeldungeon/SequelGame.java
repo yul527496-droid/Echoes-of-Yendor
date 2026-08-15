@@ -17,6 +17,9 @@ package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
+import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.levels.FinalStairLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekOutskirtsLevel;
@@ -96,7 +99,7 @@ public final class SequelGame {
         Dungeon.init();
 
         // The memory begins with an empty pack. This makes the fixed sword,
-        // armor, potion, ring, artifact and wand unambiguous for first-timers.
+        // armor, ring, artifact and wand unambiguous for first-timers.
         Dungeon.hero.belongings.clear();
         Dungeon.quickslot.reset();
         Dungeon.hero.HP = Dungeon.hero.HT;
@@ -104,8 +107,30 @@ public final class SequelGame {
         Dungeon.depth = 0;
         Dungeon.branch = 0;
 
-        enter(new TrainingGroundLevel(), -1);
+        TrainingGroundLevel training = new TrainingGroundLevel();
+        training.create();
+
+        // Most supplies are physically waiting in camp containers from frame one,
+        // but the healing potion is a reactive teaching beat. Remove the copy that
+        // the fixed utility chest creates; the mentor will toss a fresh bottle to
+        // the hero only after the dummy actually hurts them.
+        removePreplacedTrainingPotion(training);
+
+        enterCreated(training, -1);
         return true;
+    }
+
+    private static void removePreplacedTrainingPotion(TrainingGroundLevel training) {
+        if (training == null || training.heaps == null) return;
+
+        for (Heap heap : training.heaps.valueList()) {
+            for (Item item : heap.items.toArray(new Item[0])) {
+                if (item instanceof PotionOfHealing) {
+                    heap.remove(item);
+                    return;
+                }
+            }
+        }
     }
 
     /** Called only after the player personally steps onto the north stone stair. */
