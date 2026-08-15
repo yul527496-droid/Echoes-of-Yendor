@@ -78,7 +78,7 @@ public class TrainingMentor extends NPC {
         int heroX = hero % width;
 
         for (int cell : candidates) {
-            if (cell < 0 || cell >= training.length()) continue;
+            if (cell < 0 || cell >= training.map.length) continue;
             if (Math.abs((cell % width) - heroX) > 1) continue;
             if (!training.passable[cell] || training.solid[cell]) continue;
             if (Actor.findChar(cell) != null) continue;
