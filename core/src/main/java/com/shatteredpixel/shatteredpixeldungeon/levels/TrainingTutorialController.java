@@ -22,6 +22,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
+import com.shatteredpixel.shatteredpixeldungeon.ui.TrainingObjectiveToast;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.watabou.noosa.Camera;
@@ -104,9 +105,11 @@ public class TrainingTutorialController implements Bundlable {
     }
 
     public void bind(TrainingGroundLevel level) {
-        this.level = level;
-        this.windowOpen = false;
-        this.objectiveSyncedFor = null;
+        if (this.level != level) {
+            this.level = level;
+            this.windowOpen = false;
+            this.objectiveSyncedFor = null;
+        }
     }
 
     public Stage stage() {
@@ -144,13 +147,13 @@ public class TrainingTutorialController implements Bundlable {
                 break;
 
             case HEALING:
-                ensureHealingPotion();
                 if (healingComplete()) enterIdentifyRing();
+                else ensureHealingPotion();
                 break;
 
             case IDENTIFY_RING:
-                ensureRingAndScroll();
                 if (ringComplete()) enterArtifact();
+                else ensureRingAndScroll();
                 break;
 
             case ARTIFACT:
@@ -340,8 +343,8 @@ public class TrainingTutorialController implements Bundlable {
 
         if (!controlledDamageApplied && Dungeon.hero != null) {
             controlledDamageApplied = true;
-            int damage = Math.min(6, Math.max(1, Dungeon.hero.HP - 1));
-            Dungeon.hero.damage(damage, TrainingDummy.class);
+            int damage = Math.min(6, Math.max(0, Dungeon.hero.HP - 1));
+            if (damage > 0) Dungeon.hero.damage(damage, TrainingDummy.class);
             hpAfterDamage = Dungeon.hero.HP;
         }
 
@@ -447,7 +450,7 @@ public class TrainingTutorialController implements Bundlable {
                         stage = Stage.COMPLETE;
                         objectiveSyncedFor = null;
                         windowOpen = false;
-                        GameScene.trainingObjective(null);
+                        TrainingObjectiveToast.show(null);
                         SequelGame.finishTrainingPreview();
                     }
             );
@@ -470,8 +473,11 @@ public class TrainingTutorialController implements Bundlable {
 
     private void ensureRingAndScroll() {
         ensureItem(RingOfAccuracy.class, RingOfAccuracy::new, level.cellAt(RING_X, RING_Y));
-        ensureItem(ScrollOfIdentify.class, () -> (Item) new ScrollOfIdentify().identify(),
-                level.cellAt(SCROLL_X, SCROLL_Y));
+        RingOfAccuracy ring = findItem(RingOfAccuracy.class);
+        if (ring == null || !ring.isIdentified()) {
+            ensureItem(ScrollOfIdentify.class, () -> (Item) new ScrollOfIdentify().identify(),
+                    level.cellAt(SCROLL_X, SCROLL_Y));
+        }
     }
 
     private void ensureArtifact() {
@@ -596,7 +602,7 @@ public class TrainingTutorialController implements Bundlable {
         if (objectiveSyncedFor == stage) return;
         objectiveSyncedFor = stage;
         final String text = objectiveForStage();
-        Game.runOnRenderThread(() -> GameScene.trainingObjective(text));
+        Game.runOnRenderThread(() -> TrainingObjectiveToast.show(text));
     }
 
     private void returnCameraToHero() {
