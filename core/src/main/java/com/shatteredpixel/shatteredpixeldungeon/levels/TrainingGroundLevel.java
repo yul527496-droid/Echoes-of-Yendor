@@ -17,25 +17,25 @@ import com.watabou.noosa.audio.Music;
 /**
  * Fixed graybox for the optional pre-dungeon memory tutorial.
  *
- * This pass deliberately contains no tutorial scripting, item grants or combat
- * gates. It only locks the walkable geometry and positions of the first bespoke
- * visual assets so the area can be judged at real game scale before mechanics
- * are layered on top.
+ * Geometry pass 2 keeps the same bespoke assets, but compresses the walk and
+ * replaces the first pass's large stone rectangles with grass, worn dirt and
+ * only a few purposeful stone patches. The goal is to read as one small camp,
+ * not a set of disconnected debug platforms.
  */
 public class TrainingGroundLevel extends Level {
 
-    private static final int WIDTH = 34;
-    private static final int HEIGHT = 26;
+    private static final int WIDTH = 28;
+    private static final int HEIGHT = 22;
 
-    private static final int START_X = 17;
-    private static final int START_Y = 23;
+    private static final int START_X = 14;
+    private static final int START_Y = 20;
 
-    private static final int MENTOR_X = 11;
-    private static final int MENTOR_Y = 20;
-    private static final int DUMMY_X = 10;
-    private static final int DUMMY_Y = 15;
+    private static final int MENTOR_X = 8;
+    private static final int MENTOR_Y = 17;
+    private static final int DUMMY_X = 9;
+    private static final int DUMMY_Y = 13;
 
-    private static final int ENTRANCE_ART_X = 15;
+    private static final int ENTRANCE_ART_X = 12;
     private static final int ENTRANCE_ART_Y = 1;
 
     private static final String SURFACE_TILES = "environment/tiles_surface.png";
@@ -66,7 +66,7 @@ public class TrainingGroundLevel extends Level {
     protected boolean build() {
         setSize(WIDTH, HEIGHT);
 
-        // Start from a closed forest/hedge shell, then carve the camp from it.
+        // Closed hedge/forest shell with a grass clearing inside.
         for (int y = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++) {
                 map[cell(x, y)] = Terrain.WALL;
@@ -88,8 +88,11 @@ public class TrainingGroundLevel extends Level {
         paintDungeonApproach();
         paintEdgeGrowth();
 
+        // The preview still needs a transition cell so Dungeon.switchLevel can
+        // resolve pos=-1. It deliberately stays ordinary dirt so no south-side
+        // staircase/ladder is visible in the memory itself.
         int start = cell(START_X, START_Y);
-        map[start] = Terrain.ENTRANCE;
+        map[start] = Terrain.EMPTY;
         transitions.add(new LevelTransition(this, start, LevelTransition.Type.REGULAR_ENTRANCE));
 
         DungeonMouth mouth = new DungeonMouth();
@@ -100,82 +103,151 @@ public class TrainingGroundLevel extends Level {
     }
 
     private void paintMainPath() {
-        for (int y = 4; y <= START_Y; y++) {
-            int center;
-            if (y <= 8) center = 16;
-            else if (y <= 13) center = 18;
-            else if (y <= 18) center = 15;
-            else center = 17;
-
-            map[cell(center, y)] = Terrain.EMPTY;
-            map[cell(center - 1, y)] = Terrain.EMPTY;
-            if (y % 3 != 0) map[cell(center + 1, y)] = Terrain.EMPTY;
-        }
+        paintRows(Terrain.EMPTY, new int[][]{
+                {4, 12, 14},
+                {5, 12, 14},
+                {6, 11, 14},
+                {7, 12, 15},
+                {8, 13, 15},
+                {9, 13, 15},
+                {10, 14, 16},
+                {11, 14, 16},
+                {12, 13, 15},
+                {13, 12, 14},
+                {14, 11, 13},
+                {15, 11, 13},
+                {16, 11, 13},
+                {17, 11, 14},
+                {18, 12, 14},
+                {19, 13, 15},
+                {20, 13, 15}
+        });
     }
 
     private void paintCampStart() {
-        fillRect(7, 18, 14, 22, Terrain.EMPTY_SP);
-        map[cell(8, 21)] = Terrain.EMBERS;
-        map[cell(7, 19)] = Terrain.HIGH_GRASS;
-        map[cell(14, 22)] = Terrain.HIGH_GRASS;
+        paintRows(Terrain.EMPTY, new int[][]{
+                {16, 6, 10},
+                {17, 5, 11},
+                {18, 6, 11},
+                {19, 7, 10}
+        });
+        // Short worn connector to the main path.
+        paintRows(Terrain.EMPTY, new int[][]{
+                {17, 9, 12},
+                {18, 9, 12}
+        });
+
+        map[cell(6, 18)] = Terrain.EMBERS;
+        map[cell(5, 16)] = Terrain.HIGH_GRASS;
+        map[cell(10, 19)] = Terrain.HIGH_GRASS;
     }
 
     private void paintEquipmentApron() {
-        fillRect(19, 18, 24, 21, Terrain.EMPTY_SP);
-        map[cell(23, 18)] = Terrain.HIGH_GRASS;
+        // A small hard-standing for laid-out equipment, not a whole courtyard.
+        paintCells(Terrain.EMPTY_SP, new int[][]{
+                {17, 16}, {18, 16},
+                {17, 17}, {18, 17}, {19, 17},
+                {18, 18}
+        });
+        paintRows(Terrain.EMPTY, new int[][]{
+                {17, 14, 17},
+                {18, 14, 18}
+        });
+        map[cell(19, 16)] = Terrain.HIGH_GRASS;
     }
 
     private void paintDummyYard() {
-        fillRect(7, 13, 13, 17, Terrain.EMPTY_SP);
-        map[cell(7, 13)] = Terrain.GRASS;
-        map[cell(13, 17)] = Terrain.GRASS;
+        paintRows(Terrain.EMPTY, new int[][]{
+                {12, 7, 11},
+                {13, 6, 12},
+                {14, 7, 11}
+        });
+        map[cell(6, 12)] = Terrain.HIGH_GRASS;
+        map[cell(11, 14)] = Terrain.HIGH_GRASS;
     }
 
     private void paintItemBenchArea() {
-        fillRect(14, 12, 20, 15, Terrain.EMPTY_SP);
-        map[cell(14, 12)] = Terrain.GRASS;
-        map[cell(20, 15)] = Terrain.GRASS;
+        // Only a few stone slabs where the later fixed tutorial items will sit.
+        paintCells(Terrain.EMPTY_SP, new int[][]{
+                {16, 11}, {17, 11},
+                {16, 12}, {17, 12}, {18, 12}
+        });
+        map[cell(18, 11)] = Terrain.HIGH_GRASS;
     }
 
     private void paintWandRange() {
-        fillRect(23, 9, 30, 13, Terrain.EMPTY_SP);
-        for (int y = 10; y <= 12; y++) {
-            map[cell(22, y)] = Terrain.HIGH_GRASS;
-        }
-        map[cell(24, 13)] = Terrain.GRASS;
+        // Worn firing lane over grass. Targets themselves stay on dirt, not a
+        // rectangular stone platform.
+        paintRows(Terrain.EMPTY, new int[][]{
+                {9, 20, 24},
+                {10, 18, 23},
+                {11, 17, 20}
+        });
+        paintCells(Terrain.HIGH_GRASS, new int[][]{
+                {19, 8}, {24, 8}, {25, 10}, {20, 11}
+        });
     }
 
     private void paintFinalPracticeArea() {
-        fillRect(13, 6, 20, 10, Terrain.EMPTY_SP);
-        map[cell(13, 6)] = Terrain.HIGH_GRASS;
-        map[cell(20, 6)] = Terrain.HIGH_GRASS;
-        map[cell(13, 10)] = Terrain.GRASS;
-        map[cell(20, 10)] = Terrain.GRASS;
+        paintRows(Terrain.EMPTY, new int[][]{
+                {6, 10, 15},
+                {7, 9, 16},
+                {8, 10, 16}
+        });
+        map[cell(9, 6)] = Terrain.HIGH_GRASS;
+        map[cell(16, 8)] = Terrain.HIGH_GRASS;
     }
 
     private void paintDungeonApproach() {
-        fillRect(14, 1, 18, 5, Terrain.EMPTY_SP);
-        map[cell(16, 4)] = Terrain.EMPTY;
-        map[cell(16, 5)] = Terrain.EMPTY;
+        // The dungeon mouth is the one place that earns a deliberate stone apron.
+        paintRows(Terrain.EMPTY_SP, new int[][]{
+                {1, 11, 15},
+                {2, 11, 15},
+                {3, 11, 15},
+                {4, 11, 15},
+                {5, 12, 14}
+        });
+        map[cell(11, 4)] = Terrain.GRASS;
+        map[cell(15, 4)] = Terrain.GRASS;
+        map[cell(13, 5)] = Terrain.EMPTY;
+        map[cell(14, 5)] = Terrain.EMPTY;
     }
 
     private void paintEdgeGrowth() {
-        for (int y = 3; y <= 22; y += 4) {
-            map[cell(2, y)] = Terrain.WALL;
-            map[cell(31, y + (y < 20 ? 1 : 0))] = Terrain.WALL;
-        }
-        int[][] tufts = {
-                {5, 7}, {6, 8}, {27, 5}, {29, 6}, {4, 16}, {30, 16},
-                {5, 23}, {28, 22}, {21, 4}, {11, 8}
-        };
-        for (int[] p : tufts) map[cell(p[0], p[1])] = Terrain.HIGH_GRASS;
+        // Fixed irregular intrusions break the rectangular clearing without
+        // turning the tutorial into a maze.
+        paintCells(Terrain.WALL, new int[][]{
+                {1, 4}, {1, 5}, {2, 5},
+                {1, 10}, {2, 10}, {1, 11},
+                {1, 18}, {2, 18},
+                {26, 3}, {25, 3},
+                {26, 7}, {25, 7}, {26, 8},
+                {26, 15}, {25, 16},
+                {26, 19}
+        });
+
+        paintCells(Terrain.HIGH_GRASS, new int[][]{
+                {4, 4}, {5, 5}, {7, 7},
+                {22, 4}, {23, 5},
+                {3, 9}, {5, 11}, {24, 12},
+                {3, 15}, {4, 16}, {23, 16},
+                {5, 20}, {21, 19}, {24, 18},
+                {10, 4}, {18, 6}
+        });
     }
 
-    private void fillRect(int left, int top, int right, int bottom, int terrain) {
-        for (int y = top; y <= bottom; y++) {
-            for (int x = left; x <= right; x++) {
+    private void paintRows(int terrain, int[][] rows) {
+        for (int[] row : rows) {
+            int y = row[0];
+            for (int x = row[1]; x <= row[2]; x++) {
                 map[cell(x, y)] = terrain;
             }
+        }
+    }
+
+    private void paintCells(int terrain, int[][] cells) {
+        for (int[] p : cells) {
+            map[cell(p[0], p[1])] = terrain;
         }
     }
 
@@ -185,8 +257,7 @@ public class TrainingGroundLevel extends Level {
 
     @Override
     public boolean activateTransition(Hero hero, LevelTransition transition) {
-        // The south transition currently exists only so switchLevel can resolve a
-        // deterministic spawn point. Leaving/entering the memory is wired later.
+        // Development preview only. Leaving/entering the memory is wired later.
         if (transition.type == LevelTransition.Type.REGULAR_ENTRANCE) return false;
         return super.activateTransition(hero, transition);
     }
@@ -206,9 +277,9 @@ public class TrainingGroundLevel extends Level {
         dummy.pos = cell(DUMMY_X, DUMMY_Y);
         mobs.add(dummy);
 
-        addTarget(27, 10);
-        addTarget(28, 10);
-        addTarget(29, 10);
+        addTarget(22, 8);
+        addTarget(23, 8);
+        addTarget(21, 9);
     }
 
     private void addTarget(int x, int y) {
