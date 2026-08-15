@@ -21,7 +21,7 @@ public class MorningcreekMainStreetLevel extends Level {
     public static final int SOUTH_X = 26;
     public static final int SOUTH_Y = 36;
     public static final int INN_X = 26;
-    public static final int INN_Y = 1;
+    public static final int INN_Y = 7;
 
     private static final String SURFACE_TILES = "environment/tiles_surface.png";
     private static final String SURFACE_WATER = "environment/water_surface.png";
@@ -54,10 +54,10 @@ public class MorningcreekMainStreetLevel extends Level {
         building(5, 23, 18, 32, 16, 24);  // homes
         building(33, 24, 47, 33, 35, 25); // homes
 
-        // Old Crow Inn dominates the north end; raven sign is visible on approach.
+        // Old Crow Inn dominates the north end; its actual transition is the visible front door.
         rect(15, 2, 37, 8, Terrain.WALL);
         rect(18, 5, 34, 8, Terrain.EMPTY_SP);
-        map[cell(26,7)] = Terrain.EMPTY;
+        map[cell(INN_X,INN_Y)] = Terrain.EMPTY;
         map[cell(30,9)] = Terrain.EMPTY_DECO; // raven sign
 
         // Street signs / notice clutter make navigation legible.
