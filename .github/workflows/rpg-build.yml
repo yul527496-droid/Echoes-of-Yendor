@@ -6,6 +6,7 @@ on:
       - "rpg-development"
       - "build-test"
       - "ui-ledger-first-pass"
+      - "work/ch1-experience-pass"
   workflow_dispatch:
 
 concurrency:
