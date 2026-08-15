@@ -13,15 +13,12 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap;
 import com.watabou.noosa.Tilemap;
 import com.watabou.noosa.audio.Music;
+import com.watabou.utils.Bundle;
 
 /**
- * Fixed graybox for the optional pre-dungeon memory tutorial.
- *
- * Geometry pass 3 keeps the 28x22 footprint and approved bespoke assets from
- * pass 2, but trims the broad dirt fields into narrow worn paths and small
- * activity clearings. Camp life is suggested only with existing terrain
- * vocabulary (embers, a few stone slabs, grass intrusions) so visual acceptance
- * stays separate from the later fixed tutorial-item/state-machine pass.
+ * Fixed 28x22 surface training ground for the optional pre-dungeon memory.
+ * Geometry and approved bespoke assets are intentionally stable; the complete
+ * tutorial controller now owns the fixed item sequence and progression.
  */
 public class TrainingGroundLevel extends Level {
 
@@ -38,14 +35,34 @@ public class TrainingGroundLevel extends Level {
 
     private static final int ENTRANCE_ART_X = 12;
     private static final int ENTRANCE_ART_Y = 1;
+    private static final int DUNGEON_MOUTH_X = 13;
+    private static final int DUNGEON_MOUTH_Y = 3;
+
+    private static final String TUTORIAL = "echoes_training_tutorial";
 
     private static final String SURFACE_TILES = "environment/tiles_surface.png";
     private static final String SURFACE_WATER = "environment/water_surface.png";
+
+    private TrainingTutorialController tutorial = new TrainingTutorialController();
 
     {
         color1 = 0x789b57;
         color2 = 0xb6ca7b;
         viewDistance = 16;
+    }
+
+    public TrainingTutorialController tutorial() {
+        if (tutorial == null) tutorial = new TrainingTutorialController();
+        tutorial.bind(this);
+        return tutorial;
+    }
+
+    int cellAt(int x, int y) {
+        return x + y * width();
+    }
+
+    int dungeonMouthCell() {
+        return cellAt(DUNGEON_MOUTH_X, DUNGEON_MOUTH_Y);
     }
 
     @Override
@@ -66,16 +83,17 @@ public class TrainingGroundLevel extends Level {
     @Override
     protected boolean build() {
         setSize(WIDTH, HEIGHT);
+        tutorial.bind(this);
 
         // Closed hedge/forest shell with a grass clearing inside.
         for (int y = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++) {
-                map[cell(x, y)] = Terrain.WALL;
+                map[cellAt(x, y)] = Terrain.WALL;
             }
         }
         for (int y = 1; y < HEIGHT - 1; y++) {
             for (int x = 1; x < WIDTH - 1; x++) {
-                map[cell(x, y)] = Terrain.GRASS;
+                map[cellAt(x, y)] = Terrain.GRASS;
             }
         }
 
@@ -90,12 +108,20 @@ public class TrainingGroundLevel extends Level {
         paintWearBreaks();
         paintEdgeGrowth();
 
-        // The preview still needs a transition cell so Dungeon.switchLevel can
-        // resolve pos=-1. It deliberately stays ordinary dirt so no south-side
-        // staircase/ladder is visible in the memory itself.
-        int start = cell(START_X, START_Y);
+        // The south transition exists only so Dungeon.switchLevel(pos=-1) can
+        // resolve a legal spawn. Its cell remains ordinary dirt and never looks
+        // like another staircase in the memory.
+        int start = cellAt(START_X, START_Y);
         map[start] = Terrain.EMPTY;
         transitions.add(new LevelTransition(this, start, LevelTransition.Type.REGULAR_ENTRANCE));
+
+        // The north transition is the real end trigger. activateTransition()
+        // intercepts it so the memory fades out instead of loading SewerLevel.
+        transitions.add(new LevelTransition(
+                this,
+                dungeonMouthCell(),
+                LevelTransition.Type.REGULAR_EXIT
+        ));
 
         DungeonMouth mouth = new DungeonMouth();
         mouth.pos(ENTRANCE_ART_X, ENTRANCE_ART_Y);
@@ -105,8 +131,6 @@ public class TrainingGroundLevel extends Level {
     }
 
     private void paintMainPath() {
-        // A narrow walked line rather than one continuous brown field. Most rows
-        // are only one or two cells wide; local clearings expand it where needed.
         paintRows(Terrain.EMPTY, new int[][]{
                 {4, 13, 14},
                 {5, 13, 14},
@@ -129,7 +153,6 @@ public class TrainingGroundLevel extends Level {
     }
 
     private void paintCampStart() {
-        // Small trampled living area around the mentor and fire.
         paintRows(Terrain.EMPTY, new int[][]{
                 {16, 6, 9},
                 {17, 5, 10},
@@ -141,15 +164,13 @@ public class TrainingGroundLevel extends Level {
                 {18, 10, 13}
         });
 
-        map[cell(6, 18)] = Terrain.EMBERS;
-        map[cell(5, 16)] = Terrain.HIGH_GRASS;
-        map[cell(10, 19)] = Terrain.HIGH_GRASS;
-        map[cell(6, 16)] = Terrain.HIGH_GRASS;
+        map[cellAt(6, 18)] = Terrain.EMBERS;
+        map[cellAt(5, 16)] = Terrain.HIGH_GRASS;
+        map[cellAt(10, 19)] = Terrain.HIGH_GRASS;
+        map[cellAt(6, 16)] = Terrain.HIGH_GRASS;
     }
 
     private void paintEquipmentApron() {
-        // Only a few stone slabs beside the route. They reserve a visual home for
-        // the later equipment tutorial without recreating the pass-1 courtyard.
         paintCells(Terrain.EMPTY_SP, new int[][]{
                 {15, 16}, {16, 16},
                 {16, 17}, {17, 17}
@@ -158,23 +179,20 @@ public class TrainingGroundLevel extends Level {
                 {16, 13, 15},
                 {17, 13, 16}
         });
-        map[cell(17, 16)] = Terrain.HIGH_GRASS;
+        map[cellAt(17, 16)] = Terrain.HIGH_GRASS;
     }
 
     private void paintDummyYard() {
-        // A compact patch of bare earth around the dummy, with grass biting into
-        // the edges so it reads as repeated foot traffic rather than paving.
         paintRows(Terrain.EMPTY, new int[][]{
                 {12, 8, 10},
                 {13, 7, 11},
                 {14, 8, 10}
         });
-        map[cell(7, 13)] = Terrain.HIGH_GRASS;
-        map[cell(11, 14)] = Terrain.HIGH_GRASS;
+        map[cellAt(7, 13)] = Terrain.HIGH_GRASS;
+        map[cellAt(11, 14)] = Terrain.HIGH_GRASS;
     }
 
     private void paintItemBenchArea() {
-        // Three joined slabs, close enough to the main path to look intentional.
         paintCells(Terrain.EMPTY_SP, new int[][]{
                 {16, 11}, {17, 11}, {17, 12}
         });
@@ -182,12 +200,10 @@ public class TrainingGroundLevel extends Level {
                 {11, 15, 17},
                 {12, 15, 17}
         });
-        map[cell(18, 12)] = Terrain.HIGH_GRASS;
+        map[cellAt(18, 12)] = Terrain.HIGH_GRASS;
     }
 
     private void paintWandRange() {
-        // Narrow diagonal firing lane. The targets get a small scuffed patch each,
-        // not a full rectangular range floor.
         paintRows(Terrain.EMPTY, new int[][]{
                 {8, 21, 23},
                 {9, 20, 23},
@@ -205,31 +221,27 @@ public class TrainingGroundLevel extends Level {
                 {7, 10, 15},
                 {8, 11, 15}
         });
-        map[cell(10, 7)] = Terrain.HIGH_GRASS;
-        map[cell(15, 8)] = Terrain.HIGH_GRASS;
-        map[cell(12, 6)] = Terrain.GRASS;
+        map[cellAt(10, 7)] = Terrain.HIGH_GRASS;
+        map[cellAt(15, 8)] = Terrain.HIGH_GRASS;
+        map[cellAt(12, 6)] = Terrain.GRASS;
     }
 
     private void paintDungeonApproach() {
-        // The dungeon mouth remains the one place that earns a deliberate stone
-        // apron, tapering immediately into the narrow dirt route below it.
         paintRows(Terrain.EMPTY_SP, new int[][]{
                 {1, 11, 15},
                 {2, 11, 15},
                 {3, 11, 15},
                 {4, 12, 14}
         });
-        map[cell(11, 3)] = Terrain.GRASS;
-        map[cell(15, 3)] = Terrain.GRASS;
-        map[cell(13, 4)] = Terrain.EMPTY;
-        map[cell(14, 4)] = Terrain.EMPTY;
-        map[cell(13, 5)] = Terrain.EMPTY;
-        map[cell(14, 5)] = Terrain.EMPTY;
+        map[cellAt(11, 3)] = Terrain.GRASS;
+        map[cellAt(15, 3)] = Terrain.GRASS;
+        map[cellAt(13, 4)] = Terrain.EMPTY;
+        map[cellAt(14, 4)] = Terrain.EMPTY;
+        map[cellAt(13, 5)] = Terrain.EMPTY;
+        map[cellAt(14, 5)] = Terrain.EMPTY;
     }
 
     private void paintWearBreaks() {
-        // Grass islands interrupt long runs of dirt. Every chosen cell is away from
-        // spawn points and bespoke actors, so this is purely a visual edge pass.
         paintCells(Terrain.GRASS, new int[][]{
                 {13, 7}, {14, 9}, {15, 12},
                 {12, 15}, {13, 18},
@@ -240,8 +252,6 @@ public class TrainingGroundLevel extends Level {
     }
 
     private void paintEdgeGrowth() {
-        // Fixed irregular intrusions break the rectangular clearing without
-        // turning the tutorial into a maze.
         paintCells(Terrain.WALL, new int[][]{
                 {1, 4}, {1, 5}, {2, 5},
                 {1, 10}, {2, 10}, {1, 11},
@@ -267,25 +277,27 @@ public class TrainingGroundLevel extends Level {
         for (int[] row : rows) {
             int y = row[0];
             for (int x = row[1]; x <= row[2]; x++) {
-                map[cell(x, y)] = terrain;
+                map[cellAt(x, y)] = terrain;
             }
         }
     }
 
     private void paintCells(int terrain, int[][] cells) {
         for (int[] p : cells) {
-            map[cell(p[0], p[1])] = terrain;
+            map[cellAt(p[0], p[1])] = terrain;
         }
-    }
-
-    private int cell(int x, int y) {
-        return x + y * width();
     }
 
     @Override
     public boolean activateTransition(Hero hero, LevelTransition transition) {
-        // Development preview only. Leaving/entering the memory is wired later.
-        if (transition.type == LevelTransition.Type.REGULAR_ENTRANCE) return false;
+        if (transition.type == LevelTransition.Type.REGULAR_ENTRANCE) {
+            return false;
+        }
+        if (transition.type == LevelTransition.Type.REGULAR_EXIT
+                && transition.inside(dungeonMouthCell())) {
+            tutorial().onDungeonMouth();
+            return false;
+        }
         return super.activateTransition(hero, transition);
     }
 
@@ -297,11 +309,11 @@ public class TrainingGroundLevel extends Level {
     @Override
     protected void createMobs() {
         TrainingMentor mentor = new TrainingMentor();
-        mentor.pos = cell(MENTOR_X, MENTOR_Y);
+        mentor.pos = cellAt(MENTOR_X, MENTOR_Y);
         mobs.add(mentor);
 
         TrainingDummy dummy = new TrainingDummy();
-        dummy.pos = cell(DUMMY_X, DUMMY_Y);
+        dummy.pos = cellAt(DUMMY_X, DUMMY_Y);
         mobs.add(dummy);
 
         addTarget(22, 8);
@@ -311,14 +323,14 @@ public class TrainingGroundLevel extends Level {
 
     private void addTarget(int x, int y) {
         TrainingTarget target = new TrainingTarget();
-        target.pos = cell(x, y);
+        target.pos = cellAt(x, y);
         mobs.add(target);
     }
 
     @Override
     protected void createItems() {
-        // Deliberately empty in the geometry pass. Real tutorial items are fixed,
-        // not random, and will be added alongside the scripting state machine.
+        // Fixed tutorial items are introduced stage-by-stage by the controller.
+        // Nothing random is allowed into this memory.
     }
 
     @Override
@@ -328,7 +340,24 @@ public class TrainingGroundLevel extends Level {
 
     @Override
     public int randomRespawnCell(Char ch) {
-        return cell(START_X, START_Y);
+        return cellAt(START_X, START_Y);
+    }
+
+    @Override
+    public void storeInBundle(Bundle bundle) {
+        super.storeInBundle(bundle);
+        bundle.put(TUTORIAL, tutorial());
+    }
+
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        if (bundle.contains(TUTORIAL)) {
+            tutorial = (TrainingTutorialController) bundle.get(TUTORIAL);
+        } else {
+            tutorial = new TrainingTutorialController();
+        }
+        tutorial().bind(this);
     }
 
     /** 3x3 custom tile using the approved 48x48 entrance artwork. */
