@@ -106,6 +106,10 @@ public class LedgerTrinketScene extends PixelScene {
         float rowH = Math.min(16f,
                 (right.body.height() - 2f) / Math.max(1, to - from));
         float y = right.body.top + 1f;
+        float rowX = right.body.left + 5f;
+        float rowW = right.body.width() - 10f;
+        float helpW = 13f;
+        float helpGap = 1f;
 
         for (int i = from; i < to; i++) {
             final String id = entries.get(i).id;
@@ -125,9 +129,12 @@ public class LedgerTrinketScene extends PixelScene {
             };
             button.leftJustify = true;
             button.textColor(LedgerEnvironment.INK);
-            button.setRect(right.body.left + 5f, y,
-                    right.body.width() - 10f, rowH - 0.5f);
+            button.setRect(rowX, y, rowW - helpW - helpGap, rowH - 0.5f);
             add(button);
+
+            LedgerButton help = LedgerHelp.item(this, id);
+            help.setRect(rowX + rowW - helpW, y, helpW, rowH - 0.5f);
+            add(help);
             y += rowH;
         }
 
