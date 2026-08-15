@@ -2,9 +2,14 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.levels.TrainingGroundLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.TrainingTutorialController;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.TrainingMentorSprite;
 
 /**
@@ -23,10 +28,65 @@ public class TrainingMentor extends NPC {
     @Override
     protected boolean act() {
         if (Dungeon.level instanceof TrainingGroundLevel && Dungeon.hero != null) {
-            ((TrainingGroundLevel) Dungeon.level).tutorial().tick(this);
+            TrainingGroundLevel training = (TrainingGroundLevel) Dungeon.level;
+            TrainingTutorialController tutorial = training.tutorial();
+            tutorial.tick(this);
+
+            // The controller creates the healing bottle on the hero's tile after
+            // the mandatory turn lesson. Immediately move that one bottle to the
+            // first free adjacent cell below/in front of the hero and use the
+            // mature ItemSprite throw animation so it reads as the mentor tossing
+            // help over, not as an item materialising from a chest.
+            if (tutorial.stage() == TrainingTutorialController.Stage.HEALING) {
+                moveHealingPotionInFront(training);
+            }
         }
         spend(TICK);
         return true;
+    }
+
+    private void moveHealingPotionInFront(TrainingGroundLevel training) {
+        Heap source = training.heaps.get(Dungeon.hero.pos);
+        if (source == null || source.items == null || source.items.isEmpty()) return;
+
+        Item potion = null;
+        for (Item item : source.items) {
+            if (item instanceof PotionOfHealing) {
+                potion = item;
+                break;
+            }
+        }
+        if (potion == null) return;
+
+        int target = healingDropCell(training);
+        if (target == Dungeon.hero.pos) return;
+
+        source.remove(potion);
+        Heap dropped = training.drop(potion, target);
+        if (dropped.sprite != null) {
+            dropped.sprite.drop(pos);
+        }
+    }
+
+    private int healingDropCell(TrainingGroundLevel training) {
+        int hero = Dungeon.hero.pos;
+        int width = training.width();
+
+        // Screen-down is visually "in front" in this raised top-down perspective.
+        // If that tile is occupied, fall back to the other three adjacent cells.
+        int[] candidates = new int[]{hero + width, hero + 1, hero - 1, hero - width};
+        int heroX = hero % width;
+
+        for (int cell : candidates) {
+            if (cell < 0 || cell >= training.length()) continue;
+            if (Math.abs((cell % width) - heroX) > 1) continue;
+            if (!training.passable[cell] || training.solid[cell]) continue;
+            if (Actor.findChar(cell) != null) continue;
+            if (training.heaps.get(cell) != null) continue;
+            return cell;
+        }
+
+        return hero;
     }
 
     @Override
