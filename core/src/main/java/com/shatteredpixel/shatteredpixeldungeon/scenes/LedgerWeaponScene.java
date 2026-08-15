@@ -210,6 +210,10 @@ public class LedgerWeaponScene extends PixelScene {
         float rowH = Math.min(17f,
                 (right.body.height() - 3f) / Math.max(1, entries.size()));
         float y = right.body.top + 1f;
+        float helpW = 13f;
+        float helpGap = 1f;
+        float rowX = right.body.left + 5f;
+        float rowW = right.body.width() - 10f;
 
         for (Entry entry : entries) {
             final String id = entry.id;
@@ -240,9 +244,12 @@ public class LedgerWeaponScene extends PixelScene {
             };
             button.leftJustify = true;
             button.textColor(LedgerEnvironment.INK);
-            button.setRect(right.body.left + 5f, y,
-                    right.body.width() - 10f, rowH - 1f);
+            button.setRect(rowX, y, rowW - helpW - helpGap, rowH - 1f);
             add(button);
+
+            LedgerButton help = LedgerHelp.item(this, id);
+            help.setRect(rowX + rowW - helpW, y, helpW, rowH - 1f);
+            add(help);
             y += rowH;
         }
 
