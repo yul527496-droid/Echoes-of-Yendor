@@ -3,6 +3,7 @@ package com.shatteredpixel.shatteredpixeldungeon.scenes;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.ui.Component;
@@ -18,11 +19,13 @@ final class LedgerAudio {
     static final String TAVERN_BGM = "music/echoes/ledger_tavern.mp3";
     static final String TAVERN_AMBIENCE = "music/echoes/ledger_ambience.mp3";
 
-    private static final float BGM_VOLUME = 0.17f;
     private static final float AMBIENCE_VOLUME = 0.075f;
 
     private static boolean shortLoaded;
-    private static Music bgm;
+    private static boolean active;
+    // BGM deliberately does NOT live here. Music.INSTANCE is the one and only
+    // main-music channel for dungeon levels, training, surface maps, and Ledger.
+    // Ambience remains an independent presentation layer.
     private static Music ambience;
     private static float fade;
     private static float fadeTarget;
@@ -33,18 +36,24 @@ final class LedgerAudio {
     static void enter() {
         ensureShortSfx();
 
-        // Gameplay levels (including the training memory) use Noosa's global
-        // Music.INSTANCE channel. The ledger currently owns a separate LibGDX
-        // presentation BGM, so explicitly retire the gameplay channel before
-        // starting it. Without this handoff, returning from training leaves the
-        // level theme running underneath the tavern music.
-        com.watabou.noosa.audio.Music.INSTANCE.end();
+        if (!active) {
+            active = true;
+            fade = 0f;
+            fadeTarget = 1f;
+            fadeRate = 1f / 1.35f;
 
-        if (bgm == null) bgm = openMusic(TAVERN_BGM, true);
+            // Start the Ledger track on Shattered's mature global channel.  play()
+            // retires any previous level theme itself, so a training/surface BGM
+            // can never remain underneath the book music as a second main track.
+            com.watabou.noosa.audio.Music.INSTANCE.volume(0f);
+            com.watabou.noosa.audio.Music.INSTANCE.play(TAVERN_BGM, true);
+        } else {
+            // Re-entering on another Ledger page keeps the same track alive.
+            com.watabou.noosa.audio.Music.INSTANCE.play(TAVERN_BGM, true);
+            fadeTarget = 1f;
+        }
+
         if (ambience == null) ambience = openMusic(TAVERN_AMBIENCE, true);
-
-        fadeTarget = 1f;
-        fadeRate = 1f / 1.35f;
         applyVolumes();
     }
 
@@ -59,13 +68,16 @@ final class LedgerAudio {
     }
 
     static void update() {
-        if (fade == fadeTarget) return;
-        float step = Math.max(0f, Game.elapsed) * fadeRate;
-        if (fade < fadeTarget) {
-            fade = Math.min(fadeTarget, fade + step);
-        } else {
-            fade = Math.max(fadeTarget, fade - step);
+        if (fade != fadeTarget) {
+            float step = Math.max(0f, Game.elapsed) * fadeRate;
+            if (fade < fadeTarget) {
+                fade = Math.min(fadeTarget, fade + step);
+            } else {
+                fade = Math.max(fadeTarget, fade - step);
+            }
         }
+        // Re-apply every frame so changing the user's music preference while a
+        // Ledger window is open immediately affects both BGM and ambience.
         applyVolumes();
     }
 
@@ -75,10 +87,14 @@ final class LedgerAudio {
     }
 
     static void leave() {
-        stopMusic(bgm);
+        com.watabou.noosa.audio.Music.INSTANCE.end();
+        // Restore Shattered's global user volume before the next gameplay scene
+        // starts its own track; the Ledger fade must not leak into later levels.
+        com.watabou.noosa.audio.Music.INSTANCE.volume(userMusicGain());
+
         stopMusic(ambience);
-        bgm = null;
         ambience = null;
+        active = false;
         fade = 0f;
         fadeTarget = 0f;
         fadeRate = 1f / 1.35f;
@@ -132,9 +148,16 @@ final class LedgerAudio {
         }
     }
 
+    private static float userMusicGain() {
+        if (!SPDSettings.music()) return 0f;
+        int setting = SPDSettings.musicVol();
+        return setting * setting / 100f;
+    }
+
     private static void applyVolumes() {
-        if (bgm != null) bgm.setVolume(BGM_VOLUME * fade);
-        if (ambience != null) ambience.setVolume(AMBIENCE_VOLUME * fade);
+        float userGain = userMusicGain();
+        com.watabou.noosa.audio.Music.INSTANCE.volume(userGain * fade);
+        if (ambience != null) ambience.setVolume(AMBIENCE_VOLUME * userGain * fade);
     }
 
     private static void ensureShortSfx() {
