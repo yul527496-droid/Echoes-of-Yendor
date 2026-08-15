@@ -9,6 +9,15 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.TrainingDummy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.TrainingMentor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.TrainingTarget;
+import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
+import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfAccuracy;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfIdentify;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap;
 import com.watabou.noosa.Tilemap;
@@ -18,7 +27,8 @@ import com.watabou.utils.Bundle;
 /**
  * Fixed 28x22 surface training ground for the optional pre-dungeon memory.
  * Geometry and approved bespoke assets are intentionally stable; the complete
- * tutorial controller now owns the fixed item sequence and progression.
+ * tutorial controller owns progression, while fixed supplies physically exist
+ * in camp chests from level creation so nothing pops into existence mid-lesson.
  */
 public class TrainingGroundLevel extends Level {
 
@@ -37,6 +47,16 @@ public class TrainingGroundLevel extends Level {
     private static final int ENTRANCE_ART_Y = 1;
     private static final int DUNGEON_MOUTH_X = 13;
     private static final int DUNGEON_MOUTH_Y = 3;
+
+    // Supply containers are present from frame one. The controller may still
+    // restore a missing tutorial item as a safety net, but normal play never
+    // needs stage-triggered ground spawns anymore.
+    private static final int EQUIPMENT_CHEST_X = 16;
+    private static final int EQUIPMENT_CHEST_Y = 16;
+    private static final int UTILITY_CHEST_X = 17;
+    private static final int UTILITY_CHEST_Y = 11;
+    private static final int WAND_CHEST_X = 19;
+    private static final int WAND_CHEST_Y = 10;
 
     private static final String TUTORIAL = "echoes_training_tutorial";
 
@@ -329,8 +349,41 @@ public class TrainingGroundLevel extends Level {
 
     @Override
     protected void createItems() {
-        // Fixed tutorial items are introduced stage-by-stage by the controller.
-        // Nothing random is allowed into this memory.
+        // These are real SPD heaps with CHEST presentation, created before the
+        // scene starts. Opening them uses the mature chest/heap interaction.
+        trainingChest(
+                EQUIPMENT_CHEST_X,
+                EQUIPMENT_CHEST_Y,
+                new WornShortsword().identify(),
+                new ClothArmor().identify()
+        );
+
+        trainingChest(
+                UTILITY_CHEST_X,
+                UTILITY_CHEST_Y,
+                new PotionOfHealing().identify(),
+                new RingOfAccuracy(),
+                new ScrollOfIdentify().identify(),
+                new TalismanOfForesight().identify()
+        );
+
+        trainingChest(
+                WAND_CHEST_X,
+                WAND_CHEST_Y,
+                new WandOfMagicMissile().identify()
+        );
+    }
+
+    private void trainingChest(int x, int y, Item... items) {
+        Heap heap = null;
+        int cell = cellAt(x, y);
+        for (Item item : items) {
+            heap = drop(item, cell);
+        }
+        if (heap != null) {
+            heap.type = Heap.Type.CHEST;
+            heap.seen = false;
+        }
     }
 
     @Override
