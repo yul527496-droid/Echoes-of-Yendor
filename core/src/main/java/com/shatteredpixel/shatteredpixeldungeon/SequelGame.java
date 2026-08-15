@@ -30,7 +30,9 @@ import com.watabou.utils.FileUtils;
 /** Small entry/switching helper for the sequel prototype. */
 public final class SequelGame {
 
-    private static int trainingPreviewSlot = -1;
+    // Slot zero is outside GamesInProgress' normal 1..MAX_SLOTS UI range. It is
+    // therefore a safe disposable home for the development tutorial session.
+    private static final int TRAINING_PREVIEW_SLOT = 0;
 
     private SequelGame() {
     }
@@ -77,13 +79,9 @@ public final class SequelGame {
      * It uses a real disposable Dungeon session so all mature SPD inventory,
      * targeting and turn systems remain authentic, but strips the warrior's
      * normal starting belongings so every tutorial object comes from the camp.
-     * Completion deletes the temporary slot again.
      */
     public static boolean previewTrainingGround() {
         cleanupTrainingPreviewSlot();
-
-        int slot = GamesInProgress.firstEmpty();
-        if (slot < 0) return false;
 
         Dungeon.daily = false;
         Dungeon.dailyReplay = false;
@@ -91,9 +89,8 @@ public final class SequelGame {
         SPDSettings.customSeed("");
         SPDSettings.intro(false);
 
-        GamesInProgress.curSlot = slot;
+        GamesInProgress.curSlot = TRAINING_PREVIEW_SLOT;
         GamesInProgress.selectedClass = HeroClass.WARRIOR;
-        trainingPreviewSlot = slot;
 
         Dungeon.initSeed();
         Dungeon.init();
@@ -119,11 +116,8 @@ public final class SequelGame {
     }
 
     private static void cleanupTrainingPreviewSlot() {
-        if (trainingPreviewSlot > 0) {
-            FileUtils.deleteDir(GamesInProgress.gameFolder(trainingPreviewSlot));
-            GamesInProgress.delete(trainingPreviewSlot);
-            trainingPreviewSlot = -1;
-        }
+        FileUtils.deleteDir(GamesInProgress.gameFolder(TRAINING_PREVIEW_SLOT));
+        GamesInProgress.delete(TRAINING_PREVIEW_SLOT);
     }
 
     public static void enterSurfaceEntrance() {
