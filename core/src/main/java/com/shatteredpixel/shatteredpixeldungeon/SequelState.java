@@ -32,7 +32,7 @@ public class SequelState extends Buff {
         WOLVES_DEFEATED,
         OUTSKIRTS_REACHED,
         INVESTIGATION_UNLOCKED,
-        CH1_SLICE_COMPLETE, // legacy RC1 save marker; no longer treated as the real chapter ending
+        CH1_SLICE_COMPLETE,
         MAIN_STREET_REACHED,
         INN_REACHED,
         LEDGER_READ,
@@ -58,12 +58,10 @@ public class SequelState extends Buff {
 
     private Phase phase = Phase.FINAL_STAIR;
 
-    // Legacy aliases retained so RC1 saves migrate without losing progress.
     public boolean farmerMet;
     public boolean wolvesDefeated;
     public boolean campRead;
     public boolean birdGone;
-
     public boolean birdSeen;
     public boolean campVisited;
     public boolean campNoteTaken;
@@ -90,7 +88,6 @@ public class SequelState extends Buff {
     }
 
     public Phase phase() { return phase; }
-
     public boolean isAtLeast(Phase value) { return phase.ordinal() >= value.ordinal(); }
 
     public void advanceTo(Phase value) {
@@ -110,7 +107,6 @@ public class SequelState extends Buff {
         if (taken) campNoteTaken = true;
     }
 
-    /** One source of truth for persistent HUD task guidance. */
     public String objectiveText() {
         if (isAtLeast(Phase.CH1_COMPLETE)) return "第一章完成 · 线索：莱斯·赫恩与下行者名册";
         if (Dungeon.level instanceof OldCrowInnLevel) return "当前任务：调查下行者名册  ◇ 向吧台前进";
@@ -134,17 +130,11 @@ public class SequelState extends Buff {
     public boolean act() {
         ChapterOneAudio.syncSettings();
         if (Dungeon.hero != null && Dungeon.level != null) {
-            if (Dungeon.level instanceof SurfaceEntranceLevel) {
-                handleSurface();
-            } else if (Dungeon.level instanceof OldKingsRoadLevel) {
-                handleOldRoad();
-            } else if (Dungeon.level instanceof MorningcreekOutskirtsLevel) {
-                handleOutskirts();
-            } else if (Dungeon.level instanceof MorningcreekMainStreetLevel) {
-                handleMainStreet();
-            } else if (Dungeon.level instanceof OldCrowInnLevel) {
-                handleInn();
-            }
+            if (Dungeon.level instanceof SurfaceEntranceLevel) handleSurface();
+            else if (Dungeon.level instanceof OldKingsRoadLevel) handleOldRoad();
+            else if (Dungeon.level instanceof MorningcreekOutskirtsLevel) handleOutskirts();
+            else if (Dungeon.level instanceof MorningcreekMainStreetLevel) handleMainStreet();
+            else if (Dungeon.level instanceof OldCrowInnLevel) handleInn();
             syncObjective();
         }
         spend(TICK);
@@ -152,19 +142,19 @@ public class SequelState extends Buff {
     }
 
     private void handleSurface() {
-        if (!surfaceIntroSeen) {
-            int y = Dungeon.hero.pos / Dungeon.level.width();
-            if (y <= 53) {
-                surfaceIntroSeen = true;
-                GLog.p("风从草地上吹过来。");
-                GLog.p("这一次，头顶没有石头。");
-            }
-        }
-
         int x = Dungeon.hero.pos % Dungeon.level.width();
         int y = Dungeon.hero.pos / Dungeon.level.width();
-        ChapterOneAudio.updateStreamDistance(Math.abs(y - 29));
-        if (!campVisited && x >= 7 && x <= 23 && y >= 30 && y <= 42) {
+
+        if (!surfaceIntroSeen && y <= SurfaceEntranceLevel.ENTRANCE_Y - 2) {
+            surfaceIntroSeen = true;
+            GLog.p("风从草地上吹过来。");
+            GLog.p("这一次，头顶没有石头。");
+        }
+
+        ChapterOneAudio.updateStreamDistance(Math.abs(y - SurfaceEntranceLevel.STREAM_Y));
+        if (!campVisited
+                && x >= SurfaceEntranceLevel.CAMP_X1 && x <= SurfaceEntranceLevel.CAMP_X2
+                && y >= SurfaceEntranceLevel.CAMP_Y1 && y <= SurfaceEntranceLevel.CAMP_Y2) {
             campVisited = true;
             GLog.p("林间藏着一处废弃营地。火塘早已冷透。");
         }
@@ -172,14 +162,16 @@ public class SequelState extends Buff {
 
     private void handleOldRoad() {
         OldKingsRoadLevel level = (OldKingsRoadLevel)Dungeon.level;
-        if (!shrineRead && level.distance(Dungeon.hero.pos, level.cell(16, 29)) <= 1) {
+        if (!shrineRead && level.distance(Dungeon.hero.pos,
+                level.cell(OldKingsRoadLevel.SHRINE_X, OldKingsRoadLevel.SHRINE_Y)) <= 1) {
             shrineRead = true;
             GLog.p("一座被苔藓盖住的旧路神龛。");
             GLog.p("石座上的字已经磨掉大半：「愿归路短于去路。」");
             ChapterOneAudio.playRaven();
         }
 
-        if (!wagonInspected && level.distance(Dungeon.hero.pos, level.cell(42, 19)) <= 2) {
+        if (!wagonInspected && level.distance(Dungeon.hero.pos,
+                level.cell(OldKingsRoadLevel.WAGON_X, OldKingsRoadLevel.WAGON_Y)) <= 2) {
             wagonInspected = true;
             GLog.p("坏车的轮轴早已晒得发白。没有血迹，也没有值得拿走的东西。");
         }
@@ -188,7 +180,8 @@ public class SequelState extends Buff {
     private void handleOutskirts() {
         MorningcreekOutskirtsLevel level = (MorningcreekOutskirtsLevel)Dungeon.level;
 
-        if (!missingNoticeRead && level.distance(Dungeon.hero.pos, level.cell(51, 13)) <= 1) {
+        if (!missingNoticeRead && level.distance(Dungeon.hero.pos,
+                level.cell(MorningcreekOutskirtsLevel.NOTICE_X, MorningcreekOutskirtsLevel.NOTICE_Y)) <= 1) {
             missingNoticeRead = true;
             if (campRead) {
                 missingNameRecognized = true;
@@ -203,7 +196,7 @@ public class SequelState extends Buff {
         }
 
         int y = Dungeon.hero.pos / Dungeon.level.width();
-        if (!outskirtsIntroSeen && y <= 12) {
+        if (!outskirtsIntroSeen && y <= 10) {
             outskirtsIntroSeen = true;
             investigationKnown = true;
             advanceTo(Phase.INVESTIGATION_UNLOCKED);
@@ -278,7 +271,6 @@ public class SequelState extends Buff {
         int storedPhase = bundle.getInt(PHASE);
         if (hasPhase && storedPhase >= 0 && storedPhase < Phase.values().length) {
             phase = Phase.values()[storedPhase];
-            // RC1 saves used CH1_SLICE_COMPLETE for the blocked town edge. Re-open the real Chapter 1 ending.
             if (phase == Phase.CH1_SLICE_COMPLETE) phase = Phase.INVESTIGATION_UNLOCKED;
         } else {
             phase = farmerMet ? Phase.FARMER_NORMAL_TALK_DONE : Phase.FINAL_STAIR;
