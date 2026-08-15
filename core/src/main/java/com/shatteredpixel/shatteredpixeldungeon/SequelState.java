@@ -5,10 +5,13 @@
 package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekMainStreetLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekOutskirtsLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.OldCrowInnLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.OldKingsRoadLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SurfaceEntranceLevel;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.ui.TaskGuidanceToast;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndDialogueStage;
 import com.watabou.noosa.Game;
@@ -29,7 +32,11 @@ public class SequelState extends Buff {
         WOLVES_DEFEATED,
         OUTSKIRTS_REACHED,
         INVESTIGATION_UNLOCKED,
-        CH1_SLICE_COMPLETE
+        CH1_SLICE_COMPLETE, // legacy RC1 save marker; no longer treated as the real chapter ending
+        MAIN_STREET_REACHED,
+        INN_REACHED,
+        LEDGER_READ,
+        CH1_COMPLETE
     }
 
     private static final String PHASE = "phase";
@@ -47,6 +54,7 @@ public class SequelState extends Buff {
     private static final String INVESTIGATION_KNOWN = "investigation_known";
     private static final String SURFACE_INTRO_SEEN = "surface_intro_seen";
     private static final String OUTSKIRTS_INTRO_SEEN = "outskirts_intro_seen";
+    private static final String LEDGER_SCENE_SEEN = "ledger_scene_seen";
 
     private Phase phase = Phase.FINAL_STAIR;
 
@@ -66,6 +74,7 @@ public class SequelState extends Buff {
     public boolean investigationKnown;
     public boolean surfaceIntroSeen;
     public boolean outskirtsIntroSeen;
+    public boolean ledgerSceneSeen;
 
     public static SequelState get() {
         if (Dungeon.hero == null) return null;
@@ -73,27 +82,51 @@ public class SequelState extends Buff {
         return state != null ? state : Buff.affect(Dungeon.hero, SequelState.class);
     }
 
-    public Phase phase() {
-        return phase;
+    /** Hunger and starvation are suspended while Chapter 1 is a safe story/town journey. */
+    public static boolean surfaceSafePhase() {
+        SequelState state = get();
+        return state != null && !state.isAtLeast(Phase.CH1_COMPLETE);
     }
 
-    public boolean isAtLeast(Phase value) {
-        return phase.ordinal() >= value.ordinal();
-    }
+    public Phase phase() { return phase; }
+
+    public boolean isAtLeast(Phase value) { return phase.ordinal() >= value.ordinal(); }
 
     public void advanceTo(Phase value) {
         if (value != null && value.ordinal() > phase.ordinal()) phase = value;
         syncLegacyFlags();
+        syncObjective();
     }
 
     public void markInvestigationKnown() {
         investigationKnown = true;
+        syncObjective();
     }
 
     public void markCampRead(boolean taken) {
         campVisited = true;
         campRead = true;
         if (taken) campNoteTaken = true;
+    }
+
+    /** One source of truth for persistent HUD task guidance. */
+    public String objectiveText() {
+        if (isAtLeast(Phase.CH1_COMPLETE)) return "第一章完成 · 线索：莱斯·赫恩与下行者名册";
+        if (Dungeon.level instanceof OldCrowInnLevel) return "当前任务：调查下行者名册  ◇ 向吧台前进";
+        if (Dungeon.level instanceof MorningcreekMainStreetLevel) return "当前任务：前往老鸦旅店  ◇ 沿主街向北寻找乌鸦招牌";
+        if (Dungeon.level instanceof MorningcreekOutskirtsLevel) return "当前任务：进入晨溪镇  ◇ 沿大路向北";
+        if (Dungeon.level instanceof OldKingsRoadLevel) {
+            return wolvesDefeated ? "当前任务：前往晨溪  ◇ 沿旧王道向北" : "当前任务：沿旧王道前进  ◇ 注意狼群";
+        }
+        if (Dungeon.level instanceof SurfaceEntranceLevel) {
+            if (!farmerMet) return "当前任务：返回文明世界  ◇ 沿道路向北";
+            return "当前任务：前往晨溪  ◇ 沿道路进入旧王道";
+        }
+        return "当前任务：离开地下城，返回地表";
+    }
+
+    public void syncObjective() {
+        Game.runOnRenderThread(() -> TaskGuidanceToast.showObjective(objectiveText()));
     }
 
     @Override
@@ -106,7 +139,12 @@ public class SequelState extends Buff {
                 handleOldRoad();
             } else if (Dungeon.level instanceof MorningcreekOutskirtsLevel) {
                 handleOutskirts();
+            } else if (Dungeon.level instanceof MorningcreekMainStreetLevel) {
+                handleMainStreet();
+            } else if (Dungeon.level instanceof OldCrowInnLevel) {
+                handleInn();
             }
+            syncObjective();
         }
         spend(TICK);
         return true;
@@ -158,23 +196,43 @@ public class SequelState extends Buff {
             } else {
                 GLog.p("寻人：莱斯·赫恩。数日前沿旧王道向南离镇，至今未归。");
             }
-            GLog.p("路牌：↑ 晨溪镇　↖ 河桥　→ 老鸦旅店");
+            GLog.p("路牌：↑ 晨溪镇　→ 老鸦旅店");
+            investigationKnown = true;
+            advanceTo(Phase.INVESTIGATION_UNLOCKED);
         }
 
         int y = Dungeon.hero.pos / Dungeon.level.width();
-        if (!outskirtsIntroSeen && y <= 8) {
+        if (!outskirtsIntroSeen && y <= 12) {
             outskirtsIntroSeen = true;
             investigationKnown = true;
             advanceTo(Phase.INVESTIGATION_UNLOCKED);
-            advanceTo(Phase.CH1_SLICE_COMPLETE);
+            GLog.p("屋顶和炊烟已经近在眼前。晨溪镇就在北面。");
+        }
+    }
 
+    private void handleMainStreet() {
+        advanceTo(Phase.MAIN_STREET_REACHED);
+    }
+
+    private void handleInn() {
+        advanceTo(Phase.INN_REACHED);
+        OldCrowInnLevel level = (OldCrowInnLevel)Dungeon.level;
+        int ledger = level.cell(OldCrowInnLevel.LEDGER_X, OldCrowInnLevel.LEDGER_Y);
+        if (!ledgerSceneSeen && level.distance(Dungeon.hero.pos, ledger) <= 2) {
+            ledgerSceneSeen = true;
+            advanceTo(Phase.LEDGER_READ);
             Game.runOnRenderThread(() -> GameScene.show(new WndDialogueStage(
-                    "",
-                    "地下城已经在身后。\n问题却似乎跟着你一起上来了。\n\n"
-                            + "Chapter 1 — Surface Return\n\n"
-                            + "下一目标：前往老鸦旅店，查阅下行者名册。",
+                    "老鸦旅店老板娘",
+                    "老板娘把一册厚重、磨损严重的名册推到你面前。\n\n"
+                            + "『下行者名册。几十年来，往南去地下城的人都在这里留下过名字。』\n\n"
+                            + "你的手指停在一个熟悉的名字上：莱斯·赫恩。\n"
+                            + "他的登记日期，比林中营地留下的纸条早不了几天。\n\n"
+                            + "Chapter 1 — Surface Return 完",
                     WndDialogueStage.Portrait.NONE,
-                    () -> GLog.p("下一目标：前往老鸦旅店，查阅下行者名册。")
+                    () -> {
+                        advanceTo(Phase.CH1_COMPLETE);
+                        GLog.p("第一章完成：下行者名册把莱斯·赫恩与地下城重新连在了一起。");
+                    }
             )));
         }
     }
@@ -203,6 +261,7 @@ public class SequelState extends Buff {
         bundle.put(INVESTIGATION_KNOWN, investigationKnown);
         bundle.put(SURFACE_INTRO_SEEN, surfaceIntroSeen);
         bundle.put(OUTSKIRTS_INTRO_SEEN, outskirtsIntroSeen);
+        bundle.put(LEDGER_SCENE_SEEN, ledgerSceneSeen);
     }
 
     @Override
@@ -218,9 +277,9 @@ public class SequelState extends Buff {
         int storedPhase = bundle.getInt(PHASE);
         if (hasPhase && storedPhase >= 0 && storedPhase < Phase.values().length) {
             phase = Phase.values()[storedPhase];
+            // RC1 saves used CH1_SLICE_COMPLETE for the blocked town edge. Re-open the real Chapter 1 ending.
+            if (phase == Phase.CH1_SLICE_COMPLETE) phase = Phase.INVESTIGATION_UNLOCKED;
         } else {
-            // RC1's four booleans belonged to the old prototype encounter. Preserve optional
-            // exploration, but replay the new anomaly/wolf beats instead of silently skipping them.
             phase = farmerMet ? Phase.FARMER_NORMAL_TALK_DONE : Phase.FINAL_STAIR;
             wolvesDefeated = false;
         }
@@ -235,6 +294,7 @@ public class SequelState extends Buff {
         investigationKnown = bundle.getBoolean(INVESTIGATION_KNOWN);
         surfaceIntroSeen = bundle.getBoolean(SURFACE_INTRO_SEEN);
         outskirtsIntroSeen = bundle.getBoolean(OUTSKIRTS_INTRO_SEEN);
+        ledgerSceneSeen = bundle.getBoolean(LEDGER_SCENE_SEEN);
 
         syncLegacyFlags();
     }
