@@ -115,7 +115,7 @@ public class LedgerAccessoryScene extends PixelScene {
             String id = ReturningHeroItemCatalog.idForClass(
                     ReturningHeroHeritage.classArtifact(LedgerFlow.draft().heroClass));
             y = fixedRow(y, rowH, "神器槽 · " + itemName(id) + " +"
-                    + ReturningHeroBuildRules.CLASS_ARTIFACT_RETURN_LEVEL);
+                    + ReturningHeroBuildRules.CLASS_ARTIFACT_RETURN_LEVEL, id);
         } else {
             y = actionRow(y, rowH, "神器槽 · " + artifactSlotStatus(loadout), new Runnable() {
                 @Override public void run() { beginTarget(0); }
@@ -189,6 +189,10 @@ public class LedgerAccessoryScene extends PixelScene {
         float rowH = Math.min(16f,
                 (right.body.height() - 2f) / Math.max(1, to - from));
         float y = right.body.top + 1f;
+        float rowX = right.body.left + 5f;
+        float rowW = right.body.width() - 10f;
+        float helpW = 13f;
+        float helpGap = 1f;
 
         for (int i = from; i < to; i++) {
             final String id = entries.get(i).id;
@@ -204,9 +208,12 @@ public class LedgerAccessoryScene extends PixelScene {
             };
             button.leftJustify = true;
             button.textColor(LedgerEnvironment.INK);
-            button.setRect(right.body.left + 5f, y,
-                    right.body.width() - 10f, rowH - 0.5f);
+            button.setRect(rowX, y, rowW - helpW - helpGap, rowH - 0.5f);
             add(button);
+
+            LedgerButton help = LedgerHelp.item(this, id);
+            help.setRect(rowX + rowW - helpW, y, helpW, rowH - 0.5f);
+            add(help);
             y += rowH;
         }
 
@@ -457,11 +464,20 @@ public class LedgerAccessoryScene extends PixelScene {
         return y + rowH;
     }
 
-    private float fixedRow(float y, float rowH, String text) {
+    private float fixedRow(float y, float rowH, String text, String itemId) {
+        float x = right.body.left + 5f;
+        float w = right.body.width() - 10f;
+        float helpW = 13f;
         RenderedTextBlock value = t(text, 5, LedgerEnvironment.INK,
-                (int) right.body.width() - 10);
-        value.setPos(right.body.left + 5f, y + 4f);
+                Math.max(20, (int) (w - helpW - 2f)));
+        value.setPos(x, y + 4f);
         add(value);
+
+        if (itemId != null) {
+            LedgerButton help = LedgerHelp.item(this, itemId);
+            help.setRect(x + w - helpW, y, helpW, rowH - 0.5f);
+            add(help);
+        }
         return y + rowH;
     }
 
