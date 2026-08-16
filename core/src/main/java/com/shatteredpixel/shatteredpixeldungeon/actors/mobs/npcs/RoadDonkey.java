@@ -6,14 +6,13 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SequelState;
-import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SurfaceEntranceLevel;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.EchoesDonkeyCartSprite;
 
-/** Farmer companion with its own embedded donkey-and-cart surface sprite. */
+/** Farmer companion staged as a wide side-view cart rather than an ordinary one-cell walker. */
 public class RoadDonkey extends NPC {
 
     {
@@ -26,7 +25,15 @@ public class RoadDonkey extends NPC {
 
         RoadFarmer farmer = findFarmer();
         if (farmer != null) {
-            if (Dungeon.level.distance(pos, farmer.pos) > 1 && getCloser(farmer.pos)) {
+            /*
+             * The current authored cart only has side-view frames. SPD's normal movement
+             * tween is fine for small actors, but visibly moving this 32px cart north/south
+             * makes it look as if the entire rig is sliding sideways. Keep its catch-up
+             * movement strictly off-screen, then let it read as parked once discovered.
+             */
+            if (!visibleToHero()
+                    && Dungeon.level.distance(pos, farmer.pos) > 1
+                    && getCloser(farmer.pos)) {
                 spend(1f / speed());
             } else {
                 spend(TICK);
@@ -40,39 +47,41 @@ public class RoadDonkey extends NPC {
             return true;
         }
 
-        int leave = SurfaceEntranceLevel.FARMER_LEAVE_X
-                + (SurfaceEntranceLevel.FARMER_LEAVE_Y + 1) * Dungeon.level.width();
-        if (pos == leave) {
+        // Never make the wide side-view cart perform a visible north/south exit animation.
+        // Once the player looks away after the farmer has departed, retire the scene actor.
+        if (!visibleToHero()) {
             destroy();
             if (sprite != null) sprite.die();
-            return true;
+        } else {
+            spend(TICK);
         }
-
-        if (getCloser(leave)) spend(1f / speed());
-        else spend(TICK);
         return true;
     }
 
+    /** The story beat is a physical startle, not a one-cell map relocation. */
     public static void storyJolt() {
         if (!(Dungeon.level instanceof SurfaceEntranceLevel)) return;
         for (Mob mob : Dungeon.level.mobs) {
             if (mob instanceof RoadDonkey) {
-                RoadDonkey donkey = (RoadDonkey)mob;
-                int target = donkey.pos + Dungeon.level.width();
-                if (target >= 0 && target < Dungeon.level.length()
-                        && Dungeon.level.passable[target] && Actor.findChar(target) == null) {
-                    int from = donkey.pos;
-                    donkey.pos = target;
-                    if (donkey.sprite != null) donkey.sprite.move(from, target);
+                RoadDonkey donkey = (RoadDonkey) mob;
+                if (donkey.sprite != null) {
+                    donkey.sprite.jump(donkey.pos, donkey.pos, 2.5f, 0.16f, null);
                 }
                 return;
             }
         }
     }
 
+    private boolean visibleToHero() {
+        return Dungeon.level.heroFOV != null
+                && pos >= 0
+                && pos < Dungeon.level.heroFOV.length
+                && Dungeon.level.heroFOV[pos];
+    }
+
     private RoadFarmer findFarmer() {
         for (Mob mob : Dungeon.level.mobs) {
-            if (mob instanceof RoadFarmer) return (RoadFarmer)mob;
+            if (mob instanceof RoadFarmer) return (RoadFarmer) mob;
         }
         return null;
     }
@@ -86,7 +95,7 @@ public class RoadDonkey extends NPC {
 
     @Override
     public boolean interact(Char c) {
-        if (c == Dungeon.hero && sprite != null) sprite.turnTo(pos, Dungeon.hero.pos);
+        // The current asset is authored in one stable side-view orientation.
         return true;
     }
 
