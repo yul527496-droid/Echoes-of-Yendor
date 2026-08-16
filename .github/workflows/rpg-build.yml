@@ -88,7 +88,7 @@ jobs:
               Name = "Daytime Farm Ambience (Pixabay 409990 mirror)"
               Url = "https://raw.githubusercontent.com/EdgeGnW/DETTAGameJam2026/b599fb66899ce89224d2218e9896d1e8e394f4c5/modules/AudioManager/daytime-farm-ambience-409990.mp3"
               Target = "core/src/main/assets/music/echoes/ch1_farm_ambience.mp3"
-              Sha256 = "DISCOVER"
+              Sha256 = "bc6ddb1b50b2082a3d29af3d5c1b6a9b554d33c0745cb0e7c15caa8f2660fe25"
             },
             @{
               Name = "Book Opening"
@@ -133,16 +133,13 @@ jobs:
             }
 
             $actual = (Get-FileHash -Path $asset.Target -Algorithm SHA256).Hash.ToLowerInvariant()
-            if ($asset.Sha256 -eq "DISCOVER") {
-              Write-Host "DISCOVERED SHA256 $($asset.Name): $actual"
-            } elseif ($actual -ne $asset.Sha256) {
+            if ($actual -ne $asset.Sha256) {
               throw "Echoes audio SHA256 mismatch for $($asset.Name). Expected $($asset.Sha256), got $actual"
-            } else {
-              Write-Host "Verified $($asset.Name): $actual"
             }
+            Write-Host "Verified $($asset.Name): $actual"
           }
 
-          Write-Host "All $($assets.Count) Echoes audio assets downloaded."
+          Write-Host "All $($assets.Count) Echoes audio assets downloaded and SHA256 verified."
 
       - name: Validate custom PNG assets
         run: python tools/validate_pngs.py
