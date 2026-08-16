@@ -4,13 +4,12 @@
  */
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
-import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
-import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.StyledButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.input.GameAction;
 import com.watabou.input.KeyBindings;
@@ -21,11 +20,7 @@ import com.watabou.utils.Callback;
 
 import java.util.ArrayList;
 
-/**
- * Bottom-anchored story dialogue stage. It keeps the current map visible,
- * gives important speakers a dedicated portrait column, and embeds choices
- * in the same scene instead of opening a second WndOptions popup.
- */
+/** Compact JRPG-style story stage with native-pixel portraits and restrained choices. */
 public class WndDialogueStage extends Window {
 
     public enum Portrait {
@@ -35,22 +30,25 @@ public class WndDialogueStage extends Window {
         FARMER_WARM,
         FARMER_CONFUSED,
         FARMER_FIXATED,
-        FARMER_SHAKEN
+        FARMER_SHAKEN,
+        INNKEEPER_NEUTRAL,
+        INNKEEPER_ATTENTIVE,
+        INNKEEPER_SERIOUS
     }
 
-    public interface ChoiceListener {
-        void onSelect(int index);
-    }
+    public interface ChoiceListener { void onSelect(int index); }
 
     private static final int MARGIN = 4;
-    private static final int PORTRAIT_W_L = 48;
-    private static final int PORTRAIT_W_P = 38;
-    private static final int OPTION_H = 13;
+    private static final int PORTRAIT_W_L = 42;
+    private static final int PORTRAIT_W_P = 36;
+    private static final int OPTION_H = 11;
+    private static final int CHOICE_TEXT = 0xDDD2BD;
+    private static final int CHOICE_ACTIVE = 0xF1D6A4;
+    private static final int CHOICE_PRESS = 0xFFF0CF;
 
     private final Callback onAdvance;
     private final ChoiceListener onChoice;
     private final boolean hasChoices;
-
     private final String fullMessage;
     private final RenderedTextBlock body;
     private final float charsPerSecond;
@@ -58,7 +56,7 @@ public class WndDialogueStage extends Window {
     private int revealedChars;
     private boolean revealComplete;
 
-    private final ArrayList<RedButton> optionButtons = new ArrayList<>();
+    private final ArrayList<DialogueChoiceButton> optionButtons = new ArrayList<>();
     private final ArrayList<String> optionLabels = new ArrayList<>();
     private int selectedOption;
 
@@ -74,25 +72,23 @@ public class WndDialogueStage extends Window {
     private WndDialogueStage(String speaker, String message, Portrait portrait,
                              Callback onAdvance, ChoiceListener onChoice, String... choices) {
         super();
-
         this.onAdvance = onAdvance;
         this.onChoice = onChoice;
         this.hasChoices = choices != null && choices.length > 0;
         this.fullMessage = message == null ? "" : message;
         this.charsPerSecond = portrait == Portrait.FARMER_FIXATED ? 22f : 34f;
 
-        shadow.am = 0.18f;
+        shadow.am = 0.16f;
 
         boolean landscape = PixelScene.landscape();
         int screenW = PixelScene.uiCamera.width;
-        int stageW = Math.min(landscape ? 236 : 129, screenW - 6);
+        int stageW = Math.min(landscape ? 204 : 124, screenW - 8);
         int portraitW = portrait == Portrait.NONE ? 0 : (landscape ? PORTRAIT_W_L : PORTRAIT_W_P);
         boolean heroRight = portrait == Portrait.HERO;
 
         int textLeft = MARGIN + (portraitW > 0 && !heroRight ? portraitW + MARGIN : 0);
         int textRight = stageW - MARGIN - (portraitW > 0 && heroRight ? portraitW + MARGIN : 0);
-        int textW = Math.max(58, textRight - textLeft);
-
+        int textW = Math.max(56, textRight - textLeft);
         float y = MARGIN;
 
         if (speaker != null && !speaker.isEmpty()) {
@@ -114,17 +110,12 @@ public class WndDialogueStage extends Window {
             for (int i = 0; i < choices.length; i++) {
                 final int index = i;
                 optionLabels.add(choices[i]);
-                RedButton option = new RedButton("", 6) {
-                    @Override
-                    protected void onClick() {
-                        if (!revealComplete) {
-                            revealAll();
-                        } else {
-                            choose(index);
-                        }
+                DialogueChoiceButton option = new DialogueChoiceButton() {
+                    @Override protected void onClick() {
+                        if (!revealComplete) revealAll();
+                        else choose(index);
                     }
                 };
-                option.multiline = true;
                 option.setRect(textLeft, y, textW, OPTION_H);
                 option.enable(false);
                 optionButtons.add(option);
@@ -133,40 +124,29 @@ public class WndDialogueStage extends Window {
             }
             refreshOptionLabels();
         } else {
-            RedButton advance = new RedButton("▼", 6) {
-                @Override
-                protected void onClick() {
-                    advance();
-                }
+            DialogueChoiceButton advance = new DialogueChoiceButton() {
+                @Override protected void onClick() { advance(); }
             };
-            advance.setRect(textRight - 18, y, 18, 12);
+            advance.text("v");
+            advance.setRect(textRight - 17, y, 17, 10);
             add(advance);
-            y += 13;
+            y += 11;
         }
 
-        int stageH = Math.max(landscape ? 58 : 72, (int)y + MARGIN);
+        int stageH = Math.max(landscape ? 52 : 66, (int)y + MARGIN);
         if (portraitW > 0) addPortrait(portrait, heroRight, stageW, stageH, portraitW);
-
         resize(stageW, stageH);
 
-        // Window is centered by default; shift this one down into a JRPG-style stage.
         int offsetY = Math.max(0, (PixelScene.uiCamera.height - stageH) / 2 - 3);
         offset(0, offsetY);
 
-        if (fullMessage.isEmpty()) {
-            revealAll();
-        } else {
-            // Layout was measured using the complete message, so revealing text never makes
-            // the stage or its buttons jump around.
-            body.text("");
-        }
+        if (fullMessage.isEmpty()) revealAll();
+        else body.text("");
     }
 
-    @Override
-    public void update() {
+    @Override public void update() {
         super.update();
         if (revealComplete) return;
-
         revealProgress += Game.elapsed * charsPerSecond;
         int target = Math.min(fullMessage.length(), (int)revealProgress);
         if (target > revealedChars) {
@@ -177,41 +157,17 @@ public class WndDialogueStage extends Window {
     }
 
     private void addPortrait(Portrait type, boolean right, int stageW, int stageH, int portraitW) {
-        Image image;
-        if (type == Portrait.HERO) {
-            image = new Image(heroSplash());
-            int crop = Math.min(image.texture.width, Math.round(image.texture.height * 0.80f));
-            int left = Math.max(0, (image.texture.width - crop) / 2);
-            int top = Math.max(0, Math.min(image.texture.height - crop,
-                    Math.round(image.texture.height * 0.03f)));
-            image.frame(left, top, crop, crop);
-        } else {
-            image = EchoesFarmerPortrait.image(type);
-        }
-
+        Image image = type == Portrait.HERO
+                ? EchoesDialoguePortraits.hero(Dungeon.hero == null ? null : Dungeon.hero.heroClass)
+                : EchoesDialoguePortraits.image(type);
         float target = Math.min(portraitW, stageH - 8);
         float scale = target / Math.max(image.width, image.height);
         image.scale.set(scale);
-
         float visualW = image.width * scale;
         float visualH = image.height * scale;
         image.x = right ? stageW - MARGIN - visualW : MARGIN;
         image.y = stageH - MARGIN - visualH;
         add(image);
-    }
-
-    private String heroSplash() {
-        if (Dungeon.hero == null || Dungeon.hero.heroClass == null) return Assets.Splashes.WARRIOR;
-        HeroClass heroClass = Dungeon.hero.heroClass;
-        switch (heroClass) {
-            case MAGE: return Assets.Splashes.MAGE;
-            case ROGUE: return Assets.Splashes.ROGUE;
-            case HUNTRESS: return Assets.Splashes.HUNTRESS;
-            case DUELIST: return Assets.Splashes.DUELIST;
-            case CLERIC: return Assets.Splashes.CLERIC;
-            case WARRIOR:
-            default: return Assets.Splashes.WARRIOR;
-        }
     }
 
     private void revealAll() {
@@ -220,24 +176,18 @@ public class WndDialogueStage extends Window {
         revealedChars = fullMessage.length();
         revealProgress = revealedChars;
         body.text(fullMessage);
-        for (RedButton option : optionButtons) option.enable(true);
+        for (DialogueChoiceButton option : optionButtons) option.enable(true);
         refreshOptionLabels();
     }
 
     private void advance() {
-        if (!revealComplete) {
-            revealAll();
-            return;
-        }
+        if (!revealComplete) { revealAll(); return; }
         hide();
         if (onAdvance != null) onAdvance.call();
     }
 
     private void choose(int index) {
-        if (!revealComplete) {
-            revealAll();
-            return;
-        }
+        if (!revealComplete) { revealAll(); return; }
         hide();
         if (onChoice != null) onChoice.onSelect(index);
     }
@@ -250,53 +200,101 @@ public class WndDialogueStage extends Window {
 
     private void refreshOptionLabels() {
         for (int i = 0; i < optionButtons.size(); i++) {
-            optionButtons.get(i).text((i == selectedOption ? "› " : "  ") + optionLabels.get(i));
+            DialogueChoiceButton button = optionButtons.get(i);
+            boolean selected = i == selectedOption;
+            button.setSelected(selected);
+            // ASCII-only marker: avoids the replacement-glyph problem seen with the old U+203A glyph.
+            button.text((selected ? "> " : "  ") + optionLabels.get(i));
         }
     }
 
-    @Override
-    public boolean onSignal(KeyEvent event) {
+    @Override public boolean onSignal(KeyEvent event) {
         if (event.pressed) {
             GameAction action = KeyBindings.getActionForKey(event);
-
             if (hasChoices) {
                 if (!revealComplete && (action == SPDAction.WAIT_OR_PICKUP
                         || action == SPDAction.TAG_ATTACK || action == SPDAction.TAG_LOOT)) {
-                    revealAll();
-                    return true;
+                    revealAll(); return true;
                 }
                 if (revealComplete) {
-                    if (action == SPDAction.N || action == SPDAction.W) {
-                        moveSelection(-1);
-                        return true;
-                    }
-                    if (action == SPDAction.S || action == SPDAction.E) {
-                        moveSelection(1);
-                        return true;
-                    }
-                    if (action == SPDAction.WAIT_OR_PICKUP
-                            || action == SPDAction.TAG_ATTACK || action == SPDAction.TAG_LOOT) {
-                        choose(selectedOption);
-                        return true;
+                    if (action == SPDAction.N || action == SPDAction.W) { moveSelection(-1); return true; }
+                    if (action == SPDAction.S || action == SPDAction.E) { moveSelection(1); return true; }
+                    if (action == SPDAction.WAIT_OR_PICKUP || action == SPDAction.TAG_ATTACK || action == SPDAction.TAG_LOOT) {
+                        choose(selectedOption); return true;
                     }
                 }
                 if (action == SPDAction.BACK) return true;
-            } else if (action == SPDAction.WAIT_OR_PICKUP
-                    || action == SPDAction.TAG_ATTACK || action == SPDAction.TAG_LOOT
-                    || action == SPDAction.WAIT) {
-                advance();
-                return true;
+            } else if (action == SPDAction.WAIT_OR_PICKUP || action == SPDAction.TAG_ATTACK
+                    || action == SPDAction.TAG_LOOT || action == SPDAction.WAIT) {
+                advance(); return true;
             }
         }
         return super.onSignal(event);
     }
 
-    @Override
-    public void onBackPressed() {
-        if (!hasChoices) {
-            advance();
-        } else if (!revealComplete) {
-            revealAll();
+    @Override public void onBackPressed() {
+        if (!hasChoices) advance();
+        else if (!revealComplete) revealAll();
+    }
+
+    private static class DialogueChoiceButton extends StyledButton {
+        private boolean selected;
+        private boolean hovered;
+
+        DialogueChoiceButton() {
+            super(Chrome.Type.GREY_BUTTON_TR, "", 6);
+            multiline = true;
+            leftJustify = true;
+            applyState();
+        }
+
+        void setSelected(boolean selected) {
+            this.selected = selected;
+            applyState();
+        }
+
+        @Override protected void onPointerHoverStart() {
+            hovered = true;
+            applyState();
+        }
+
+        @Override protected void onPointerHoverEnd() {
+            hovered = false;
+            applyState();
+        }
+
+        @Override protected void onPointerDown() {
+            super.onPointerDown();
+            bg.hardlight(0x8A4E42);
+            text.hardlight(CHOICE_PRESS);
+        }
+
+        @Override protected void onPointerUp() {
+            super.onPointerUp();
+            applyState();
+        }
+
+        @Override public void enable(boolean value) {
+            super.enable(value);
+            applyState();
+        }
+
+        private void applyState() {
+            if (bg == null || text == null) return;
+            bg.resetColor();
+            text.resetColor();
+            if (!active) {
+                bg.alpha(0.35f);
+                text.alpha(0.35f);
+                return;
+            }
+            bg.alpha(selected || hovered ? 0.90f : 0.62f);
+            if (selected || hovered) {
+                bg.hardlight(0x6F5544);
+                text.hardlight(CHOICE_ACTIVE);
+            } else {
+                text.hardlight(CHOICE_TEXT);
+            }
         }
     }
 }
