@@ -1,0 +1,1 @@
+Binary production textures follow immediately after this marker.
