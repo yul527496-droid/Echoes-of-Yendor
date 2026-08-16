@@ -16,6 +16,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.ChapterOneAudio;
 import com.shatteredpixel.shatteredpixeldungeon.SequelGame;
 import com.shatteredpixel.shatteredpixeldungeon.SequelState;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -99,7 +100,11 @@ public class FinalStairLevel extends Level {
     @Override
     public boolean activateTransition(Hero hero, LevelTransition transition) {
         if (transition.type == LevelTransition.Type.SURFACE) {
-            SequelGame.enterSurfaceEntrance();
+            ChapterOneAudio.leaveDungeonForSurface(new Runnable() {
+                @Override public void run() {
+                    SequelGame.enterSurfaceEntrance();
+                }
+            });
             return true;
         }
         if (transition.type == LevelTransition.Type.REGULAR_ENTRANCE) {
