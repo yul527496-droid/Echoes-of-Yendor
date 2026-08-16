@@ -6,6 +6,7 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.ChapterOneAudio;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SequelGame;
 import com.shatteredpixel.shatteredpixeldungeon.SequelState;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -15,6 +16,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.SurfaceVillager;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.watabou.noosa.audio.Music;
+import com.watabou.utils.Bundle;
 
 /** Compact settled farmland outside Morningcreek with a clear northbound trunk road. */
 public class MorningcreekOutskirtsLevel extends Level {
@@ -44,6 +46,8 @@ public class MorningcreekOutskirtsLevel extends Level {
     public void playLevelMusic(){
         Music.INSTANCE.play(Assets.Music.THEME_1,true);
         ChapterOneAudio.outskirtsAmbience();
+        SequelState story = SequelState.get();
+        if (story != null) story.syncObjective();
     }
 
     @Override
@@ -71,6 +75,15 @@ public class MorningcreekOutskirtsLevel extends Level {
     }
 
     @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        if (width() != WIDTH || height() != HEIGHT) {
+            create();
+            if (Dungeon.hero != null) Dungeon.hero.pos = -1;
+        }
+    }
+
+    @Override
     public void buildFlagMaps(){
         super.buildFlagMaps();
         for(int i=0;i<length();i++) if(map[i]==Terrain.WATER){ passable[i]=false; avoid[i]=true; }
@@ -78,7 +91,6 @@ public class MorningcreekOutskirtsLevel extends Level {
 
     private void paintRoad(){
         for(int i=0;i<ROAD.length-1;i++) paintLine(ROAD[i][0],ROAD[i][1],ROAD[i+1][0],ROAD[i+1][1],2,Terrain.EMPTY);
-        // Optional farm branch and orchard branch, both reconnect visually to the trunk.
         paintLine(25,30,13,29,1,Terrain.EMPTY_SP);
         paintLine(27,19,40,18,1,Terrain.EMPTY_SP);
     }
@@ -111,11 +123,9 @@ public class MorningcreekOutskirtsLevel extends Level {
     private void paintTownApproach(){
         rect(21,5,36,10,Terrain.EMPTY_SP);
         map[cell(NOTICE_X,NOTICE_Y)] = Terrain.EMPTY_DECO;
-        map[cell(25,7)] = Terrain.EMPTY_DECO; // town/inn signpost
-        // Settlement silhouettes at the north edge.
+        map[cell(25,7)] = Terrain.EMPTY_DECO;
         rect(5,2,15,6,Terrain.WALL);
         rect(37,2,47,7,Terrain.WALL);
-        // Fence lines frame farmland without forcing zig-zag traversal.
         rect(2,26,3,38,Terrain.WALL);
         rect(48,25,49,38,Terrain.WALL);
     }
