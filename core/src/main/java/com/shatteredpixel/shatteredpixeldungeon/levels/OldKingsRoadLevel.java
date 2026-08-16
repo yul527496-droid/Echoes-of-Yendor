@@ -15,6 +15,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RoadWolf;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesSurfaceTilemap;
 import com.watabou.noosa.audio.Music;
 import com.watabou.utils.Bundle;
 
@@ -64,6 +65,7 @@ public class OldKingsRoadLevel extends Level {
         paintWolfArena();
         paintBrokenWagon();
         paintSignpost();
+        installArtPassVisuals();
 
         int south = cell(SOUTH_X,SOUTH_Y);
         map[south] = Terrain.ENTRANCE;
@@ -83,7 +85,9 @@ public class OldKingsRoadLevel extends Level {
         if (width() != WIDTH || height() != HEIGHT) {
             create();
             if (Dungeon.hero != null) Dungeon.hero.pos = -1;
+            return;
         }
+        installArtPassVisuals();
     }
 
     private void paintRoad(){
@@ -131,6 +135,29 @@ public class OldKingsRoadLevel extends Level {
     private void paintSignpost(){
         rect(27,5,35,9,Terrain.EMPTY_SP);
         map[cell(31,7)] = Terrain.EMPTY_DECO;
+    }
+
+    private void installArtPassVisuals(){
+        customTiles.removeIf(tile -> tile instanceof EchoesSurfaceTilemap);
+        customWalls.removeIf(tile -> tile instanceof EchoesSurfaceTilemap);
+
+        addArtWall(EchoesSurfaceTilemap.TREE, 4, 5);
+        addArtWall(EchoesSurfaceTilemap.TREE, 47, 5);
+        addArtTile(EchoesSurfaceTilemap.SIGNPOST, 31, 7);
+        addArtTile(EchoesSurfaceTilemap.BUSH, 16, 25);
+        addArtTile(EchoesSurfaceTilemap.BUSH, 39, 17);
+    }
+
+    private void addArtTile(int kind,int x,int y){
+        EchoesSurfaceTilemap art = new EchoesSurfaceTilemap(kind);
+        art.pos(x,y);
+        customTiles.add(art);
+    }
+
+    private void addArtWall(int kind,int x,int y){
+        EchoesSurfaceTilemap art = new EchoesSurfaceTilemap(kind);
+        art.pos(x,y);
+        customWalls.add(art);
     }
 
     private void paintLine(int x1,int y1,int x2,int y2,int radius,int terrain){
