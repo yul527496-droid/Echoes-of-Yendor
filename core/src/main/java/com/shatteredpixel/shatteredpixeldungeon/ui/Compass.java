@@ -22,6 +22,12 @@
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekMainStreetLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekOutskirtsLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.OldCrowInnLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.OldKingsRoadLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.SurfaceEntranceLevel;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.watabou.noosa.Camera;
 import com.watabou.noosa.Image;
@@ -39,7 +45,7 @@ public class Compass extends Image {
 	private PointF lastScroll = new PointF();
 	
 	public Compass( int cell ) {
-		this(cell, false);
+		this(surfaceTargetOr(cell), isSurfaceStoryLevel());
 	}
 
 	/**
@@ -56,6 +62,40 @@ public class Compass extends Image {
 		this.directionHint = directionHint;
 		cellCenter = cell >= 0 ? DungeonTilemap.tileCenterToWorld( cell ) : new PointF();
 		visible = false;
+	}
+
+	private static boolean isSurfaceStoryLevel() {
+		Level level = Dungeon.level;
+		return level instanceof SurfaceEntranceLevel
+				|| level instanceof OldKingsRoadLevel
+				|| level instanceof MorningcreekOutskirtsLevel
+				|| level instanceof MorningcreekMainStreetLevel
+				|| level instanceof OldCrowInnLevel;
+	}
+
+	private static int surfaceTargetOr(int fallback) {
+		Level level = Dungeon.level;
+		if (level instanceof SurfaceEntranceLevel) {
+			SurfaceEntranceLevel surface = (SurfaceEntranceLevel) level;
+			return surface.cell(SurfaceEntranceLevel.NORTH_X, SurfaceEntranceLevel.NORTH_Y);
+		}
+		if (level instanceof OldKingsRoadLevel) {
+			OldKingsRoadLevel road = (OldKingsRoadLevel) level;
+			return road.cell(OldKingsRoadLevel.NORTH_X, OldKingsRoadLevel.NORTH_Y);
+		}
+		if (level instanceof MorningcreekOutskirtsLevel) {
+			MorningcreekOutskirtsLevel outskirts = (MorningcreekOutskirtsLevel) level;
+			return outskirts.cell(MorningcreekOutskirtsLevel.NORTH_X, MorningcreekOutskirtsLevel.NORTH_Y);
+		}
+		if (level instanceof MorningcreekMainStreetLevel) {
+			MorningcreekMainStreetLevel town = (MorningcreekMainStreetLevel) level;
+			return town.cell(MorningcreekMainStreetLevel.INN_X, MorningcreekMainStreetLevel.INN_Y);
+		}
+		if (level instanceof OldCrowInnLevel) {
+			OldCrowInnLevel inn = (OldCrowInnLevel) level;
+			return inn.cell(OldCrowInnLevel.LEDGER_X, OldCrowInnLevel.LEDGER_Y);
+		}
+		return fallback;
 	}
 	
 	@Override
