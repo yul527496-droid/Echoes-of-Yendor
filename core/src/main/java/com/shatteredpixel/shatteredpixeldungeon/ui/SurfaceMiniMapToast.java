@@ -23,12 +23,16 @@ import java.util.ArrayList;
  * Fixed-north graphical knowledge-only minimap.
  * Unknown cells are never rendered. Unknown/off-screen objectives are direction hints,
  * never precise GPS markers. Clicking/tapping the map opens the expanded region map.
- * HUD zoom is independent from Region Map zoom and is persisted between sessions.
+ * HUD scale is independent from Region Map zoom and is persisted between sessions.
+ *
+ * The HUD panel itself keeps a stable footprint. Scale changes alter how much world space
+ * is visible inside that footprint instead of physically growing/shrinking the widget.
  */
 public class SurfaceMiniMapToast extends Toast {
 
     private static final String PIXEL = "interfaces/echoes/minimap_pixel.png";
-    private static final int RX = 5, RY = 3, COLS = RX * 2 + 1, ROWS = RY * 2 + 1;
+    private static final float DESKTOP_MAP_W = 66f;
+    private static final float DESKTOP_MAP_H = 42f;
     private static final int HERO = 0xF2D36B, WATER = 0x4B93A0, WALL = 0x3E5940,
             ROAD = 0xA78B62, GRASS = 0x6F9954, EXIT = 0xE7D9A0, TARGET = 0xD64D9C;
 
@@ -38,18 +42,29 @@ public class SurfaceMiniMapToast extends Toast {
     private final ArrayList<Image> pixels = new ArrayList<>();
     private final ArrayList<Point> offsets = new ArrayList<>();
     private final int hudZoom;
-    private final int cell;
+    private final int viewRX;
+    private final int viewRY;
+    private final float mapWidth;
+    private final float mapHeight;
+    private final float cell;
     private Button expand;
     private RedButton zoomButton;
 
     private SurfaceMiniMapToast() {
         super(headerText());
         hudZoom = RegionMapSettings.hudZoom();
-        cell = cellSize(hudZoom);
+        viewRX = radiusX(hudZoom);
+        viewRY = radiusY(hudZoom);
+
+        // Stable per-device footprint. Zoom only changes the world area represented inside it.
+        mapWidth = Math.min(DESKTOP_MAP_W, Math.max(44f, PixelScene.uiCamera.width - 16f));
+        mapHeight = mapWidth * DESKTOP_MAP_H / DESKTOP_MAP_W;
+        cell = Math.min(mapWidth / (viewRX * 2 + 1), mapHeight / (viewRY * 2 + 1));
+
         close.visible = false;
         close.active = false;
-        width = COLS * cell + 8;
-        height = ROWS * cell + 22;
+        width = mapWidth + 8;
+        height = mapHeight + 22;
         buildPixels();
 
         expand = new Button() {
@@ -101,11 +116,20 @@ public class SurfaceMiniMapToast extends Toast {
         }
     }
 
-    private static int cellSize(int level) {
-        int requested = level == 1 ? 4 : level == 2 ? 6 : 8;
-        // Preserve the larger desktop presentation without overflowing narrow portrait UI cameras.
-        int responsiveMax = Math.max(3, (PixelScene.uiCamera.width - 24) / COLS);
-        return Math.min(requested, responsiveMax);
+    /**
+     * 1x is the widest contextual view, 1.5x is the default, and 2x is the closest detail view.
+     * All three occupy the same HUD footprint.
+     */
+    private static int radiusX(int level) {
+        if (level <= 1) return 11; // 23 cells wide
+        if (level == 2) return 7;  // 15 cells wide
+        return 5;                  // 11 cells wide
+    }
+
+    private static int radiusY(int level) {
+        if (level <= 1) return 7; // 15 cells tall
+        if (level == 2) return 4; // 9 cells tall
+        return 3;                 // 7 cells tall
     }
 
     private static String zoomLabel(int level) {
@@ -121,10 +145,10 @@ public class SurfaceMiniMapToast extends Toast {
         int objective = objectiveCell(level);
         boolean objectiveKnown = exactLocationKnown(level, objective);
 
-        for (int gy = 0; gy < ROWS; gy++) {
-            int y = hy - RY + gy;
-            for (int gx = 0; gx < COLS; gx++) {
-                int x = hx - RX + gx;
+        for (int dy = -viewRY; dy <= viewRY; dy++) {
+            int y = hy + dy;
+            for (int dx = -viewRX; dx <= viewRX; dx++) {
+                int x = hx + dx;
                 if (x < 0 || y < 0 || x >= w || y >= h) continue;
                 int cellIndex = x + y * w;
                 boolean fov = known(level.heroFOV, cellIndex);
@@ -147,7 +171,7 @@ public class SurfaceMiniMapToast extends Toast {
                 if (!fov && cellIndex != Dungeon.hero.pos) px.alpha(visited ? 0.68f : 0.42f);
                 px.scale.set(cell, cell);
                 pixels.add(px);
-                offsets.add(new Point(gx, gy));
+                offsets.add(new Point(dx, dy));
                 add(px);
             }
         }
@@ -162,7 +186,9 @@ public class SurfaceMiniMapToast extends Toast {
         int w = level.width();
         int hx = Dungeon.hero.pos % w, hy = Dungeon.hero.pos / w;
         int tx = objective % w, ty = objective / w;
-        boolean inLocalWindow = Math.abs(tx - hx) <= RX && Math.abs(ty - hy) <= RY;
+        int rx = radiusX(RegionMapSettings.hudZoom());
+        int ry = radiusY(RegionMapSettings.hudZoom());
+        boolean inLocalWindow = Math.abs(tx - hx) <= rx && Math.abs(ty - hy) <= ry;
         if (inLocalWindow && exactLocationKnown(level, objective)) return "N↑";
 
         String arrow = directionArrow(hx, hy, tx, ty);
@@ -206,10 +232,12 @@ public class SurfaceMiniMapToast extends Toast {
     private static String signature() {
         Level level = Dungeon.level;
         int w = level.width(), h = level.height(), hx = Dungeon.hero.pos % w, hy = Dungeon.hero.pos / w;
+        int zoom = RegionMapSettings.hudZoom();
+        int rx = radiusX(zoom), ry = radiusY(zoom);
         StringBuilder s = new StringBuilder().append(Dungeon.hero.pos)
-                .append(":z").append(RegionMapSettings.hudZoom()).append(':');
-        for (int y = hy - RY; y <= hy + RY; y++) {
-            for (int x = hx - RX; x <= hx + RX; x++) {
+                .append(":z").append(zoom).append(':');
+        for (int y = hy - ry; y <= hy + ry; y++) {
+            for (int x = hx - rx; x <= hx + rx; x++) {
                 if (x < 0 || y < 0 || x >= w || y >= h) {
                     s.append('x');
                     continue;
@@ -231,10 +259,15 @@ public class SurfaceMiniMapToast extends Toast {
         bg.y = y;
         bg.size(width, height);
         text.setPos(x + 4, y + 2);
+
+        float gridWidth = (viewRX * 2 + 1) * cell;
+        float gridHeight = (viewRY * 2 + 1) * cell;
+        float mapLeft = x + 4 + (mapWidth - gridWidth) / 2f;
+        float mapTop = y + 10 + (mapHeight - gridHeight) / 2f;
         for (int i = 0; i < pixels.size(); i++) {
             Point p = offsets.get(i);
-            pixels.get(i).x = x + 4 + p.x * cell;
-            pixels.get(i).y = y + 10 + p.y * cell;
+            pixels.get(i).x = mapLeft + (p.x + viewRX) * cell;
+            pixels.get(i).y = mapTop + (p.y + viewRY) * cell;
         }
         if (expand != null) expand.setRect(x, y + 9, width, Math.max(1, height - 20));
         if (zoomButton != null) zoomButton.setRect(x + width - 30, y + height - 10, 28, 8);
