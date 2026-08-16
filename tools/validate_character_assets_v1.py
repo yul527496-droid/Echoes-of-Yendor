@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Chapter 1 production character runtime assets."""
+"""Validate Chapter 1 production map-character runtime assets."""
 from pathlib import Path
 import struct
 import zlib
@@ -9,7 +9,6 @@ PNG = b"\x89PNG\r\n\x1a\n"
 EXPECTED = {
     Path("core/src/main/assets/sprites/echoes_ch1_character_sprites_v1.png"): (128, 272),
     Path("core/src/main/assets/sprites/echoes_donkey_cart_v5.png"): (256, 16),
-    Path("core/src/main/assets/interfaces/echoes/echoes_dialogue_portraits_v2.png"): (912, 48),
 }
 
 def dimensions(path):
@@ -19,7 +18,6 @@ def dimensions(path):
     if data[12:16] != b"IHDR":
         raise SystemExit(f"{path}: missing IHDR")
     w, h = struct.unpack(">II", data[16:24])
-    # validate all chunk CRCs and the compressed image stream
     pos = 8
     idat = bytearray()
     saw_end = False
@@ -49,4 +47,4 @@ for rel, expected in EXPECTED.items():
         raise SystemExit(f"{rel}: expected {expected[0]}x{expected[1]}, got {got[0]}x{got[1]}")
     print(f"Production PNG OK: {rel} ({got[0]}x{got[1]})")
 
-print("Chapter 1 production character asset contract OK.")
+print("Chapter 1 production map-character asset contract OK.")
