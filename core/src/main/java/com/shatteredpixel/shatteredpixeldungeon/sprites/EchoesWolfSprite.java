@@ -2,11 +2,13 @@ package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.watabou.noosa.TextureFilm;
 
-/** Dedicated ordinary grey-wolf map sprite for the Old King's Road encounter. */
+/** File-backed ordinary grey wolf for the Old King's Road encounter. */
 public class EchoesWolfSprite extends MobSprite {
+    private static final String TEXTURE = "sprites/echoes_wolf_v1.png";
+
     public EchoesWolfSprite() {
         super();
-        texture(EchoesSurfaceSpriteArt.sheet(EchoesSurfaceSpriteArt.Kind.WOLF));
+        texture(TEXTURE);
         TextureFilm frames = new TextureFilm(texture, 16, 16);
         idle = new Animation(4, true); idle.frames(frames, 0, 1);
         run = new Animation(9, true); run.frames(frames, 1, 2);
