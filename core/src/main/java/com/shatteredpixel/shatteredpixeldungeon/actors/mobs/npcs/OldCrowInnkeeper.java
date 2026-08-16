@@ -7,6 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.EchoesInnkeeperSprite;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndDialogueStage;
+import com.watabou.noosa.Game;
 
 /** First named Morningcreek resident with dedicated sprite and dialogue portrait. */
 public class OldCrowInnkeeper extends NPC {
@@ -23,11 +24,19 @@ public class OldCrowInnkeeper extends NPC {
     @Override public boolean interact(Char c) {
         if (c == Dungeon.hero) {
             if (sprite != null) sprite.turnTo(pos, Dungeon.hero.pos);
-            GameScene.show(new WndDialogueStage(
-                    "老鸦旅店老板娘",
-                    "坐吧。你从南边那条旧路来，对吗？\n先喘口气。等你准备好，我给你看一本东西。",
-                    WndDialogueStage.Portrait.INNKEEPER_ATTENTIVE,
-                    () -> {}));
+
+            // NPC interaction is processed on SHPD's actor thread. Constructing a dialogue
+            // window there triggers RenderedText.measure's actor-thread guard. Mirror SPD's
+            // own named-NPC pattern (e.g. Blacksmith): queue all UI construction back onto
+            // libGDX's render thread before creating any RenderedText/Window objects.
+            Game.runOnRenderThread(() -> {
+                if (Dungeon.hero == null || Dungeon.level == null) return;
+                GameScene.show(new WndDialogueStage(
+                        "老鸦旅店老板娘",
+                        "坐吧。你从南边那条旧路来，对吗？\n先喘口气。等你准备好，我给你看一本东西。",
+                        WndDialogueStage.Portrait.INNKEEPER_ATTENTIVE,
+                        () -> {}));
+            });
         }
         return true;
     }
