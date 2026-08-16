@@ -17,6 +17,7 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.SequelGame;
+import com.shatteredpixel.shatteredpixeldungeon.SequelState;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -53,13 +54,14 @@ public class FinalStairLevel extends Level {
     @Override
     public void playLevelMusic() {
         Music.INSTANCE.play(Assets.Music.THEME_FINALE, true);
+        SequelState story = SequelState.get();
+        if (story != null) story.syncObjective();
     }
 
     @Override
     protected boolean build() {
         setSize(WIDTH, HEIGHT);
 
-        // A small fixed route: final chamber -> narrow climb -> surface stair.
         carve(3, 13, 9, 16);
         carve(5, 8, 7, 13);
         carve(4, 5, 8, 8);
@@ -74,7 +76,6 @@ public class FinalStairLevel extends Level {
         map[surface] = Terrain.ENTRANCE;
         transitions.add(new LevelTransition(this, surface, LevelTransition.Type.SURFACE));
 
-        // A few fixed damp patches keep the room from feeling like a blank test box.
         map[cell(3, 15)] = Terrain.WATER;
         map[cell(9, 14)] = Terrain.WATER;
         map[cell(4, 7)] = Terrain.EMPTY_DECO;
@@ -101,7 +102,6 @@ public class FinalStairLevel extends Level {
             SequelGame.enterSurfaceEntrance();
             return true;
         }
-        // The sequel begins after the old adventure; there is no need to walk back down.
         if (transition.type == LevelTransition.Type.REGULAR_ENTRANCE) {
             return false;
         }
