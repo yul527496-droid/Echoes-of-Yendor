@@ -3,6 +3,7 @@ package com.shatteredpixel.shatteredpixeldungeon.scenes;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.LedgerFlow;
 import com.shatteredpixel.shatteredpixeldungeon.ReturningHeroBuildValidator;
+import com.shatteredpixel.shatteredpixeldungeon.ReturningHeroBuiltInPresets;
 import com.shatteredpixel.shatteredpixeldungeon.ReturningHeroPreset;
 import com.shatteredpixel.shatteredpixeldungeon.ReturningHeroPresetSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
@@ -219,6 +220,12 @@ public class LedgerHeroScene extends PixelScene {
 
         final ArrayList<ReturningHeroPreset> presets = new ArrayList<>();
         final ArrayList<String> labels = new ArrayList<>();
+
+        for (ReturningHeroPreset preset : ReturningHeroBuiltInPresets.forClass(selected)) {
+            presets.add(preset);
+            labels.add(preset.presetName + " · 已填专精 / 装备 / 四阶天赋");
+        }
+
         labels.add("自定义 · 逐栏填写天赋与装备");
         presets.add(null);
 
@@ -226,12 +233,13 @@ public class LedgerHeroScene extends PixelScene {
             ReturningHeroPreset preset = ReturningHeroPresetSettings.load(i);
             if (preset == null || preset.heroClass != selected) continue;
             presets.add(preset);
-            labels.add(preset.presetName + (preset.needsRulesetReview() ? "  [需核对]" : ""));
+            labels.add("我的预设 · " + preset.presetName
+                    + (preset.needsRulesetReview() ? "  [需核对]" : ""));
         }
 
         LedgerHeroScene.this.add(new WndOptions(
                 Messages.titleCase(selected.title()) + " · 完整构筑预设",
-                "预设会一次写入专精、英雄战技、装备与四阶天赋；之后仍可逐栏修改。",
+                "内建预设会一次填好专精、英雄战技、装备与四阶天赋；之后仍可逐栏修改。",
                 labels.toArray(new String[0])) {
             @Override protected void onSelect(int index) {
                 ReturningHeroPreset preset = presets.get(index);
