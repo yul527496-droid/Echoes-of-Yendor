@@ -6,6 +6,7 @@ PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 FILES = [
     Path("core/src/main/assets/environment/tiles_surface.png"),
     Path("core/src/main/assets/environment/water_surface.png"),
+    Path("core/src/main/assets/environment/custom_tiles/echoes_surface_art_v2.png"),
     Path("core/src/main/assets/interfaces/echoes/ledger_open.png"),
     Path("core/src/main/assets/interfaces/echoes/ledger_closed.png"),
     Path("core/src/main/assets/environment/custom_tiles/training_dungeon_entrance.png"),
