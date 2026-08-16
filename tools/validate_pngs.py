@@ -11,6 +11,7 @@ PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 subprocess.run([sys.executable, "tools/generate_surface_vertical_slice.py"], check=True)
 subprocess.run([sys.executable, "tools/generate_surface_characters_v2.py"], check=True)
 subprocess.run([sys.executable, "tools/generate_farmer_v3.py"], check=True)
+subprocess.run([sys.executable, "tools/generate_story_art_v1.py"], check=True)
 
 FILES = [
     Path("core/src/main/assets/environment/tiles_surface.png"),
@@ -29,13 +30,14 @@ FILES = [
     Path("core/src/main/assets/environment/echoes/ch1_surface/bridge.png"),
     Path("core/src/main/assets/environment/echoes/ch1_surface/camp_ruin.png"),
     Path("core/src/main/assets/interfaces/echoes/minimap_pixel.png"),
+    Path("core/src/main/assets/interfaces/echoes/echoes_dialogue_portraits_v1.png"),
+    Path("core/src/main/assets/sprites/echoes_innkeeper_v1.png"),
     Path("core/src/main/assets/sprites/echoes_farmer_v3.png"),
     Path("core/src/main/assets/sprites/echoes_farmer_v2.png"),
     Path("core/src/main/assets/sprites/echoes_donkey_cart_v2.png"),
     Path("core/src/main/assets/sprites/echoes_bird_v2.png"),
     Path("core/src/main/assets/sprites/echoes_wolf_v2.png"),
     Path("core/src/main/assets/sprites/surface_villagers_v3.png"),
-    # Keep validating old prototype sheets while they remain in the repository.
     Path("core/src/main/assets/sprites/surface_villagers.png"),
     Path("core/src/main/assets/sprites/surface_villagers_v2.png"),
     Path("core/src/main/assets/sprites/echoes_farmer_v1.png"),
@@ -57,6 +59,8 @@ EXPECTED_DIMENSIONS = {
     Path("core/src/main/assets/environment/echoes/ch1_surface/river.png"): (128, 32),
     Path("core/src/main/assets/environment/echoes/ch1_surface/bridge.png"): (64, 48),
     Path("core/src/main/assets/environment/echoes/ch1_surface/camp_ruin.png"): (192, 64),
+    Path("core/src/main/assets/interfaces/echoes/echoes_dialogue_portraits_v1.png"): (672, 48),
+    Path("core/src/main/assets/sprites/echoes_innkeeper_v1.png"): (64, 16),
     Path("core/src/main/assets/sprites/echoes_farmer_v3.png"): (128, 16),
     Path("core/src/main/assets/sprites/echoes_farmer_v2.png"): (64, 16),
     Path("core/src/main/assets/sprites/echoes_donkey_cart_v2.png"): (128, 16),
@@ -124,4 +128,5 @@ for file_path in FILES:
     validate_png(file_path)
 
 print("Surface art scale contract OK: environment packs remain integer multiples of SPD's 16px grid.")
-print("Character scale contract OK: Farmer v3 uses eight native 16x16 frames; bird/wolf/villagers remain 16px-frame prototypes; donkey-cart remains an authored 32x16 wide frame.")
+print("Character art contract OK: Farmer v3 and Old Crow innkeeper are native 16px-frame sheets.")
+print("Dialogue portrait contract OK: 14 native 48x48 portraits are packed into a 672x48 nearest-neighbor atlas.")
