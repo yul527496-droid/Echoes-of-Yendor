@@ -6,10 +6,10 @@ import zlib
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
-# Production Surface Entrance art is source-generated before validation. This keeps the
-# checked-in source editable text rather than an opaque embedded/base64 PNG while still
-# guaranteeing that every CI build receives the exact runtime assets.
+# Production art is source-generated before validation. This keeps checked-in source
+# editable text rather than opaque binary blobs while guaranteeing deterministic CI assets.
 subprocess.run([sys.executable, "tools/generate_surface_vertical_slice.py"], check=True)
+subprocess.run([sys.executable, "tools/generate_surface_characters_v2.py"], check=True)
 
 FILES = [
     Path("core/src/main/assets/environment/tiles_surface.png"),
@@ -28,6 +28,12 @@ FILES = [
     Path("core/src/main/assets/environment/echoes/ch1_surface/bridge.png"),
     Path("core/src/main/assets/environment/echoes/ch1_surface/camp_ruin.png"),
     Path("core/src/main/assets/interfaces/echoes/minimap_pixel.png"),
+    Path("core/src/main/assets/sprites/echoes_farmer_v2.png"),
+    Path("core/src/main/assets/sprites/echoes_donkey_cart_v2.png"),
+    Path("core/src/main/assets/sprites/echoes_bird_v2.png"),
+    Path("core/src/main/assets/sprites/echoes_wolf_v2.png"),
+    Path("core/src/main/assets/sprites/surface_villagers_v3.png"),
+    # Keep validating old prototype sheets while they remain in the repository.
     Path("core/src/main/assets/sprites/surface_villagers.png"),
     Path("core/src/main/assets/sprites/surface_villagers_v2.png"),
     Path("core/src/main/assets/sprites/echoes_farmer_v1.png"),
@@ -49,11 +55,11 @@ EXPECTED_DIMENSIONS = {
     Path("core/src/main/assets/environment/echoes/ch1_surface/river.png"): (128, 32),
     Path("core/src/main/assets/environment/echoes/ch1_surface/bridge.png"): (64, 48),
     Path("core/src/main/assets/environment/echoes/ch1_surface/camp_ruin.png"): (192, 64),
-    Path("core/src/main/assets/sprites/echoes_farmer_v1.png"): (64, 16),
-    Path("core/src/main/assets/sprites/echoes_donkey_cart_v1.png"): (128, 16),
-    Path("core/src/main/assets/sprites/echoes_bird_v1.png"): (64, 16),
-    Path("core/src/main/assets/sprites/echoes_wolf_v1.png"): (64, 16),
-    Path("core/src/main/assets/sprites/surface_villagers_v2.png"): (256, 16),
+    Path("core/src/main/assets/sprites/echoes_farmer_v2.png"): (64, 16),
+    Path("core/src/main/assets/sprites/echoes_donkey_cart_v2.png"): (128, 16),
+    Path("core/src/main/assets/sprites/echoes_bird_v2.png"): (64, 16),
+    Path("core/src/main/assets/sprites/echoes_wolf_v2.png"): (64, 16),
+    Path("core/src/main/assets/sprites/surface_villagers_v3.png"): (256, 16),
 }
 
 
@@ -112,4 +118,4 @@ for file_path in FILES:
     validate_png(file_path)
 
 print("Surface art scale contract OK: environment packs remain integer multiples of SPD's 16px grid.")
-print("Character scale contract OK: farmer/bird/wolf/villagers use 16px frames; donkey-cart uses authored 32x16 wide frames.")
+print("Character scale contract OK: production farmer/bird/wolf/villagers use 16px frames; donkey-cart uses authored 32x16 wide frames.")
