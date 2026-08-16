@@ -4,16 +4,16 @@ package com.shatteredpixel.shatteredpixeldungeon.sprites;
 import com.watabou.noosa.TextureFilm;
 import com.watabou.utils.Random;
 
-/** Four compact civilian silhouettes authored to sit beside SPD's 14x14 NPC scale. */
+/** Eight 16px civilian silhouettes authored around SPD's human NPC scale. */
 public class SurfaceVillagerSprite extends MobSprite {
 
-    private static final String TEXTURE = "sprites/surface_villagers.png";
+    private static final String TEXTURE = "sprites/surface_villagers_v2.png";
 
     public SurfaceVillagerSprite() {
         super();
         texture(TEXTURE);
-        TextureFilm film = new TextureFilm(texture, 14, 14);
-        int first = Random.Int(4) * 2;
+        TextureFilm film = new TextureFilm(texture, 16, 16);
+        int first = Random.Int(8) * 2;
 
         idle = new Animation(3, true);
         idle.frames(film, first, first, first + 1, first, first);
