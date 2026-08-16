@@ -10,15 +10,18 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.SurfaceVillagerSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.Random;
 
 /** Lightweight ambient resident: one map line, no formal Dialogue Stage. */
 public class SurfaceVillager extends NPC {
 
     private static final String DISPLAY_NAME = "display_name";
     private static final String LINE = "line";
+    private static final String ART_VARIANT = "art_variant";
 
     private String displayName = "晨溪居民";
     private String line = "下午好。";
+    private int artVariant = Random.Int(8);
 
     {
         spriteClass = SurfaceVillagerSprite.class;
@@ -30,6 +33,16 @@ public class SurfaceVillager extends NPC {
     public SurfaceVillager(String displayName, String line) {
         this.displayName = displayName;
         this.line = line;
+    }
+
+    public SurfaceVillager(String displayName, String line, int artVariant) {
+        this.displayName = displayName;
+        this.line = line;
+        this.artVariant = Math.max(0, Math.min(7, artVariant));
+    }
+
+    public int artVariant() {
+        return artVariant;
     }
 
     @Override
@@ -59,6 +72,7 @@ public class SurfaceVillager extends NPC {
         super.storeInBundle(bundle);
         bundle.put(DISPLAY_NAME, displayName);
         bundle.put(LINE, line);
+        bundle.put(ART_VARIANT, artVariant);
     }
 
     @Override
@@ -66,6 +80,7 @@ public class SurfaceVillager extends NPC {
         super.restoreFromBundle(bundle);
         displayName = bundle.getString(DISPLAY_NAME);
         line = bundle.getString(LINE);
+        artVariant = Math.max(0, Math.min(7, bundle.getInt(ART_VARIANT)));
         if (displayName == null || displayName.isEmpty()) displayName = "晨溪居民";
         if (line == null || line.isEmpty()) line = "下午好。";
     }
