@@ -6,6 +6,7 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.ChapterOneAudio;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SequelGame;
 import com.shatteredpixel.shatteredpixeldungeon.SequelState;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -15,6 +16,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RoadWolf;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.watabou.noosa.audio.Music;
+import com.watabou.utils.Bundle;
 
 /** Compact old road: human-made ruins, shrine, wagon and one readable wolf clearing. */
 public class OldKingsRoadLevel extends Level {
@@ -47,6 +49,8 @@ public class OldKingsRoadLevel extends Level {
     public void playLevelMusic(){
         Music.INSTANCE.play(Assets.Music.THEME_1,true);
         ChapterOneAudio.oldRoadAmbience();
+        SequelState story = SequelState.get();
+        if (story != null) story.syncObjective();
     }
 
     @Override
@@ -73,11 +77,18 @@ public class OldKingsRoadLevel extends Level {
         return true;
     }
 
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        if (width() != WIDTH || height() != HEIGHT) {
+            create();
+            if (Dungeon.hero != null) Dungeon.hero.pos = -1;
+        }
+    }
+
     private void paintRoad(){
         for(int i=0;i<ROAD.length-1;i++) paintLine(ROAD[i][0],ROAD[i][1],ROAD[i+1][0],ROAD[i+1][1],2,Terrain.EMPTY);
-        // Short shrine detour: visible from the trunk and only a few seconds away.
         paintLine(25,29,14,27,1,Terrain.EMPTY_SP);
-        // Wagon detour reconnects quickly instead of becoming a second maze.
         paintLine(34,15,40,13,1,Terrain.EMPTY_SP);
     }
 
