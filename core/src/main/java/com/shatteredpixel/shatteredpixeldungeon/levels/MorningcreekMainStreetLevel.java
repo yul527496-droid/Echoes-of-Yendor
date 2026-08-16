@@ -35,6 +35,8 @@ public class MorningcreekMainStreetLevel extends Level {
     public void playLevelMusic() {
         Music.INSTANCE.play(Assets.Music.THEME_1, true);
         ChapterOneAudio.outskirtsAmbience();
+        SequelState story = SequelState.get();
+        if (story != null) story.syncObjective();
     }
 
     @Override
@@ -42,25 +44,21 @@ public class MorningcreekMainStreetLevel extends Level {
         setSize(WIDTH, HEIGHT);
         for (int y = 1; y < HEIGHT-1; y++) for (int x = 1; x < WIDTH-1; x++) map[cell(x,y)] = Terrain.GRASS;
 
-        // A straight, readable civic spine. Short side spaces are optional, never required zig-zags.
         rect(22, 1, 30, 36, Terrain.EMPTY);
-        rect(18, 17, 34, 24, Terrain.EMPTY_SP); // well square
+        rect(18, 17, 34, 24, Terrain.EMPTY_SP);
         rect(24, 19, 28, 22, Terrain.WATER);
-        map[cell(26,20)] = Terrain.EMPTY_DECO; // well lip / landmark
+        map[cell(26,20)] = Terrain.EMPTY_DECO;
 
-        // West/east building masses create a recognizable town street.
-        building(4, 6, 17, 14, 15, 13);   // smithy
-        building(34, 7, 47, 15, 36, 14);  // general shop
-        building(5, 23, 18, 32, 16, 24);  // homes
-        building(33, 24, 47, 33, 35, 25); // homes
+        building(4, 6, 17, 14, 15, 13);
+        building(34, 7, 47, 15, 36, 14);
+        building(5, 23, 18, 32, 16, 24);
+        building(33, 24, 47, 33, 35, 25);
 
-        // Old Crow Inn dominates the north end; its actual transition is the visible front door.
         rect(15, 2, 37, 8, Terrain.WALL);
         rect(18, 5, 34, 8, Terrain.EMPTY_SP);
         map[cell(INN_X,INN_Y)] = Terrain.EMPTY;
-        map[cell(30,9)] = Terrain.EMPTY_DECO; // raven sign
+        map[cell(30,9)] = Terrain.EMPTY_DECO;
 
-        // Street signs / notice clutter make navigation legible.
         map[cell(20,31)] = Terrain.EMPTY_DECO;
         map[cell(31,18)] = Terrain.EMPTY_DECO;
         map[cell(20,10)] = Terrain.EMPTY_DECO;
