@@ -7,15 +7,10 @@ package com.shatteredpixel.shatteredpixeldungeon;
 import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
 
-/**
- * Chapter-one audio facade.
- *
- * The first playable demo deliberately stays on Shattered's already-loaded audio
- * bank so the story slice can ship as one reproducible source commit. Reviewed
- * Chapter 1 field recordings remain source candidates and can replace these cues
- * without changing story or map code.
- */
+/** Chapter-one audio facade. */
 public final class ChapterOneAudio {
+
+    private static final String FARM_AMBIENCE = "music/echoes/ch1_farm_ambience.mp3";
 
     private static boolean bgmDucked;
     private static boolean appPaused;
@@ -24,7 +19,7 @@ public final class ChapterOneAudio {
     }
 
     public static void preload() {
-        // Assets.Sounds.all is already loaded by ShatteredPixelDungeon.create().
+        // Music is streamed by libGDX when each surface area is entered.
     }
 
     public static void surfaceAmbience() {
@@ -35,12 +30,14 @@ public final class ChapterOneAudio {
         restoreBgm();
     }
 
+    /** The first audited Chapter 1 field recording that is wired into real playback. */
     public static void outskirtsAmbience() {
         restoreBgm();
+        Music.INSTANCE.play(FARM_AMBIENCE, true);
     }
 
     public static void updateStreamDistance(int distance) {
-        // Spatial stream ambience is reserved for the reviewed Chapter 1 asset pass.
+        // Stream-distance playback still waits for the audited stream source binary.
     }
 
     public static void syncSettings() {
@@ -74,7 +71,7 @@ public final class ChapterOneAudio {
     }
 
     public static void playRaven() {
-        // Intentionally quiet in the demo rather than using an unrelated monster cue.
+        // Do not substitute an unrelated stock monster cue.
     }
 
     public static void playWolfWarning() {
