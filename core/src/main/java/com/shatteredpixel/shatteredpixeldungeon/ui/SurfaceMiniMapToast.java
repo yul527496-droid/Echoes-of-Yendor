@@ -4,6 +4,7 @@ package com.shatteredpixel.shatteredpixeldungeon.ui;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.watabou.noosa.Game;
 
@@ -23,9 +24,17 @@ public class SurfaceMiniMapToast extends Toast {
     }
 
     public static void sync() {
-        if (Dungeon.level == null || Dungeon.hero == null || Game.scene() == null) return;
+        if (!(Game.scene() instanceof GameScene)
+                || Dungeon.level == null
+                || Dungeon.hero == null) return;
+
         String text = buildLocalMap();
-        if (text.equals(lastMap) && instance != null) return;
+        if (text.equals(lastMap)
+                && instance != null
+                && instance.exists
+                && instance.parent == Game.scene()) {
+            return;
+        }
         lastMap = text;
 
         if (instance != null) {
@@ -37,7 +46,7 @@ public class SurfaceMiniMapToast extends Toast {
         instance.camera = PixelScene.uiCamera;
         instance.setPos(
                 Math.max(1, PixelScene.uiCamera.width - instance.width() - 2),
-                22
+                40
         );
         PixelScene.align(instance);
         Game.scene().addToFront(instance);
@@ -60,8 +69,9 @@ public class SurfaceMiniMapToast extends Toast {
         int rx = 5;
         int ry = 3;
 
-        StringBuilder out = new StringBuilder("N↑\n");
+        StringBuilder out = new StringBuilder("[区域地图] N↑\n");
         for (int y = heroY - ry; y <= heroY + ry; y++) {
+            out.append('│');
             for (int x = heroX - rx; x <= heroX + rx; x++) {
                 if (x < 0 || y < 0 || x >= w || y >= h) {
                     out.append(' ');
@@ -87,6 +97,7 @@ public class SurfaceMiniMapToast extends Toast {
                 else if (visited) out.append('·');
                 else out.append('˙');
             }
+            out.append('│');
             if (y < heroY + ry) out.append('\n');
         }
         return out.toString();
@@ -94,7 +105,6 @@ public class SurfaceMiniMapToast extends Toast {
 
     @Override
     protected void onClose() {
-        // Deliberately not dismissible during the guided surface chapter.
     }
 
     @Override
