@@ -13,6 +13,7 @@ public final class ChapterOneAudio {
     private static final String SURFACE_AMBIENCE = "music/echoes/ch1_surface_ambience.mp3";
     private static final String STREAM_AMBIENCE = "sounds/echoes/ch1_stream_loop.mp3";
     private static final String FARM_AMBIENCE = "music/echoes/ch1_farm_ambience.mp3";
+    private static final String INN_MUSIC = "music/echoes/ledger_tavern.mp3";
 
     private static final String BIRDS = "sounds/echoes/ch1_birds.mp3";
     private static final String WOLVES = "sounds/echoes/ch1_wolves.mp3";
@@ -55,6 +56,13 @@ public final class ChapterOneAudio {
         preload();
         area = Area.FARM;
         playBed(FARM_AMBIENCE, 0.68f);
+    }
+
+    /** Old Crow Inn owns the chapter's indoor music bed through the same lifecycle controller. */
+    public static void innAmbience() {
+        preload();
+        area = Area.INN;
+        playBed(INN_MUSIC, 0.66f);
     }
 
     /**
@@ -109,6 +117,14 @@ public final class ChapterOneAudio {
 
     /** Raven remains a declared gap; an unrelated bird cue would defeat the soundscape pass. */
     public static void playRaven() {
+    }
+
+    /**
+     * Fireplace/room-tone remains a declared secondary-loop gap. Sample is intentionally
+     * not abused as a looping channel; add it only when a verified source and loop path exist.
+     */
+    public static void syncInnRoomTone() {
+        // The tavern music bed is valid; a second independent loop is not wired yet.
     }
 
     public static void playWolfWarning() {
