@@ -84,6 +84,8 @@ jobs:
         run: python tools/generate_visual_foundation.py
       - name: Validate custom PNG assets
         run: python tools/validate_pngs.py
+      - name: Validate production character assets
+        run: python tools/validate_character_assets_v1.py
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@017a9effdb900e5b5b2fddfb590a105619dca3c3
         with:
