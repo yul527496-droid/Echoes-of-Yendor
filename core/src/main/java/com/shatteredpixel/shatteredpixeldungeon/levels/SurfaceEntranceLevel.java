@@ -6,6 +6,7 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.ChapterOneAudio;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SequelGame;
 import com.shatteredpixel.shatteredpixeldungeon.SequelState;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -18,6 +19,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.YendorBird;
 import com.shatteredpixel.shatteredpixeldungeon.items.RoadsideNote;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.watabou.noosa.audio.Music;
+import com.watabou.utils.Bundle;
 
 /** Compact surface return: dungeon mouth, camp detour, stream crossing and roadside farmer. */
 public class SurfaceEntranceLevel extends Level {
@@ -61,6 +63,8 @@ public class SurfaceEntranceLevel extends Level {
     public void playLevelMusic() {
         Music.INSTANCE.play(Assets.Music.THEME_1, true);
         ChapterOneAudio.surfaceAmbience();
+        SequelState story = SequelState.get();
+        if (story != null) story.syncObjective();
     }
 
     @Override
@@ -87,6 +91,20 @@ public class SurfaceEntranceLevel extends Level {
         return true;
     }
 
+    /**
+     * RC1 serialized the entire old 72x58 map. Loading that save bypasses build(), so a
+     * code-only layout change is invisible. Rebuild legacy geometry once and force the
+     * hero through the normal entrance placement on the new compact map.
+     */
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        if (width() != WIDTH || height() != HEIGHT) {
+            create();
+            if (Dungeon.hero != null) Dungeon.hero.pos = -1;
+        }
+    }
+
     @Override
     public void buildFlagMaps() {
         super.buildFlagMaps();
@@ -106,7 +124,6 @@ public class SurfaceEntranceLevel extends Level {
         for (int i = 0; i < ROAD.length - 1; i++) {
             paintLine(ROAD[i][0], ROAD[i][1], ROAD[i + 1][0], ROAD[i + 1][1], 2, Terrain.EMPTY);
         }
-        // One short optional branch, immediately readable from the main road.
         paintLine(24, 27, 15, 27, 1, Terrain.EMPTY_SP);
     }
 
@@ -151,7 +168,6 @@ public class SurfaceEntranceLevel extends Level {
     }
 
     private void paintLandmarks() {
-        // Cliff/stone remnants, bridge approach and road marker create distinct silhouettes.
         rect(16,30,19,32,Terrain.EMPTY_DECO);
         map[cell(33,15)] = Terrain.EMPTY_DECO;
         map[cell(34,12)] = Terrain.EMPTY_DECO;
