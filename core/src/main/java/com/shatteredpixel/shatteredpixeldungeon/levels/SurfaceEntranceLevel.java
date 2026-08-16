@@ -18,6 +18,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.RoadFarmer;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.YendorBird;
 import com.shatteredpixel.shatteredpixeldungeon.items.RoadsideNote;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesSurfaceTilemap;
 import com.watabou.noosa.audio.Music;
 import com.watabou.utils.Bundle;
 
@@ -77,6 +78,7 @@ public class SurfaceEntranceLevel extends Level {
         paintStreamAndBridge();
         paintDungeonMouth();
         paintLandmarks();
+        installArtPassVisuals();
 
         int entrance = cell(ENTRANCE_X, ENTRANCE_Y);
         map[entrance] = Terrain.ENTRANCE;
@@ -94,7 +96,8 @@ public class SurfaceEntranceLevel extends Level {
     /**
      * RC1 serialized the entire old 72x58 map. Loading that save bypasses build(), so a
      * code-only layout change is invisible. Rebuild legacy geometry once and force the
-     * hero through the normal entrance placement on the new compact map.
+     * hero through the normal entrance placement on the new compact map. Same-size
+     * 0.0.6 saves also need the Art-v2 custom visuals injected after restore.
      */
     @Override
     public void restoreFromBundle(Bundle bundle) {
@@ -102,7 +105,9 @@ public class SurfaceEntranceLevel extends Level {
         if (width() != WIDTH || height() != HEIGHT) {
             create();
             if (Dungeon.hero != null) Dungeon.hero.pos = -1;
+            return;
         }
+        installArtPassVisuals();
     }
 
     @Override
@@ -174,6 +179,28 @@ public class SurfaceEntranceLevel extends Level {
         map[cell(30,6)] = Terrain.EMPTY_DECO;
         int[][] grass = {{20,30},{29,30},{20,25},{31,18},{26,15},{34,7},{18,28},{35,22}};
         for (int[] p : grass) map[cell(p[0],p[1])] = Terrain.HIGH_GRASS;
+    }
+
+    private void installArtPassVisuals() {
+        customTiles.removeIf(tile -> tile instanceof EchoesSurfaceTilemap);
+        customWalls.removeIf(tile -> tile instanceof EchoesSurfaceTilemap);
+
+        addArtWall(EchoesSurfaceTilemap.TREE, 4, 5);
+        addArtWall(EchoesSurfaceTilemap.TREE, 39, 7);
+        addArtTile(EchoesSurfaceTilemap.BUSH, 18, 28);
+        addArtTile(EchoesSurfaceTilemap.SIGNPOST, 30, 6);
+    }
+
+    private void addArtTile(int kind, int x, int y) {
+        EchoesSurfaceTilemap art = new EchoesSurfaceTilemap(kind);
+        art.pos(x, y);
+        customTiles.add(art);
+    }
+
+    private void addArtWall(int kind, int x, int y) {
+        EchoesSurfaceTilemap art = new EchoesSurfaceTilemap(kind);
+        art.pos(x, y);
+        customWalls.add(art);
     }
 
     private void paintLine(int x1, int y1, int x2, int y2, int radius, int terrain) {
