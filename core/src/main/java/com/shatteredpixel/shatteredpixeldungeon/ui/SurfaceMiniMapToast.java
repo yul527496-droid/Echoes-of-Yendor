@@ -2,6 +2,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.RegionMapSettings;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekMainStreetLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekOutskirtsLevel;
@@ -21,12 +22,13 @@ import java.util.ArrayList;
 /**
  * Fixed-north graphical knowledge-only minimap.
  * Unknown cells are never rendered. Unknown/off-screen objectives are direction hints,
- * never precise GPS markers. Clicking/tapping the panel opens the expanded region map.
+ * never precise GPS markers. Clicking/tapping the map opens the expanded region map.
+ * HUD zoom is independent from Region Map zoom and is persisted between sessions.
  */
 public class SurfaceMiniMapToast extends Toast {
 
     private static final String PIXEL = "interfaces/echoes/minimap_pixel.png";
-    private static final int RX = 5, RY = 3, CELL = 3, COLS = RX * 2 + 1, ROWS = RY * 2 + 1;
+    private static final int RX = 5, RY = 3, COLS = RX * 2 + 1, ROWS = RY * 2 + 1;
     private static final int HERO = 0xF2D36B, WATER = 0x4B93A0, WALL = 0x3E5940,
             ROAD = 0xA78B62, GRASS = 0x6F9954, EXIT = 0xE7D9A0, TARGET = 0xD64D9C;
 
@@ -35,14 +37,19 @@ public class SurfaceMiniMapToast extends Toast {
 
     private final ArrayList<Image> pixels = new ArrayList<>();
     private final ArrayList<Point> offsets = new ArrayList<>();
+    private final int hudZoom;
+    private final int cell;
     private Button expand;
+    private RedButton zoomButton;
 
     private SurfaceMiniMapToast() {
         super(headerText());
+        hudZoom = RegionMapSettings.hudZoom();
+        cell = cellSize(hudZoom);
         close.visible = false;
         close.active = false;
-        width = COLS * CELL + 8;
-        height = ROWS * CELL + 13;
+        width = COLS * cell + 8;
+        height = ROWS * cell + 22;
         buildPixels();
 
         expand = new Button() {
@@ -55,6 +62,20 @@ public class SurfaceMiniMapToast extends Toast {
             }
         };
         add(expand);
+
+        zoomButton = new RedButton(zoomLabel(hudZoom), 6) {
+            @Override protected void onClick() {
+                super.onClick();
+                RegionMapSettings.hudZoom(hudZoom % 3 + 1);
+                lastSignature = null;
+                if (instance != null) {
+                    instance.killAndErase();
+                    instance = null;
+                }
+                sync();
+            }
+        };
+        add(zoomButton);
     }
 
     public static void sync() {
@@ -80,6 +101,19 @@ public class SurfaceMiniMapToast extends Toast {
         }
     }
 
+    private static int cellSize(int level) {
+        int requested = level == 1 ? 4 : level == 2 ? 6 : 8;
+        // Preserve the larger desktop presentation without overflowing narrow portrait UI cameras.
+        int responsiveMax = Math.max(3, (PixelScene.uiCamera.width - 24) / COLS);
+        return Math.min(requested, responsiveMax);
+    }
+
+    private static String zoomLabel(int level) {
+        if (level <= 1) return "1×";
+        if (level == 2) return "1.5×";
+        return "2×";
+    }
+
     private void buildPixels() {
         Level level = Dungeon.level;
         int w = level.width(), h = level.height();
@@ -92,26 +126,26 @@ public class SurfaceMiniMapToast extends Toast {
             for (int gx = 0; gx < COLS; gx++) {
                 int x = hx - RX + gx;
                 if (x < 0 || y < 0 || x >= w || y >= h) continue;
-                int cell = x + y * w;
-                boolean fov = known(level.heroFOV, cell);
-                boolean visited = known(level.visited, cell);
-                boolean mapped = known(level.mapped, cell);
-                if (cell != Dungeon.hero.pos && !fov && !visited && !mapped) continue;
+                int cellIndex = x + y * w;
+                boolean fov = known(level.heroFOV, cellIndex);
+                boolean visited = known(level.visited, cellIndex);
+                boolean mapped = known(level.mapped, cellIndex);
+                if (cellIndex != Dungeon.hero.pos && !fov && !visited && !mapped) continue;
 
                 int color;
-                if (cell == Dungeon.hero.pos) color = HERO;
-                else if (objectiveKnown && cell == objective) color = TARGET;
-                else if (level.map[cell] == Terrain.WATER) color = WATER;
-                else if (level.map[cell] == Terrain.WALL) color = WALL;
-                else if (level.map[cell] == Terrain.ENTRANCE || level.map[cell] == Terrain.EXIT) color = EXIT;
-                else if (level.map[cell] == Terrain.EMPTY || level.map[cell] == Terrain.EMPTY_SP
-                        || level.map[cell] == Terrain.EMPTY_DECO) color = ROAD;
+                if (cellIndex == Dungeon.hero.pos) color = HERO;
+                else if (objectiveKnown && cellIndex == objective) color = TARGET;
+                else if (level.map[cellIndex] == Terrain.WATER) color = WATER;
+                else if (level.map[cellIndex] == Terrain.WALL) color = WALL;
+                else if (level.map[cellIndex] == Terrain.ENTRANCE || level.map[cellIndex] == Terrain.EXIT) color = EXIT;
+                else if (level.map[cellIndex] == Terrain.EMPTY || level.map[cellIndex] == Terrain.EMPTY_SP
+                        || level.map[cellIndex] == Terrain.EMPTY_DECO) color = ROAD;
                 else color = GRASS;
 
                 Image px = new Image(PIXEL);
                 px.hardlight(color);
-                if (!fov && cell != Dungeon.hero.pos) px.alpha(visited ? 0.68f : 0.42f);
-                px.scale.set(CELL, CELL);
+                if (!fov && cellIndex != Dungeon.hero.pos) px.alpha(visited ? 0.68f : 0.42f);
+                px.scale.set(cell, cell);
                 pixels.add(px);
                 offsets.add(new Point(gx, gy));
                 add(px);
@@ -146,13 +180,13 @@ public class SurfaceMiniMapToast extends Toast {
         return "";
     }
 
-    private static boolean exactLocationKnown(Level level, int cell) {
-        if (cell < 0) return false;
-        return cell == Dungeon.hero.pos || known(level.heroFOV, cell) || known(level.visited, cell);
+    private static boolean exactLocationKnown(Level level, int cellIndex) {
+        if (cellIndex < 0) return false;
+        return cellIndex == Dungeon.hero.pos || known(level.heroFOV, cellIndex) || known(level.visited, cellIndex);
     }
 
-    private static boolean known(boolean[] values, int cell) {
-        return values != null && cell >= 0 && cell < values.length && values[cell];
+    private static boolean known(boolean[] values, int cellIndex) {
+        return values != null && cellIndex >= 0 && cellIndex < values.length && values[cellIndex];
     }
 
     private static int objectiveCell(Level level) {
@@ -172,7 +206,8 @@ public class SurfaceMiniMapToast extends Toast {
     private static String signature() {
         Level level = Dungeon.level;
         int w = level.width(), h = level.height(), hx = Dungeon.hero.pos % w, hy = Dungeon.hero.pos / w;
-        StringBuilder s = new StringBuilder().append(Dungeon.hero.pos).append(':');
+        StringBuilder s = new StringBuilder().append(Dungeon.hero.pos)
+                .append(":z").append(RegionMapSettings.hudZoom()).append(':');
         for (int y = hy - RY; y <= hy + RY; y++) {
             for (int x = hx - RX; x <= hx + RX; x++) {
                 if (x < 0 || y < 0 || x >= w || y >= h) {
@@ -198,10 +233,11 @@ public class SurfaceMiniMapToast extends Toast {
         text.setPos(x + 4, y + 2);
         for (int i = 0; i < pixels.size(); i++) {
             Point p = offsets.get(i);
-            pixels.get(i).x = x + 4 + p.x * CELL;
-            pixels.get(i).y = y + 10 + p.y * CELL;
+            pixels.get(i).x = x + 4 + p.x * cell;
+            pixels.get(i).y = y + 10 + p.y * cell;
         }
-        if (expand != null) expand.setRect(x, y, width, height);
+        if (expand != null) expand.setRect(x, y + 9, width, Math.max(1, height - 20));
+        if (zoomButton != null) zoomButton.setRect(x + width - 30, y + height - 10, 28, 8);
     }
 
     @Override protected void onClose() {}
