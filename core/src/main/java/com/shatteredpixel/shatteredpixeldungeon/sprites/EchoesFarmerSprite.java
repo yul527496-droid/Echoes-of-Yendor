@@ -4,16 +4,15 @@ import com.shatteredpixel.shatteredpixeldungeon.SequelState;
 import com.watabou.noosa.TextureFilm;
 
 /**
- * Roadside farmer using the native-pixel v3 sheet.
+ * Roadside farmer using the Chapter 1 production character atlas.
  *
- * Frame contract (all 16x16):
+ * Frame contract (16x16 padded slots):
  * 0-1 idle, 2-5 walk, 6 confused/fixated, 7 shaken/recoil.
- * The two story reaction frames are selected from stable SequelState checkpoints so
- * save/reload and dialogue paging cannot leave the sprite in a random pose.
  */
 public class EchoesFarmerSprite extends MobSprite {
 
-    private static final String TEXTURE = "sprites/echoes_farmer_v3.png";
+    private static final String TEXTURE = "sprites/echoes_ch1_character_sprites_v1.png";
+    private static final int FIRST = 0;
 
     private Animation confused;
     private Animation shaken;
@@ -24,24 +23,21 @@ public class EchoesFarmerSprite extends MobSprite {
         texture(TEXTURE);
         TextureFilm frames = new TextureFilm(texture, 16, 16);
 
-        // Ordinary SPD NPC motion is intentionally restrained: a quiet two-frame idle and
-        // a four-frame walk. The character does not bounce every frame while standing still.
         idle = new Animation(2, true);
-        idle.frames(frames, 0, 1);
+        idle.frames(frames, FIRST, FIRST + 1);
 
         run = new Animation(8, true);
-        run.frames(frames, 2, 3, 4, 5);
+        run.frames(frames, FIRST + 2, FIRST + 3, FIRST + 4, FIRST + 5);
 
         confused = new Animation(1, true);
-        confused.frames(frames, 6);
+        confused.frames(frames, FIRST + 6);
 
         shaken = new Animation(1, true);
-        shaken.frames(frames, 7);
+        shaken.frames(frames, FIRST + 7);
 
         attack = idle.clone();
         die = new Animation(1, false);
-        die.frames(frames, 0);
-
+        die.frames(frames, FIRST);
         play(idle);
     }
 
