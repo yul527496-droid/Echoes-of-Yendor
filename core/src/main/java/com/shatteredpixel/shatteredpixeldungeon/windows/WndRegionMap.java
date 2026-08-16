@@ -126,8 +126,9 @@ public class WndRegionMap extends Window {
         }
 
         mapPane = new MapScrollPane(content, landmarks, mapOriginX, mapOriginY, cell, w, h);
-        mapPane.setRect(VIEW_X, VIEW_Y, VIEW_W, VIEW_H);
+        // ScrollPane.layout() resolves its parent camera, so it must be attached before setRect().
         add(mapPane);
+        mapPane.setRect(VIEW_X, VIEW_Y, VIEW_W, VIEW_H);
 
         float centerX;
         float centerY;
