@@ -1,7 +1,6 @@
 /* Echoes of Yendor modifications Copyright (C) 2026 */
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
-import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.ChapterOneAudio;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SequelGame;
@@ -14,10 +13,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RoadWolf;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesLandmarkTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesSurfaceTilemap;
-import com.watabou.noosa.audio.Music;
 import com.watabou.utils.Bundle;
 
-/** Compact old road: ruined stone route, shrine, wagon and one readable wolf clearing. */
+/** Old King's Road: narrow ruined paving, shrine, broken wagon and wolf clearing. */
 public class OldKingsRoadLevel extends Level {
 
     public static final int WIDTH=56, HEIGHT=40;
@@ -34,7 +32,6 @@ public class OldKingsRoadLevel extends Level {
 
     @Override
     public void playLevelMusic(){
-        Music.INSTANCE.play(Assets.Music.THEME_1,true);
         ChapterOneAudio.oldRoadAmbience();
         SequelState story=SequelState.get(); if(story!=null) story.syncObjective();
     }
@@ -58,21 +55,26 @@ public class OldKingsRoadLevel extends Level {
     }
 
     private void paintRoad(){
-        for(int i=0;i<ROAD.length-1;i++) paintLine(ROAD[i][0],ROAD[i][1],ROAD[i+1][0],ROAD[i+1][1],2,Terrain.EMPTY);
-        paintLine(25,29,14,27,1,Terrain.EMPTY_SP); paintLine(34,15,40,13,1,Terrain.EMPTY_SP);
-        // exposed old paving stones along the surviving king's road spine
-        for(int y=7;y<=34;y+=5) for(int x=27;x<=31;x++) if(inside(x,y) && map[cell(x,y)]!=Terrain.WALL) map[cell(x,y)]=Terrain.EMPTY_DECO;
+        for(int i=0;i<ROAD.length-1;i++) paintLine(ROAD[i][0],ROAD[i][1],ROAD[i+1][0],ROAD[i+1][1],1,Terrain.EMPTY);
+        paintLine(25,29,14,27,1,Terrain.EMPTY); paintLine(34,15,40,13,1,Terrain.EMPTY);
+        // Surviving fragments of the old paving interrupt the dirt route instead of forming a slab.
+        int[][] paving={{27,34},{26,30},{27,26},{31,22},{31,18},{34,14},{31,10},{30,6},
+                {15,27},{18,28},{39,13},{42,13}};
+        for(int[] p:paving) if(inside(p[0],p[1])&&map[cell(p[0],p[1])]!=Terrain.WALL) map[cell(p[0],p[1])]=Terrain.EMPTY_DECO;
     }
 
     private void paintForest(){
-        rect(2,2,17,16,Terrain.WALL); rect(2,31,18,38,Terrain.WALL); rect(43,2,53,18,Terrain.WALL);
-        rect(44,27,53,38,Terrain.WALL); rect(3,18,9,25,Terrain.WALL); rect(47,20,53,25,Terrain.WALL);
-        for(int y=4;y<HEIGHT-3;y+=4){ int x=18+(y*7)%22; if(inside(x,y)&&map[cell(x,y)]!=Terrain.WALL) map[cell(x,y)]=Terrain.HIGH_GRASS; }
+        rect(2,2,16,15,Terrain.WALL); rect(2,32,17,38,Terrain.WALL); rect(44,2,53,17,Terrain.WALL);
+        rect(45,28,53,38,Terrain.WALL); rect(3,18,8,24,Terrain.WALL); rect(48,20,53,24,Terrain.WALL);
+        int[][] bites={{16,4},{16,9},{15,14},{5,15},{10,15},{17,34},{44,6},{44,12},{45,29},{45,34},{48,18},{8,22}};
+        for(int[] p:bites) if(inside(p[0],p[1])) map[cell(p[0],p[1])]=Terrain.GRASS;
+        int[][] fringe={{17,4},{17,10},{15,16},{8,16},{18,33},{43,7},{43,13},{44,30},{44,35},{47,18},{9,21},{46,25}};
+        for(int[] p:fringe) if(inside(p[0],p[1])&&map[cell(p[0],p[1])]!=Terrain.WALL) map[cell(p[0],p[1])]=Terrain.HIGH_GRASS;
     }
-    private void paintShrine(){ rect(11,24,17,30,Terrain.EMPTY_SP); map[cell(SHRINE_X,SHRINE_Y)]=Terrain.EMPTY_DECO; map[cell(SHRINE_X-1,SHRINE_Y)]=Terrain.EMBERS; }
+    private void paintShrine(){ rect(11,24,17,30,Terrain.EMPTY); map[cell(SHRINE_X,SHRINE_Y)]=Terrain.EMPTY_DECO; map[cell(SHRINE_X-1,SHRINE_Y)]=Terrain.EMBERS; }
     private void paintWolfArena(){ rect(23,18,40,26,Terrain.EMPTY); for(int x=24;x<=39;x+=4){ map[cell(x,18)]=Terrain.HIGH_GRASS; map[cell(x,26)]=Terrain.HIGH_GRASS; } map[cell(29,21)]=Terrain.HIGH_GRASS; map[cell(37,24)]=Terrain.HIGH_GRASS; }
-    private void paintBrokenWagon(){ rect(37,10,44,16,Terrain.EMPTY_SP); map[cell(WAGON_X,WAGON_Y)]=Terrain.EMPTY_DECO; map[cell(WAGON_X+1,WAGON_Y)]=Terrain.EMPTY_DECO; map[cell(WAGON_X+2,WAGON_Y)]=Terrain.EMPTY_DECO; }
-    private void paintSignpost(){ rect(27,5,35,9,Terrain.EMPTY_SP); map[cell(31,7)]=Terrain.EMPTY_DECO; }
+    private void paintBrokenWagon(){ rect(37,10,44,16,Terrain.EMPTY); map[cell(WAGON_X,WAGON_Y)]=Terrain.EMPTY_DECO; map[cell(WAGON_X+1,WAGON_Y)]=Terrain.EMPTY_DECO; map[cell(WAGON_X+2,WAGON_Y)]=Terrain.EMPTY_DECO; }
+    private void paintSignpost(){ rect(28,5,34,9,Terrain.EMPTY); map[cell(31,7)]=Terrain.EMPTY_DECO; }
 
     private void installVisualFoundation(){
         customTiles.removeIf(t->t instanceof EchoesSurfaceTilemap || t instanceof EchoesLandmarkTilemap);
