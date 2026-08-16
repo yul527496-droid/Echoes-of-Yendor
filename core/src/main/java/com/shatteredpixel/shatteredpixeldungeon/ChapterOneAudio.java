@@ -20,6 +20,7 @@ public final class ChapterOneAudio {
     private static final String WOLVES = "sounds/echoes/ch1_wolves.mp3";
     private static final String YENDOR_BASS = "sounds/echoes/ch1_yendor_bass.mp3";
     private static final String DONKEY = "sounds/echoes/ch1_donkey.mp3";
+    private static final String FARMER_CART = "sounds/echoes/ch1_farmer_cart.mp3";
 
     private enum Area { NONE, SURFACE, OLD_ROAD, FARM, INN }
 
@@ -37,7 +38,7 @@ public final class ChapterOneAudio {
     public static void preload() {
         if (samplesLoaded) return;
         samplesLoaded = true;
-        Sample.INSTANCE.load(new String[]{BIRDS, WOLVES, YENDOR_BASS, DONKEY});
+        Sample.INSTANCE.load(new String[]{BIRDS, WOLVES, YENDOR_BASS, DONKEY, FARMER_CART});
     }
 
     /**
@@ -118,9 +119,9 @@ public final class ChapterOneAudio {
         play(BIRDS, 0.30f, 1f);
     }
 
-    /** Bell/cart sources are still intentionally omitted until a verified source is pinned. */
+    /** One-shot carriage pass that announces the farmer before his first dialogue beat. */
     public static void playFarmerApproach() {
-        // Silence is preferable to a fake dungeon impact cue.
+        play(FARMER_CART, 0.30f, 1f);
     }
 
     public static void playYendorPulse() {
