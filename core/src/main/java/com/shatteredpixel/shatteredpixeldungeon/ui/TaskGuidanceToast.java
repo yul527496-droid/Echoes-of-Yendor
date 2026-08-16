@@ -9,7 +9,7 @@ import com.watabou.noosa.Game;
 /** Persistent non-modal current-objective display for the sequel campaign. */
 public class TaskGuidanceToast extends Toast {
 
-    private static final String BUILD_BADGE = "◆ Ch1XP 0.0.6  |  ";
+    private static final String BUILD_BADGE = "◆ Ch1XP 0.0.7 Art-v2  |  ";
 
     private static TaskGuidanceToast instance;
     private static String shownText;
