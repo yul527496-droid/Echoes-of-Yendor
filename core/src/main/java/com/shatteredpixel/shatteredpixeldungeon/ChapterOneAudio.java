@@ -23,6 +23,7 @@ public final class ChapterOneAudio {
 
     private static Area area = Area.NONE;
     private static String playingBed;
+    private static float bedRelativeVolume = 1f;
     private static boolean samplesLoaded;
     private static boolean bgmDucked;
     private static boolean appPaused;
@@ -57,9 +58,8 @@ public final class ChapterOneAudio {
     }
 
     /**
-     * The engine exposes one streamed Music bed. Near the stream we therefore cross over
-     * from the forest bed to the real water recording, then return to the forest bed outside
-     * the audible radius. This is intentionally a two-state spatial mix rather than fake SFX.
+     * The engine exposes one streamed Music bed. Near the stream we cross over from the
+     * forest bed to the water recording, then return to forest outside the audible radius.
      */
     public static void updateStreamDistance(int distance) {
         if (area != Area.SURFACE || appPaused) return;
@@ -72,14 +72,14 @@ public final class ChapterOneAudio {
     }
 
     public static void syncSettings() {
-        if (appPaused) return;
-        if (!Music.INSTANCE.isEnabled()) return;
-        if (playingBed != null) Music.INSTANCE.volume(musicSettingFactor());
+        if (appPaused || playingBed == null) return;
+        Music.INSTANCE.volume(musicSettingFactor() * (bgmDucked ? 0.30f : bedRelativeVolume));
     }
 
     public static void stopAmbience() {
         area = Area.NONE;
         playingBed = null;
+        bedRelativeVolume = 1f;
         bgmDucked = false;
         Music.INSTANCE.stop();
     }
@@ -90,14 +90,14 @@ public final class ChapterOneAudio {
 
     /** Bell/cart sources are still intentionally omitted until a verified source is pinned. */
     public static void playFarmerApproach() {
-        // The approach is now allowed to breathe instead of substituting a dungeon impact cue.
+        // Silence is preferable to a fake dungeon impact cue.
     }
 
     public static void playYendorPulse() {
         preload();
         if (!appPaused) {
             bgmDucked = true;
-            Music.INSTANCE.volume(musicSettingFactor() * 0.30f);
+            Music.INSTANCE.volume(musicSettingFactor() * bedRelativeVolume * 0.30f);
         }
         play(YENDOR_BASS, 0.48f, 0.90f);
     }
@@ -130,16 +130,18 @@ public final class ChapterOneAudio {
         bgmDucked = false;
         area = Area.NONE;
         playingBed = null;
-        preload();
+        bedRelativeVolume = 1f;
+        samplesLoaded = false;
     }
 
     private static void playBed(String asset, float relativeVolume) {
-        if (appPaused || !Music.INSTANCE.isEnabled()) return;
+        if (appPaused) return;
+        bedRelativeVolume = relativeVolume;
         if (!asset.equals(playingBed)) {
             playingBed = asset;
             Music.INSTANCE.play(asset, true);
         }
-        if (!bgmDucked) Music.INSTANCE.volume(musicSettingFactor() * relativeVolume);
+        if (!bgmDucked) Music.INSTANCE.volume(musicSettingFactor() * bedRelativeVolume);
     }
 
     private static void play(String asset, float volume, float pitch) {
@@ -162,7 +164,7 @@ public final class ChapterOneAudio {
     private static void restoreBgm() {
         if (bgmDucked) {
             bgmDucked = false;
-            Music.INSTANCE.volume(musicSettingFactor());
+            Music.INSTANCE.volume(musicSettingFactor() * bedRelativeVolume);
         }
     }
 }
