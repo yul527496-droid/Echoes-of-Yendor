@@ -153,19 +153,76 @@ public class SurfaceEntranceLevel extends Level {
         for(int[] p:grass) map[cell(p[0],p[1])] = Terrain.HIGH_GRASS;
     }
 
+    /**
+     * Surface Entrance is the Chapter 1 visual benchmark. The base terrain remains SPD-native,
+     * while transparent production overlays introduce authored material variation and large
+     * readable landmarks. Placement is curated, not random noise, so every cluster explains
+     * a material boundary or a point of interest.
+     */
     private void installVisualFoundation(){
         customTiles.removeIf(t -> t instanceof EchoesSurfaceTilemap || t instanceof EchoesLandmarkTilemap);
         customWalls.removeIf(t -> t instanceof EchoesSurfaceTilemap || t instanceof EchoesLandmarkTilemap);
-        addLandmarkWall(EchoesLandmarkTilemap.DUNGEON_MOUTH,22,34);
-        addLandmarkTile(EchoesLandmarkTilemap.CAMP,9,25);
-        addLandmarkTile(EchoesLandmarkTilemap.SIGNPOST,30,6);
+
+        // Two scene anchors. Both are floor-layer art so actors remain readable in front.
+        addSurfaceTile(EchoesSurfaceTilemap.DUNGEON_MOUTH, 21, 32);
+        addSurfaceTile(EchoesSurfaceTilemap.CAMP_SCENE, 8, 24);
+        addSurfaceTile(EchoesSurfaceTilemap.BRIDGE_SCENE, 25, 19);
+        addLandmarkTile(EchoesLandmarkTilemap.SIGNPOST, 30, 6);
+
+        // Forest edge/depth clusters. Canopies live on the wall layer and overlap the map edge
+        // like SPD raised terrain rather than reading as a flat green wallpaper rectangle.
+        int[][] forestA={{4,4},{8,9},{3,13},{39,4},{40,10},{40,28},{4,32}};
+        for(int[] p:forestA) addSurfaceWall(EchoesSurfaceTilemap.FOREST_EDGE_A,p[0],p[1]);
+        int[][] forestB={{9,3},{4,8},{39,7},{42,14},{41,31},{8,34}};
+        for(int[] p:forestB) addSurfaceWall(EchoesSurfaceTilemap.FOREST_EDGE_B,p[0],p[1]);
+        int[][] forestDeep={{2,3},{2,11},{42,3},{42,9},{42,27},{2,34}};
+        for(int[] p:forestDeep) addSurfaceWall(EchoesSurfaceTilemap.FOREST_DEEP,p[0],p[1]);
+        addSurfaceTile(EchoesSurfaceTilemap.FOREST_LOG, 13, 16);
+        addSurfaceTile(EchoesSurfaceTilemap.FOREST_ROCKS, 36, 14);
+        addSurfaceTile(EchoesSurfaceTilemap.FOREST_BUSH, 12, 8);
+        addSurfaceTile(EchoesSurfaceTilemap.FOREST_STUMP, 38, 25);
+
+        // Road material: only selected beats receive marks. This keeps the center readable and
+        // breaks the old uniform brown ribbon without turning the road into texture confetti.
+        int[][] roadDetails={
+                {EchoesSurfaceTilemap.ROAD_RUTS,24,34},{EchoesSurfaceTilemap.ROAD_VERGE_L,22,31},
+                {EchoesSurfaceTilemap.ROAD_VERGE_R,25,30},{EchoesSurfaceTilemap.ROAD_STONES,25,27},
+                {EchoesSurfaceTilemap.ROAD_TRAMPLE,27,24},{EchoesSurfaceTilemap.ROAD_MUD,28,18},
+                {EchoesSurfaceTilemap.ROAD_SCAR,29,14},{EchoesSurfaceTilemap.ROAD_WEEDS,31,10},
+                {EchoesSurfaceTilemap.ROAD_RUTS,31,5},{EchoesSurfaceTilemap.ROAD_STONES,18,27}
+        };
+        for(int[] p:roadDetails) addSurfaceTile(p[0],p[1],p[2]);
+
+        // Creek banks and surface cues. These overlays sit around the existing animated water,
+        // so water still belongs to the engine while the shoreline stops reading as a blue strip.
+        int[][] riverDetails={
+                {EchoesSurfaceTilemap.RIVER_REEDS,5,20},{EchoesSurfaceTilemap.RIVER_BANK_TOP,10,20},
+                {EchoesSurfaceTilemap.RIVER_STONES,15,21},{EchoesSurfaceTilemap.RIVER_RIPPLE,20,20},
+                {EchoesSurfaceTilemap.RIVER_FOAM,23,21},{EchoesSurfaceTilemap.RIVER_WET_GRASS,32,20},
+                {EchoesSurfaceTilemap.RIVER_ROOTS,38,21},{EchoesSurfaceTilemap.RIVER_BANK_BOTTOM,43,22}
+        };
+        for(int[] p:riverDetails) addSurfaceTile(p[0],p[1],p[2]);
+
+        // Grass is regional, not evenly random: camp recovery, damp creek edge, open clearing.
+        int[][] grassDetails={
+                {EchoesSurfaceTilemap.GRASS_TRAMPLED,7,29},{EchoesSurfaceTilemap.GRASS_BARE,15,30},
+                {EchoesSurfaceTilemap.GRASS_DAMP,18,23},{EchoesSurfaceTilemap.GRASS_DAMP,35,23},
+                {EchoesSurfaceTilemap.GRASS_FLOWERS,18,12},{EchoesSurfaceTilemap.GRASS_STONES,34,15},
+                {EchoesSurfaceTilemap.GRASS_TUFT_A,17,7},{EchoesSurfaceTilemap.GRASS_TUFT_B,35,8},
+                {EchoesSurfaceTilemap.GRASS_MIX,20,17},{EchoesSurfaceTilemap.GRASS_TUFT_A,14,20},
+                {EchoesSurfaceTilemap.GRASS_STONES,34,27},{EchoesSurfaceTilemap.GRASS_FLOWERS,18,32}
+        };
+        for(int[] p:grassDetails) addSurfaceTile(p[0],p[1],p[2]);
     }
 
+    private void addSurfaceTile(int kind,int x,int y){
+        EchoesSurfaceTilemap art=new EchoesSurfaceTilemap(kind); art.pos(x,y); customTiles.add(art);
+    }
+    private void addSurfaceWall(int kind,int x,int y){
+        EchoesSurfaceTilemap art=new EchoesSurfaceTilemap(kind); art.pos(x,y); customWalls.add(art);
+    }
     private void addLandmarkTile(int kind,int x,int y){
         EchoesLandmarkTilemap art=new EchoesLandmarkTilemap(kind); art.pos(x,y); customTiles.add(art);
-    }
-    private void addLandmarkWall(int kind,int x,int y){
-        EchoesLandmarkTilemap art=new EchoesLandmarkTilemap(kind); art.pos(x,y); customWalls.add(art);
     }
 
     private void paintLine(int x1,int y1,int x2,int y2,int radius,int terrain){
