@@ -2,11 +2,13 @@ package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.watabou.noosa.TextureFilm;
 
-/** Dedicated roadside-farmer map sprite for Echoes. */
+/** File-backed roadside farmer redrawn to match SPD's 16px map-sprite grammar. */
 public class EchoesFarmerSprite extends MobSprite {
+    private static final String TEXTURE = "sprites/echoes_farmer_v1.png";
+
     public EchoesFarmerSprite() {
         super();
-        texture(EchoesSurfaceSpriteArt.sheet(EchoesSurfaceSpriteArt.Kind.FARMER));
+        texture(TEXTURE);
         TextureFilm frames = new TextureFilm(texture, 16, 16);
         idle = new Animation(4, true); idle.frames(frames, 0, 1);
         run = new Animation(8, true); run.frames(frames, 2, 3);
