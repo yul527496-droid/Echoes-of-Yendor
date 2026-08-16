@@ -14,8 +14,8 @@ allprojects {
         appName = 'Echoes of Yendor'
         appPackageName = 'com.yul527496.echoesofyendor'
 
-        appVersionCode = 900
-        appVersionName = '0.0.8-dev'
+        appVersionCode = 901
+        appVersionName = '0.0.9-dev'
 
         appJavaCompatibility = JavaVersion.VERSION_11
 
