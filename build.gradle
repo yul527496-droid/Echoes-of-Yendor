@@ -14,8 +14,8 @@ allprojects {
         appName = 'Echoes of Yendor'
         appPackageName = 'com.yul527496.echoesofyendor'
 
-        appVersionCode = 899
-        appVersionName = '0.0.7-dev'
+        appVersionCode = 900
+        appVersionName = '0.0.8-dev'
 
         appJavaCompatibility = JavaVersion.VERSION_11
 
@@ -34,5 +34,4 @@ allprojects {
         mavenCentral()
         maven { url 'https://central.sonatype.com/repository/maven-snapshots/' }
     }
-
 }
