@@ -7,11 +7,23 @@ package com.shatteredpixel.shatteredpixeldungeon;
 import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
 
-/** Chapter-one audio facade. */
+/** Chapter-one audio scene controller. Long ambience uses Music; short event cues use Sample. */
 public final class ChapterOneAudio {
 
+    private static final String SURFACE_AMBIENCE = "music/echoes/ch1_surface_ambience.mp3";
+    private static final String STREAM_AMBIENCE = "sounds/echoes/ch1_stream_loop.mp3";
     private static final String FARM_AMBIENCE = "music/echoes/ch1_farm_ambience.mp3";
 
+    private static final String BIRDS = "sounds/echoes/ch1_birds.mp3";
+    private static final String WOLVES = "sounds/echoes/ch1_wolves.mp3";
+    private static final String YENDOR_BASS = "sounds/echoes/ch1_yendor_bass.mp3";
+    private static final String DONKEY = "sounds/echoes/ch1_donkey.mp3";
+
+    private enum Area { NONE, SURFACE, OLD_ROAD, FARM, INN }
+
+    private static Area area = Area.NONE;
+    private static String playingBed;
+    private static boolean samplesLoaded;
     private static boolean bgmDucked;
     private static boolean appPaused;
 
@@ -19,81 +31,120 @@ public final class ChapterOneAudio {
     }
 
     public static void preload() {
-        // Music is streamed by libGDX when each surface area is entered.
+        if (samplesLoaded) return;
+        samplesLoaded = true;
+        Sample.INSTANCE.load(new String[]{BIRDS, WOLVES, YENDOR_BASS, DONKEY});
     }
 
+    /** The dungeon theme ends here: first surface area is ambience-only. */
     public static void surfaceAmbience() {
-        restoreBgm();
+        preload();
+        area = Area.SURFACE;
+        playBed(SURFACE_AMBIENCE, 0.72f);
     }
 
+    /** Old King's Road deliberately reuses the forest bed at a lower, quieter level. */
     public static void oldRoadAmbience() {
-        restoreBgm();
+        preload();
+        area = Area.OLD_ROAD;
+        playBed(SURFACE_AMBIENCE, 0.46f);
     }
 
-    /** The first audited Chapter 1 field recording that is wired into real playback. */
     public static void outskirtsAmbience() {
-        restoreBgm();
-        Music.INSTANCE.play(FARM_AMBIENCE, true);
+        preload();
+        area = Area.FARM;
+        playBed(FARM_AMBIENCE, 0.68f);
     }
 
+    /**
+     * The engine exposes one streamed Music bed. Near the stream we therefore cross over
+     * from the forest bed to the real water recording, then return to the forest bed outside
+     * the audible radius. This is intentionally a two-state spatial mix rather than fake SFX.
+     */
     public static void updateStreamDistance(int distance) {
-        // Stream-distance playback still waits for the audited stream source binary.
+        if (area != Area.SURFACE || appPaused) return;
+        if (distance <= 5) {
+            float proximity = 1f - Math.min(5, Math.max(0, distance)) / 6f;
+            playBed(STREAM_AMBIENCE, 0.42f + proximity * 0.38f);
+        } else {
+            playBed(SURFACE_AMBIENCE, 0.72f);
+        }
     }
 
     public static void syncSettings() {
-        if (!SPDSettings.soundFx()) restoreBgm();
+        if (appPaused) return;
+        if (!Music.INSTANCE.isEnabled()) return;
+        if (playingBed != null) Music.INSTANCE.volume(musicSettingFactor());
     }
 
     public static void stopAmbience() {
-        restoreBgm();
+        area = Area.NONE;
+        playingBed = null;
+        bgmDucked = false;
+        Music.INSTANCE.stop();
     }
 
     public static void playBird() {
-        play(Assets.Sounds.PUFF, 0.24f, 1.18f);
+        play(BIRDS, 0.30f, 1f);
     }
 
+    /** Bell/cart sources are still intentionally omitted until a verified source is pinned. */
     public static void playFarmerApproach() {
-        play(Assets.Sounds.STURDY, 0.18f, 0.82f);
+        // The approach is now allowed to breathe instead of substituting a dungeon impact cue.
     }
 
     public static void playYendorPulse() {
+        preload();
         if (!appPaused) {
             bgmDucked = true;
-            Music.INSTANCE.volume(musicSettingFactor() * 0.42f);
+            Music.INSTANCE.volume(musicSettingFactor() * 0.30f);
         }
-        play(Assets.Sounds.CURSED, 0.30f, 0.72f);
+        play(YENDOR_BASS, 0.48f, 0.90f);
     }
 
     public static void playDonkeyBreak() {
-        play(Assets.Sounds.SHEEP, 0.30f, 0.82f);
-        play(Assets.Sounds.STURDY, 0.24f, 0.88f);
+        play(DONKEY, 0.42f, 1f);
         restoreBgm();
     }
 
+    /** Raven remains a declared gap; an unrelated bird cue would defeat the soundscape pass. */
     public static void playRaven() {
-        // Do not substitute an unrelated stock monster cue.
     }
 
     public static void playWolfWarning() {
-        play(Assets.Sounds.ALERT, 0.22f, 0.78f);
+        play(WOLVES, 0.38f, 1f);
     }
 
     public static void pause() {
         appPaused = true;
-        restoreBgm();
+        Music.INSTANCE.pause();
     }
 
     public static void resume() {
         appPaused = false;
+        Music.INSTANCE.resume();
     }
 
     public static void reset() {
         appPaused = false;
-        restoreBgm();
+        bgmDucked = false;
+        area = Area.NONE;
+        playingBed = null;
+        preload();
+    }
+
+    private static void playBed(String asset, float relativeVolume) {
+        if (appPaused || !Music.INSTANCE.isEnabled()) return;
+        if (!asset.equals(playingBed)) {
+            playingBed = asset;
+            Music.INSTANCE.play(asset, true);
+        }
+        if (!bgmDucked) Music.INSTANCE.volume(musicSettingFactor() * relativeVolume);
     }
 
     private static void play(String asset, float volume, float pitch) {
         if (appPaused || !SPDSettings.soundFx()) return;
+        preload();
         float actual = volume * sfxSettingFactor();
         if (actual > 0f) Sample.INSTANCE.play(asset, actual, pitch);
     }
