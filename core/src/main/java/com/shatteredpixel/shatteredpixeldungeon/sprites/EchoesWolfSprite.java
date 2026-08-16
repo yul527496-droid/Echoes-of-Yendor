@@ -2,9 +2,9 @@ package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.watabou.noosa.TextureFilm;
 
-/** File-backed ordinary grey wolf for the Old King's Road encounter. */
+/** File-backed ordinary grey wolf repainted for SPD-scale silhouette readability. */
 public class EchoesWolfSprite extends MobSprite {
-    private static final String TEXTURE = "sprites/echoes_wolf_v1.png";
+    private static final String TEXTURE = "sprites/echoes_wolf_v2.png";
 
     public EchoesWolfSprite() {
         super();
