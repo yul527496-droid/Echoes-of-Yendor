@@ -1,7 +1,6 @@
 /* Echoes of Yendor modifications Copyright (C) 2026 */
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
-import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.ChapterOneAudio;
 import com.shatteredpixel.shatteredpixeldungeon.SequelGame;
 import com.shatteredpixel.shatteredpixeldungeon.SequelState;
@@ -25,6 +24,7 @@ public class OldCrowInnLevel extends Level {
 
     private static final String SURFACE_TILES = "environment/tiles_surface.png";
     private static final String SURFACE_WATER = "environment/water_surface.png";
+    private static final String INN_MUSIC = "music/echoes/ledger_tavern.mp3";
 
     { color1 = 0x7b684d; color2 = 0xc49a68; viewDistance = 12; }
 
@@ -33,8 +33,10 @@ public class OldCrowInnLevel extends Level {
 
     @Override
     public void playLevelMusic(){
-        Music.INSTANCE.play(Assets.Music.THEME_1, true);
         ChapterOneAudio.stopAmbience();
+        Music.INSTANCE.play(INN_MUSIC, true);
+        SequelState story = SequelState.get();
+        if (story != null) story.syncObjective();
     }
 
     @Override
@@ -43,19 +45,17 @@ public class OldCrowInnLevel extends Level {
         for(int i=0;i<length();i++) map[i] = Terrain.WALL;
         rect(3,3,32,24,Terrain.EMPTY_SP);
 
-        // Entry hall and central common room.
         rect(14,18,22,24,Terrain.EMPTY);
         rect(5,9,30,18,Terrain.EMPTY);
 
-        // Bar, fireplace, tables, blocked upstairs access.
         rect(8,5,25,8,Terrain.EMPTY_SP);
-        map[cell(18,7)] = Terrain.EMPTY_DECO; // Descenders' Ledger on the bar.
-        map[cell(7,11)] = Terrain.EMPTY_DECO; // fireplace
+        map[cell(18,7)] = Terrain.EMPTY_DECO;
+        map[cell(7,11)] = Terrain.EMPTY_DECO;
         map[cell(11,13)] = Terrain.EMPTY_DECO;
         map[cell(15,15)] = Terrain.EMPTY_DECO;
         map[cell(24,13)] = Terrain.EMPTY_DECO;
         map[cell(28,16)] = Terrain.EMPTY_DECO;
-        rect(27,4,31,7,Terrain.WALL); // stairs/rooms intentionally blocked in Chapter 1
+        rect(27,4,31,7,Terrain.WALL);
         map[cell(27,8)] = Terrain.EMPTY_DECO;
 
         int door = cell(DOOR_X,DOOR_Y);
