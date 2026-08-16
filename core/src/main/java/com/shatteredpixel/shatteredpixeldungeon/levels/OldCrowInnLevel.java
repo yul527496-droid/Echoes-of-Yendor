@@ -13,7 +13,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.SurfaceVillager
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesLandmarkTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesSurfaceTilemap;
-import com.watabou.noosa.audio.Music;
 import com.watabou.utils.Bundle;
 
 /** Warm first complete Morningcreek interior and the true Chapter 1 endpoint. */
@@ -24,7 +23,6 @@ public class OldCrowInnLevel extends Level {
 
     private static final String INN_TILES="environment/tiles_inn_v1.png";
     private static final String SURFACE_WATER="environment/water_surface_v1.png";
-    private static final String INN_MUSIC="music/echoes/ledger_tavern.mp3";
 
     { color1=0x6a5038; color2=0xb98a5d; viewDistance=12; }
     @Override public String tilesTex(){ return INN_TILES; }
@@ -32,8 +30,8 @@ public class OldCrowInnLevel extends Level {
 
     @Override
     public void playLevelMusic(){
-        ChapterOneAudio.stopAmbience();
-        Music.INSTANCE.play(INN_MUSIC,true);
+        ChapterOneAudio.innAmbience();
+        ChapterOneAudio.syncInnRoomTone();
         SequelState story=SequelState.get(); if(story!=null) story.syncObjective();
     }
 
@@ -86,7 +84,14 @@ public class OldCrowInnLevel extends Level {
     private void rect(int x1,int y1,int x2,int y2,int terrain){ for(int y=y1;y<=y2;y++) for(int x=x1;x<=x2;x++) if(x>0&&y>0&&x<WIDTH-1&&y<HEIGHT-1) map[cell(x,y)]=terrain; }
     public int cell(int x,int y){ return x+y*width(); }
 
-    @Override public boolean activateTransition(Hero hero,LevelTransition transition){ if(transition.type==LevelTransition.Type.REGULAR_ENTRANCE){ SequelGame.enterTownFromInn(); return true; } return super.activateTransition(hero,transition); }
+    @Override public boolean activateTransition(Hero hero,LevelTransition transition){
+        if(transition.type==LevelTransition.Type.REGULAR_ENTRANCE){
+            ChapterOneAudio.stopAmbience();
+            SequelGame.enterTownFromInn();
+            return true;
+        }
+        return super.activateTransition(hero,transition);
+    }
     @Override public Mob createMob(){ return null; }
     @Override protected void createMobs(){
         addVillager(18,9,"老鸦旅店老板娘","坐吧。你从南边那条路来，对吗？等你喘口气，我给你看一本东西。");
