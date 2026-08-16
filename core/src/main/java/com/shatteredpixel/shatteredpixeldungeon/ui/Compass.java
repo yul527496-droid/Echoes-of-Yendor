@@ -34,17 +34,27 @@ public class Compass extends Image {
 	
 	private int cell;
 	private PointF cellCenter;
+	private final boolean directionHint;
 	
 	private PointF lastScroll = new PointF();
 	
 	public Compass( int cell ) {
+		this(cell, false);
+	}
+
+	/**
+	 * directionHint=true keeps the compass visible for a story destination even when the
+	 * exact cell has not been discovered. It reveals only a bearing, never a map marker.
+	 */
+	public Compass( int cell, boolean directionHint ) {
 		
 		super();
 		copy( Icons.COMPASS.get() );
 		origin.set( width / 2, RADIUS );
 		
 		this.cell = cell;
-		cellCenter = DungeonTilemap.tileCenterToWorld( cell );
+		this.directionHint = directionHint;
+		cellCenter = cell >= 0 ? DungeonTilemap.tileCenterToWorld( cell ) : new PointF();
 		visible = false;
 	}
 	
@@ -52,12 +62,12 @@ public class Compass extends Image {
 	public void update() {
 		super.update();
 		
-		if (cell < 0 || cell >= Dungeon.level.length()){
+		if (cell < 0 || cell >= Dungeon.level.length() || Dungeon.hero == null || cell == Dungeon.hero.pos){
 			visible = false;
 			return;
 		}
 		
-		visible = Dungeon.level.visited[cell] || Dungeon.level.mapped[cell];
+		visible = directionHint || Dungeon.level.visited[cell] || Dungeon.level.mapped[cell];
 		
 		if (visible) {
 			PointF scroll = Camera.main.scroll;
