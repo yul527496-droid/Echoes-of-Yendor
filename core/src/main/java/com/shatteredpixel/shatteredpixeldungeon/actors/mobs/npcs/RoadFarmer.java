@@ -75,7 +75,10 @@ public class RoadFarmer extends NPC {
         if (!story.isAtLeast(SequelState.Phase.FARMER_NORMAL_TALK_DONE)) {
             if (!journeyStarted) {
                 int heroY = Dungeon.hero.pos / Dungeon.level.width();
-                if (heroY >= 47) {
+                // Surface Entrance was compacted to 38 rows. The old y>=47 gate could
+                // never fire here, so the farmer/cart began pathing the instant the map loaded.
+                // Start the approach only once the hero has actually moved north past camp.
+                if (heroY >= SurfaceEntranceLevel.CAMP_Y2) {
                     spend(TICK);
                     return true;
                 }
