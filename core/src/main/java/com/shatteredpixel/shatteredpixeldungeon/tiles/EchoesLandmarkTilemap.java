@@ -1,15 +1,10 @@
 /* Echoes of Yendor modifications Copyright (C) 2026 */
 package com.shatteredpixel.shatteredpixeldungeon.tiles;
 
-import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.watabou.noosa.Tilemap;
 import com.watabou.utils.Bundle;
 
-/**
- * Large, authored Chapter 1 landmarks. These use SPD's native CustomTilemap layer:
- * terrain atlases own the common ground/walls while this class owns readable
- * landmarks such as the camp, shrine, wagon, town gate and Old Crow Inn.
- */
+/** Large, authored Chapter 1 landmarks rendered through SPD's native CustomTilemap layer. */
 public class EchoesLandmarkTilemap extends CustomTilemap {
 
     public static final int CAMP = 0;
@@ -30,6 +25,7 @@ public class EchoesLandmarkTilemap extends CustomTilemap {
     public static final int NOTICE_BOARD = 15;
     public static final int DUNGEON_MOUTH = 16;
 
+    private static final String TEXTURE = "environment/custom_tiles/echoes_landmarks_v1.png";
     private static final int TEX_WIDTH = 256;
     private static final String KIND = "kind";
 
@@ -37,9 +33,7 @@ public class EchoesLandmarkTilemap extends CustomTilemap {
     private int textureX;
     private int textureY;
 
-    public EchoesLandmarkTilemap() {
-        this(CAMP);
-    }
+    public EchoesLandmarkTilemap() { this(CAMP); }
 
     public EchoesLandmarkTilemap(int kind) {
         this.kind = kind;
@@ -47,7 +41,7 @@ public class EchoesLandmarkTilemap extends CustomTilemap {
     }
 
     private void configure() {
-        texture = Assets.Environment.ECHOES_LANDMARKS_V1;
+        texture = TEXTURE;
         switch (kind) {
             case CAMP:            setTextureRect(0, 0, 4, 3); break;
             case SHRINE:          setTextureRect(4, 0, 2, 2); break;
