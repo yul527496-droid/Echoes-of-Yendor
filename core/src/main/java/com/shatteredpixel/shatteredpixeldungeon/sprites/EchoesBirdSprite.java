@@ -2,9 +2,9 @@ package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.watabou.noosa.TextureFilm;
 
-/** File-backed small surface bird for the optional Yendor foreshadowing beat. */
+/** Compact surface bird: quiet perched idle, wider silhouette reserved for flight. */
 public class EchoesBirdSprite extends MobSprite {
-    private static final String TEXTURE = "sprites/echoes_bird_v1.png";
+    private static final String TEXTURE = "sprites/echoes_bird_v2.png";
 
     public EchoesBirdSprite() {
         super();
