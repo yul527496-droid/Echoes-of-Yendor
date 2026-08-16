@@ -7,7 +7,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.ShopkeeperSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.SurfaceVillagerSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
 
@@ -21,7 +21,7 @@ public class SurfaceVillager extends NPC {
     private String line = "下午好。";
 
     {
-        spriteClass = ShopkeeperSprite.class;
+        spriteClass = SurfaceVillagerSprite.class;
     }
 
     public SurfaceVillager() {
@@ -47,34 +47,12 @@ public class SurfaceVillager extends NPC {
         return true;
     }
 
-    @Override
-    public int defenseSkill(Char enemy) {
-        return INFINITE_EVASION;
-    }
-
-    @Override
-    public void damage(int dmg, Object src) {
-    }
-
-    @Override
-    public boolean add(Buff buff) {
-        return false;
-    }
-
-    @Override
-    public boolean reset() {
-        return true;
-    }
-
-    @Override
-    public String name() {
-        return displayName;
-    }
-
-    @Override
-    public String description() {
-        return "一个过着普通地表生活的晨溪居民。";
-    }
+    @Override public int defenseSkill(Char enemy) { return INFINITE_EVASION; }
+    @Override public void damage(int dmg, Object src) {}
+    @Override public boolean add(Buff buff) { return false; }
+    @Override public boolean reset() { return true; }
+    @Override public String name() { return displayName; }
+    @Override public String description() { return "一个过着普通地表生活的晨溪居民。"; }
 
     @Override
     public void storeInBundle(Bundle bundle) {
