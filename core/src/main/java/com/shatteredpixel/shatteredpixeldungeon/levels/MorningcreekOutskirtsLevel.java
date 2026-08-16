@@ -15,6 +15,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.SurfaceVillager;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesSurfaceTilemap;
 import com.watabou.noosa.audio.Music;
 import com.watabou.utils.Bundle;
 
@@ -61,6 +62,7 @@ public class MorningcreekOutskirtsLevel extends Level {
         paintFarmstead();
         paintOrchard();
         paintTownApproach();
+        installArtPassVisuals();
 
         int south=cell(SOUTH_X,SOUTH_Y);
         map[south]=Terrain.ENTRANCE;
@@ -80,7 +82,9 @@ public class MorningcreekOutskirtsLevel extends Level {
         if (width() != WIDTH || height() != HEIGHT) {
             create();
             if (Dungeon.hero != null) Dungeon.hero.pos = -1;
+            return;
         }
+        installArtPassVisuals();
     }
 
     @Override
@@ -128,6 +132,31 @@ public class MorningcreekOutskirtsLevel extends Level {
         rect(37,2,47,7,Terrain.WALL);
         rect(2,26,3,38,Terrain.WALL);
         rect(48,25,49,38,Terrain.WALL);
+    }
+
+    private void installArtPassVisuals() {
+        customTiles.removeIf(tile -> tile instanceof EchoesSurfaceTilemap);
+        customWalls.removeIf(tile -> tile instanceof EchoesSurfaceTilemap);
+
+        // This house sits on an existing blocked town-edge mass, so the visual
+        // changes without altering collision or save semantics during the A/B pass.
+        addArtWall(EchoesSurfaceTilemap.FARMHOUSE, 7, 3);
+        addArtWall(EchoesSurfaceTilemap.TREE, 38, 12);
+        addArtWall(EchoesSurfaceTilemap.TREE, 44, 16);
+        addArtTile(EchoesSurfaceTilemap.OLD_CROW_SIGN, 25, 7);
+        addArtTile(EchoesSurfaceTilemap.BUSH, 18, 25);
+    }
+
+    private void addArtTile(int kind, int x, int y) {
+        EchoesSurfaceTilemap art = new EchoesSurfaceTilemap(kind);
+        art.pos(x, y);
+        customTiles.add(art);
+    }
+
+    private void addArtWall(int kind, int x, int y) {
+        EchoesSurfaceTilemap art = new EchoesSurfaceTilemap(kind);
+        art.pos(x, y);
+        customWalls.add(art);
     }
 
     private void paintLine(int x1,int y1,int x2,int y2,int radius,int terrain){
