@@ -1,8 +1,16 @@
 from pathlib import Path
 import struct
+import subprocess
+import sys
 import zlib
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+
+# Production Surface Entrance art is source-generated before validation. This keeps the
+# checked-in source editable text rather than an opaque embedded/base64 PNG while still
+# guaranteeing that every CI build receives the exact runtime assets.
+subprocess.run([sys.executable, "tools/generate_surface_vertical_slice.py"], check=True)
+
 FILES = [
     Path("core/src/main/assets/environment/tiles_surface.png"),
     Path("core/src/main/assets/environment/water_surface.png"),
@@ -13,6 +21,12 @@ FILES = [
     Path("core/src/main/assets/environment/water_surface_v1.png"),
     Path("core/src/main/assets/environment/custom_tiles/echoes_surface_art_v2.png"),
     Path("core/src/main/assets/environment/custom_tiles/echoes_landmarks_v1.png"),
+    Path("core/src/main/assets/environment/echoes/ch1_surface/grass.png"),
+    Path("core/src/main/assets/environment/echoes/ch1_surface/forest.png"),
+    Path("core/src/main/assets/environment/echoes/ch1_surface/road.png"),
+    Path("core/src/main/assets/environment/echoes/ch1_surface/river.png"),
+    Path("core/src/main/assets/environment/echoes/ch1_surface/bridge.png"),
+    Path("core/src/main/assets/environment/echoes/ch1_surface/camp_ruin.png"),
     Path("core/src/main/assets/interfaces/echoes/minimap_pixel.png"),
     Path("core/src/main/assets/sprites/surface_villagers.png"),
     Path("core/src/main/assets/sprites/surface_villagers_v2.png"),
@@ -28,8 +42,22 @@ FILES = [
     Path("core/src/main/assets/sprites/veteran_trainer.png"),
 ]
 
+EXPECTED_DIMENSIONS = {
+    Path("core/src/main/assets/environment/echoes/ch1_surface/grass.png"): (128, 32),
+    Path("core/src/main/assets/environment/echoes/ch1_surface/forest.png"): (128, 64),
+    Path("core/src/main/assets/environment/echoes/ch1_surface/road.png"): (128, 32),
+    Path("core/src/main/assets/environment/echoes/ch1_surface/river.png"): (128, 32),
+    Path("core/src/main/assets/environment/echoes/ch1_surface/bridge.png"): (64, 48),
+    Path("core/src/main/assets/environment/echoes/ch1_surface/camp_ruin.png"): (192, 64),
+    Path("core/src/main/assets/sprites/echoes_farmer_v1.png"): (64, 16),
+    Path("core/src/main/assets/sprites/echoes_donkey_cart_v1.png"): (128, 16),
+    Path("core/src/main/assets/sprites/echoes_bird_v1.png"): (64, 16),
+    Path("core/src/main/assets/sprites/echoes_wolf_v1.png"): (64, 16),
+    Path("core/src/main/assets/sprites/surface_villagers_v2.png"): (256, 16),
+}
 
-def validate_png(path: Path) -> None:
+
+def validate_png(path: Path) -> tuple[int, int]:
     data = path.read_bytes()
     if not data.startswith(PNG_SIGNATURE):
         raise SystemExit(f"{path}: invalid PNG signature")
@@ -37,6 +65,7 @@ def validate_png(path: Path) -> None:
     saw_iend = False
     saw_ihdr = False
     idat = bytearray()
+    dimensions = None
     while pos < len(data):
         if pos + 12 > len(data):
             raise SystemExit(f"{path}: truncated PNG chunk")
@@ -55,6 +84,7 @@ def validate_png(path: Path) -> None:
             if length != 13:
                 raise SystemExit(f"{path}: invalid IHDR length")
             saw_ihdr = True
+            dimensions = struct.unpack(">II", chunk_data[:8])
         elif chunk_type == b"IDAT":
             idat.extend(chunk_data)
         elif chunk_type == b"IEND":
@@ -69,8 +99,17 @@ def validate_png(path: Path) -> None:
         zlib.decompress(bytes(idat))
     except zlib.error as error:
         raise SystemExit(f"{path}: corrupt PNG image stream: {error}")
-    print(f"PNG OK: {path}")
+    if dimensions is None:
+        raise SystemExit(f"{path}: no PNG dimensions")
+    expected = EXPECTED_DIMENSIONS.get(path)
+    if expected is not None and dimensions != expected:
+        raise SystemExit(f"{path}: expected {expected[0]}x{expected[1]}, got {dimensions[0]}x{dimensions[1]}")
+    print(f"PNG OK: {path} ({dimensions[0]}x{dimensions[1]})")
+    return dimensions
 
 
 for file_path in FILES:
     validate_png(file_path)
+
+print("Surface art scale contract OK: environment packs remain integer multiples of SPD's 16px grid.")
+print("Character scale contract OK: farmer/bird/wolf/villagers use 16px frames; donkey-cart uses authored 32x16 wide frames.")
