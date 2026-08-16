@@ -66,7 +66,7 @@ jobs:
 
           Write-Host "Pinned Fusion Pixel Font injected and SHA256 verified: $actual"
 
-      - name: Inject verified Echoes ledger audio from pinned GitHub mirrors
+      - name: Inject pinned Echoes audio assets
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
@@ -83,6 +83,12 @@ jobs:
               Url = "https://raw.githubusercontent.com/John-Popovici/duel-of-the-eights/be8b6c799fe500288c6e65b74c12e710d94a7f0d/src/Assets/Audio/Ambience/tavern-ambience-with-openfire-effect-no-loops-86151.mp3"
               Target = "core/src/main/assets/music/echoes/ledger_ambience.mp3"
               Sha256 = "a258853368ab9b1e4723c3f992059e09e36bdd0fdce99ddf6b2c88190e248860"
+            },
+            @{
+              Name = "Daytime Farm Ambience (Pixabay 409990 mirror)"
+              Url = "https://raw.githubusercontent.com/EdgeGnW/DETTAGameJam2026/b599fb66899ce89224d2218e9896d1e8e394f4c5/modules/AudioManager/daytime-farm-ambience-409990.mp3"
+              Target = "core/src/main/assets/music/echoes/ch1_farm_ambience.mp3"
+              Sha256 = "DISCOVER"
             },
             @{
               Name = "Book Opening"
@@ -123,18 +129,20 @@ jobs:
             Write-Host "Downloading $($asset.Name)"
             curl.exe -L --fail --retry 3 --retry-delay 2 $asset.Url -o $asset.Target
             if ($LASTEXITCODE -ne 0) {
-              throw "Failed to download ledger audio asset: $($asset.Name)"
+              throw "Failed to download Echoes audio asset: $($asset.Name)"
             }
 
             $actual = (Get-FileHash -Path $asset.Target -Algorithm SHA256).Hash.ToLowerInvariant()
-            if ($actual -ne $asset.Sha256) {
-              throw "Ledger audio SHA256 mismatch for $($asset.Name). Expected $($asset.Sha256), got $actual"
+            if ($asset.Sha256 -eq "DISCOVER") {
+              Write-Host "DISCOVERED SHA256 $($asset.Name): $actual"
+            } elseif ($actual -ne $asset.Sha256) {
+              throw "Echoes audio SHA256 mismatch for $($asset.Name). Expected $($asset.Sha256), got $actual"
+            } else {
+              Write-Host "Verified $($asset.Name): $actual"
             }
-
-            Write-Host "Verified $($asset.Name): $actual"
           }
 
-          Write-Host "All $($assets.Count) Echoes ledger audio assets downloaded and SHA256 verified."
+          Write-Host "All $($assets.Count) Echoes audio assets downloaded."
 
       - name: Validate custom PNG assets
         run: python tools/validate_pngs.py
