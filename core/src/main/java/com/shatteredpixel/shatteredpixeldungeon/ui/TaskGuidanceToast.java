@@ -9,6 +9,8 @@ import com.watabou.noosa.Game;
 /** Persistent non-modal current-objective display for the sequel campaign. */
 public class TaskGuidanceToast extends Toast {
 
+    private static final String BUILD_BADGE = "◆ Ch1XP 0.0.6  |  ";
+
     private static TaskGuidanceToast instance;
     private static String shownText;
 
@@ -20,22 +22,31 @@ public class TaskGuidanceToast extends Toast {
     }
 
     public static void showObjective(String text) {
+        if (!(Game.scene() instanceof GameScene)) return;
+
         SurfaceMiniMapToast.sync();
         if (text == null) text = "";
-        if (text.equals(shownText) && instance != null) return;
+        String display = text.isEmpty() ? "" : BUILD_BADGE + text;
 
-        shownText = text;
+        if (display.equals(shownText)
+                && instance != null
+                && instance.exists
+                && instance.parent == Game.scene()) {
+            return;
+        }
+
+        shownText = display;
         if (instance != null) {
             instance.killAndErase();
             instance = null;
         }
-        if (text.isEmpty() || Game.scene() == null) return;
+        if (display.isEmpty()) return;
 
-        instance = new TaskGuidanceToast(text);
+        instance = new TaskGuidanceToast(display);
         instance.camera = PixelScene.uiCamera;
         instance.setPos(
                 (PixelScene.uiCamera.width - instance.width()) / 2f,
-                PixelScene.uiCamera.height - instance.height() - 48
+                22
         );
         PixelScene.align(instance);
         Game.scene().addToFront(instance);
@@ -52,7 +63,6 @@ public class TaskGuidanceToast extends Toast {
 
     @Override
     protected void onClose() {
-        // The right-side icon is intentionally a map button, not a close affordance.
         GameScene.show(new WndRegionMap());
     }
 
