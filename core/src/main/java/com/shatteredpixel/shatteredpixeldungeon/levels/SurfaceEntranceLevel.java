@@ -1,7 +1,6 @@
 /* Echoes of Yendor modifications Copyright (C) 2026 */
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
-import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.ChapterOneAudio;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SequelGame;
@@ -17,10 +16,9 @@ import com.shatteredpixel.shatteredpixeldungeon.items.RoadsideNote;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesLandmarkTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesSurfaceTilemap;
-import com.watabou.noosa.audio.Music;
 import com.watabou.utils.Bundle;
 
-/** Compact surface return: dungeon mouth, camp detour, stream crossing and roadside farmer. */
+/** Surface return: ruin mouth, dirt camp, meandering stream and a readable road north. */
 public class SurfaceEntranceLevel extends Level {
 
     public static final int WIDTH = 48, HEIGHT = 38;
@@ -42,7 +40,6 @@ public class SurfaceEntranceLevel extends Level {
 
     @Override
     public void playLevelMusic(){
-        Music.INSTANCE.play(Assets.Music.THEME_1, true);
         ChapterOneAudio.surfaceAmbience();
         SequelState story = SequelState.get();
         if (story != null) story.syncObjective();
@@ -93,43 +90,58 @@ public class SurfaceEntranceLevel extends Level {
     }
 
     private void paintRoad(){
-        for(int i=0;i<ROAD.length-1;i++) paintLine(ROAD[i][0],ROAD[i][1],ROAD[i+1][0],ROAD[i+1][1],2,Terrain.EMPTY);
-        paintLine(24,27,15,27,1,Terrain.EMPTY_SP);
+        // A human road, not a five-cell brown carpet: two-to-three cells most of the way.
+        for(int i=0;i<ROAD.length-1;i++) paintLine(ROAD[i][0],ROAD[i][1],ROAD[i+1][0],ROAD[i+1][1],1,Terrain.EMPTY);
+        paintLine(24,27,15,27,1,Terrain.EMPTY);
+        int[][] worn={{23,34},{24,31},{26,26},{29,16},{30,11},{31,6},{21,27},{17,27}};
+        for(int[] p:worn) if(inside(p[0],p[1])) map[cell(p[0],p[1])]=Terrain.EMPTY_DECO;
     }
 
     private void paintStreamAndBridge(){
+        // Small bends make the water read as a creek rather than a ruler-straight canal.
         for(int x=1;x<WIDTH-1;x++){
-            int center = STREAM_Y + (x < 11 ? 1 : 0);
+            int bend = x < 8 ? 1 : x < 17 ? 0 : x < 24 ? -1 : x < 34 ? 0 : x < 41 ? 1 : 0;
+            int center = STREAM_Y + bend;
             map[cell(x,center)] = Terrain.WATER;
             map[cell(x,Math.min(HEIGHT-2,center+1))] = Terrain.WATER;
+            if(x%7==2 && inside(x,center-1)) map[cell(x,center-1)] = Terrain.HIGH_GRASS;
         }
-        for(int x=25;x<=29;x++) for(int y=20;y<=23;y++) map[cell(x,y)] = Terrain.EMPTY_DECO;
+        // Broad, unmistakable timber crossing and dirt bridgeheads.
+        rect(25,19,29,24,Terrain.EMPTY);
+        rect(26,20,28,23,Terrain.EMPTY_DECO);
     }
 
     private void paintCamp(){
-        rect(CAMP_X1,CAMP_Y1,CAMP_X2,CAMP_Y2,Terrain.EMPTY_SP);
+        // Dirt clearing instead of the former dungeon-like stone platform.
+        rect(CAMP_X1,CAMP_Y1,CAMP_X2,CAMP_Y2,Terrain.EMPTY);
         map[cell(11,27)] = Terrain.EMBERS;
         map[cell(9,26)] = Terrain.EMPTY_DECO;
         map[cell(15,29)] = Terrain.EMPTY_DECO;
+        map[cell(8,29)] = Terrain.HIGH_GRASS;
+        map[cell(16,25)] = Terrain.HIGH_GRASS;
     }
 
     private void paintDungeonMouth(){
-        rect(18,32,30,36,Terrain.EMPTY_SP);
+        // Keep stone only where it tells the story: the half-buried last stair and ruin apron.
+        rect(19,32,29,36,Terrain.EMPTY_SP);
         rect(21,34,27,36,Terrain.EMPTY);
         rect(22,35,26,36,Terrain.EMPTY_DECO);
+        map[cell(19,33)] = Terrain.HIGH_GRASS;
+        map[cell(29,34)] = Terrain.HIGH_GRASS;
     }
 
     private void paintForestMasses(){
-        rect(2,2,13,18,Terrain.WALL);
-        rect(2,31,13,36,Terrain.WALL);
-        rect(37,2,45,15,Terrain.WALL);
-        rect(38,25,45,36,Terrain.WALL);
-        rect(3,20,8,23,Terrain.WALL);
-        rect(36,17,45,20,Terrain.WALL);
-        for(int y=4;y<HEIGHT-3;y+=4){
-            int lx=4+(y*3)%9; if(inside(lx,y)) map[cell(lx,y)] = Terrain.HIGH_GRASS;
-            int rx=43-(y*5)%7; if(inside(rx,y)) map[cell(rx,y)] = Terrain.HIGH_GRASS;
-        }
+        rect(2,2,12,17,Terrain.WALL);
+        rect(2,31,12,36,Terrain.WALL);
+        rect(38,2,45,14,Terrain.WALL);
+        rect(39,26,45,36,Terrain.WALL);
+        rect(3,20,7,23,Terrain.WALL);
+        rect(39,17,45,19,Terrain.WALL);
+        // Bite irregular clearings into rectangle edges, then feather with high grass.
+        int[][] clear={{12,5},{12,9},{11,14},{4,17},{7,17},{38,7},{38,12},{39,28},{39,33},{7,31},{11,32},{39,18}};
+        for(int[] p:clear) if(inside(p[0],p[1])) map[cell(p[0],p[1])]=Terrain.GRASS;
+        int[][] fringe={{13,4},{13,8},{12,13},{5,18},{9,18},{37,6},{37,11},{38,29},{38,34},{13,32},{8,30},{38,18},{42,20}};
+        for(int[] p:fringe) if(inside(p[0],p[1]) && map[cell(p[0],p[1])]!=Terrain.WALL) map[cell(p[0],p[1])]=Terrain.HIGH_GRASS;
     }
 
     private void paintLandmarks(){
