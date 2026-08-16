@@ -6,6 +6,7 @@ package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Callback;
 
 /** Chapter-one audio scene controller. Long ambience uses Music; short event cues use Sample. */
 public final class ChapterOneAudio {
@@ -28,6 +29,7 @@ public final class ChapterOneAudio {
     private static boolean samplesLoaded;
     private static boolean bgmDucked;
     private static boolean appPaused;
+    private static boolean surfaceTransitionPending;
 
     private ChapterOneAudio() {
     }
@@ -38,9 +40,29 @@ public final class ChapterOneAudio {
         Sample.INSTANCE.load(new String[]{BIRDS, WOLVES, YENDOR_BASS, DONKEY});
     }
 
-    /** The dungeon theme ends here: first surface area is ambience-only. */
+    /**
+     * Final Stair is the one deliberate seam between the old dungeon score and Echoes' surface soundscape.
+     * The existing Noosa music engine already owns a real fade, so use it instead of hard-cutting THEME_FINALE.
+     */
+    public static void leaveDungeonForSurface(final Runnable onComplete) {
+        if (surfaceTransitionPending) return;
+        surfaceTransitionPending = true;
+        area = Area.NONE;
+        playingBed = null;
+        bgmDucked = false;
+        Music.INSTANCE.fadeOut(0.42f, new Callback() {
+            @Override public void call() {
+                Music.INSTANCE.stop();
+                surfaceTransitionPending = false;
+                if (onComplete != null) onComplete.run();
+            }
+        });
+    }
+
+    /** The dungeon theme ends before this point: first surface area is ambience-only. */
     public static void surfaceAmbience() {
         preload();
+        surfaceTransitionPending = false;
         area = Area.SURFACE;
         playBed(SURFACE_AMBIENCE, 0.72f);
     }
@@ -144,6 +166,7 @@ public final class ChapterOneAudio {
     public static void reset() {
         appPaused = false;
         bgmDucked = false;
+        surfaceTransitionPending = false;
         area = Area.NONE;
         playingBed = null;
         bedRelativeVolume = 1f;
