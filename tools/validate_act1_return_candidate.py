@@ -52,6 +52,11 @@ for theory in ("失忆","诅咒","篡改","队友"):
 shrine=read("core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/items/ActOneShrineInscription.java")
 require(shrine,"「力量会使你迷失。」","locked shrine warning changed")
 
+for label, source in (("hero mark", mark), ("camp checklist", checklist), ("shrine inscription", shrine)):
+    require(source,
+            "Game.runOnRenderThread(() -> GameScene.show(new WndMessage(",
+            f"{label} window is not marshalled to render thread")
+
 farmer=read("core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/actors/mobs/npcs/ActOneReturnFarmer.java")
 farmer_body=farmer.split("public class ActOneReturnFarmer",1)[-1]
 require(farmer_body,"我正要回晨溪。","farmer no longer introduces Morningcreek naturally")
@@ -69,4 +74,4 @@ require(region,"beginFormalActOne()","formal-region prototype-knowledge isolatio
 require(region,"ABANDONED_EXPEDITION_CAMP","camp Region knowledge missing")
 require(region,"MORNINGCREEK","Morningcreek HEARD_OF Region knowledge missing")
 
-print("Act 1 Scene 1 Return canon gate OK: opening, cognition, state, route and transition locks are intact.")
+print("Act 1 Scene 1 Return canon gate OK: opening, cognition, state, route, UI-thread safety and transition locks are intact.")
