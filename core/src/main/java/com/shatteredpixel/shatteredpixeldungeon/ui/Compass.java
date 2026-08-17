@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
@@ -101,6 +101,13 @@ public class Compass extends Image {
 	@Override
 	public void update() {
 		super.update();
+
+		// Surface navigation already lives in the fixed minimap header (N + objective bearing).
+		// Keep SPD's portrait compass for dungeon/non-surface play, but do not duplicate it here.
+		if (isSurfaceStoryLevel()) {
+			visible = false;
+			return;
+		}
 		
 		if (cell < 0 || cell >= Dungeon.level.length() || Dungeon.hero == null || cell == Dungeon.hero.pos){
 			visible = false;
