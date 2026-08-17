@@ -233,7 +233,7 @@ public class SurfaceMiniMapToast extends Toast {
         if (level instanceof MorningcreekMainStreetLevel)
             return ((MorningcreekMainStreetLevel) level).cell(MorningcreekMainStreetLevel.INN_X, MorningcreekMainStreetLevel.INN_Y);
         if (level instanceof OldCrowInnLevel)
-            return ((OldCrowInnLevel) level).cell(OldCrowInnInnLevel.LEDGER_X, OldCrowInnLevel.LEDGER_Y);
+            return ((OldCrowInnLevel) level).cell(OldCrowInnLevel.LEDGER_X, OldCrowInnLevel.LEDGER_Y);
         return -1;
     }
 
