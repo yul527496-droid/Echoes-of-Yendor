@@ -23,8 +23,11 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.FinalStairLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekMainStreetLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekOutskirtsLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekTownPrototypeLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.OldCrowInnLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.OldCrowInnPrototypeLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.OldKingsRoadLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.RegionAreaLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SurfaceEntranceLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.TrainingGroundLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
@@ -66,14 +69,26 @@ public final class SequelGame {
         ChapterOneAudio.reset();
 
         ReturningHero.apply(Dungeon.hero, profile);
-        SequelState.get();
+
+        // Formal-region prototype state is intentionally parallel to legacy SequelState.
+        // The old five-map demo remains in the repository but is no longer the default
+        // entry path while Morningcreek Town / Region v0.1 is under spatial review.
+        RegionState region = RegionState.get();
         new Amulet().collect();
         Statistics.amuletObtained = true;
 
         Dungeon.depth = 0;
         Dungeon.branch = 0;
 
-        enter(new FinalStairLevel(), -1);
+        MorningcreekTownPrototypeLevel town = new MorningcreekTownPrototypeLevel();
+        town.create();
+        if (region != null) {
+            region.discover(RegionState.Location.SOUTH_GATE);
+            region.discover(RegionState.Location.SOUTH_CARAVAN_APRON);
+            region.restoreExploration(town);
+        }
+        enterCreated(town, town.cell(MorningcreekTownPrototypeLevel.START_X,
+                MorningcreekTownPrototypeLevel.START_Y));
     }
 
     public static boolean startTrainingMemory() {
@@ -136,6 +151,29 @@ public final class SequelGame {
         FileUtils.deleteDir(GamesInProgress.gameFolder(TRAINING_MEMORY_SLOT));
         GamesInProgress.delete(TRAINING_MEMORY_SLOT);
     }
+
+    // --- Formal Morningcreek Region v0.1 prototype transitions ---
+
+    public static void enterMorningcreekTownPrototype() {
+        MorningcreekTownPrototypeLevel town = new MorningcreekTownPrototypeLevel();
+        town.create();
+        enterCreated(town, town.cell(MorningcreekTownPrototypeLevel.START_X,
+                MorningcreekTownPrototypeLevel.START_Y));
+    }
+
+    public static void enterOldCrowInnPrototype() {
+        enter(new OldCrowInnPrototypeLevel(), -1);
+    }
+
+    public static void enterTownPrototypeFromInn() {
+        MorningcreekTownPrototypeLevel town = new MorningcreekTownPrototypeLevel();
+        town.create();
+        int pos = town.cell(MorningcreekTownPrototypeLevel.INN_DOOR_X + 1,
+                MorningcreekTownPrototypeLevel.INN_DOOR_Y);
+        enterCreated(town, pos);
+    }
+
+    // --- Legacy vertical-slice transitions retained for reference/compatibility ---
 
     public static void enterSurfaceEntrance() {
         enter(new SurfaceEntranceLevel(), -1);
@@ -202,7 +240,14 @@ public final class SequelGame {
     }
 
     private static void enterCreated(Level level, int pos) {
+        RegionState region = RegionState.current();
+        if (region != null && Dungeon.level instanceof RegionAreaLevel) {
+            region.captureExploration(Dungeon.level);
+        }
         if (Dungeon.level != null) Level.beforeTransition();
+        if (region != null && level instanceof RegionAreaLevel) {
+            region.restoreExploration(level);
+        }
         SequelTransitionScene.enter(level, pos);
     }
 }
