@@ -18,7 +18,6 @@ public final class ChapterOneAudio {
 
     private static final String BIRDS = "sounds/echoes/ch1_birds.mp3";
     private static final String WOLVES = "sounds/echoes/ch1_wolves.mp3";
-    private static final String YENDOR_BASS = "sounds/echoes/ch1_yendor_bass.mp3";
     private static final String DONKEY = "sounds/echoes/ch1_donkey.mp3";
 
     private enum Area { NONE, SURFACE, OLD_ROAD, FARM, INN }
@@ -28,6 +27,7 @@ public final class ChapterOneAudio {
     private static float bedRelativeVolume = 1f;
     private static boolean samplesLoaded;
     private static boolean bgmDucked;
+    private static int transientDuckTicks;
     private static boolean appPaused;
     private static boolean surfaceTransitionPending;
 
@@ -37,7 +37,7 @@ public final class ChapterOneAudio {
     public static void preload() {
         if (samplesLoaded) return;
         samplesLoaded = true;
-        Sample.INSTANCE.load(new String[]{BIRDS, WOLVES, YENDOR_BASS, DONKEY});
+        Sample.INSTANCE.load(new String[]{BIRDS, WOLVES, DONKEY});
     }
 
     /**
@@ -50,6 +50,7 @@ public final class ChapterOneAudio {
         area = Area.NONE;
         playingBed = null;
         bgmDucked = false;
+        transientDuckTicks = 0;
         Music.INSTANCE.fadeOut(0.42f, new Callback() {
             @Override public void call() {
                 Music.INSTANCE.stop();
@@ -71,7 +72,7 @@ public final class ChapterOneAudio {
     public static void returnShrineAmbience() {
         preload();
         area = Area.SURFACE;
-        // End the temporary Yendor duck here; isolation comes from a quieter natural bed.
+        transientDuckTicks = 0;
         bgmDucked = false;
         playBed(SURFACE_AMBIENCE, 0.34f);
     }
@@ -112,7 +113,7 @@ public final class ChapterOneAudio {
 
     public static void syncSettings() {
         if (appPaused || playingBed == null) return;
-        Music.INSTANCE.volume(musicSettingFactor() * (bgmDucked ? 0.30f : bedRelativeVolume));
+        Music.INSTANCE.volume(musicSettingFactor() * (bgmDucked ? 0.42f : bedRelativeVolume));
     }
 
     public static void stopAmbience() {
@@ -120,6 +121,7 @@ public final class ChapterOneAudio {
         playingBed = null;
         bedRelativeVolume = 1f;
         bgmDucked = false;
+        transientDuckTicks = 0;
         Music.INSTANCE.stop();
     }
 
@@ -132,13 +134,26 @@ public final class ChapterOneAudio {
         // Silence is preferable to a fake dungeon impact cue.
     }
 
+    /**
+     * v0.2 intentionally retires the old Yendor bass Sample after real-device testing found it
+     * abrasive. The anomaly now works by briefly thinning the natural ambience only. This is a
+     * deliberate quality decision, not a missing asset fallback: a future signature cue must be
+     * genuinely better before it is reintroduced.
+     */
     public static void playYendorPulse() {
         preload();
-        if (!appPaused) {
+        if (!appPaused && playingBed != null) {
             bgmDucked = true;
-            Music.INSTANCE.volume(musicSettingFactor() * bedRelativeVolume * 0.30f);
+            transientDuckTicks = 2;
+            Music.INSTANCE.volume(musicSettingFactor() * bedRelativeVolume * 0.42f);
         }
-        play(YENDOR_BASS, 0.48f, 0.90f);
+    }
+
+    /** Advance the very short Return-only environmental duck without adding a timer subsystem. */
+    public static void tickTransientReturnAudio() {
+        if (transientDuckTicks <= 0) return;
+        transientDuckTicks--;
+        if (transientDuckTicks == 0) restoreBgm();
     }
 
     public static void playDonkeyBreak() {
@@ -170,11 +185,13 @@ public final class ChapterOneAudio {
     public static void resume() {
         appPaused = false;
         Music.INSTANCE.resume();
+        syncSettings();
     }
 
     public static void reset() {
         appPaused = false;
         bgmDucked = false;
+        transientDuckTicks = 0;
         surfaceTransitionPending = false;
         area = Area.NONE;
         playingBed = null;
@@ -210,9 +227,12 @@ public final class ChapterOneAudio {
     }
 
     private static void restoreBgm() {
+        transientDuckTicks = 0;
         if (bgmDucked) {
             bgmDucked = false;
-            Music.INSTANCE.volume(musicSettingFactor() * bedRelativeVolume);
+            if (!appPaused && playingBed != null) {
+                Music.INSTANCE.volume(musicSettingFactor() * bedRelativeVolume);
+            }
         }
     }
 }
