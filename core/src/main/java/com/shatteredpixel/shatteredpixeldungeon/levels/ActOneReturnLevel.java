@@ -48,7 +48,7 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
     private static final int[][] ROAD = {
             {22,86},{31,82},{43,82},{50,77},{63,77},{68,72},{79,71},{87,65},
             {98,64},{103,59},{106,53},{101,47},{92,46},{85,42},{77,40},{71,35},
-            {76,30},{86,29},{94,24},{90,18},{83,15},{84,9},{84,3}
+            {76,30},{86,29},{100,27},{111,24},{110,18},{100,14},{90,15},{82,11},{84,3}
     };
 
     private static final int[][] CAMP_SPUR = {
@@ -102,20 +102,9 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
     @Override public String tilesTex(){ return SURFACE_TILES; }
     @Override public String waterTex(){ return SURFACE_WATER; }
 
-    @Override
-    public RegionState.Area regionArea() {
-        return RegionState.Area.ACT_ONE_RETURN;
-    }
-
-    @Override
-    public String regionAreaName() {
-        return "归来 · 地表旧道";
-    }
-
-    @Override
-    public RegionPoi[] regionPois() {
-        return POIS;
-    }
+    @Override public RegionState.Area regionArea() { return RegionState.Area.ACT_ONE_RETURN; }
+    @Override public String regionAreaName() { return "归来 · 地表旧道"; }
+    @Override public RegionPoi[] regionPois() { return POIS; }
 
     @Override
     public void playLevelMusic() {
@@ -127,8 +116,7 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
 
     @Override
     protected boolean build() {
-        setSize(WIDTH, HEIGHT); // Level.setSize starts as WALL: dense forest is the authored boundary.
-
+        setSize(WIDTH, HEIGHT);
         buildExitBasin();
         buildMainJourneyRibbon();
         buildRiverValley();
@@ -152,8 +140,6 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
     public void restoreFromBundle(Bundle bundle) {
         super.restoreFromBundle(bundle);
         if (width() != WIDTH || height() != HEIGHT) {
-            // v0.1 -> v0.2 geometry migration: preserve scene state, rebuild authored terrain,
-            // and place the hero safely at the old dungeon basin rather than leaving a stale cell.
             create();
             if (Dungeon.hero != null) Dungeon.hero.pos = cell(START_X, START_Y);
             return;
@@ -173,21 +159,17 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
     }
 
     private void buildExitBasin() {
-        // A real breathing-space clearing: old stone mouth, damp ground, river edge and two nooks.
         carveOval(22,84,15,7,Terrain.GRASS);
         carveOval(14,84,7,4,Terrain.GRASS);
         carveOval(34,87,8,3,Terrain.GRASS);
         rect(16,82,30,89,Terrain.EMPTY_SP);
         carveOval(22,85,8,4,Terrain.EMPTY);
         rect(18,84,26,89,Terrain.EMPTY_DECO);
-
-        // Collapsed carving / half-lost travel trace are environmental, not plot clues.
         paintLine(29,86,36,88,1,Terrain.EMPTY_DECO);
         paintLine(13,86,9,83,0,Terrain.EMPTY_DECO);
     }
 
     private void buildMainJourneyRibbon() {
-        // First carve a broad walkable forest verge, then the narrower human route inside it.
         for (int i = 0; i < ROAD.length - 1; i++) {
             int verge = i < 4 ? 5 : (i >= 17 ? 6 : 4);
             paintLine(ROAD[i][0], ROAD[i][1], ROAD[i+1][0], ROAD[i+1][1], verge, Terrain.GRASS);
@@ -197,54 +179,46 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
             int material = i < 4 ? Terrain.EMPTY_SP : Terrain.EMPTY;
             paintLine(ROAD[i][0], ROAD[i][1], ROAD[i+1][0], ROAD[i+1][1], roadWidth, material);
         }
-
-        // Small readable changes every ~15-30 movement cells without turning them into rewards.
-        carveOval(57,76,7,4,Terrain.GRASS);   // camp junction / broken trail mouth
-        carveOval(74,72,7,4,Terrain.GRASS);   // narrow woods opening
-        carveOval(89,66,8,5,Terrain.GRASS);   // road opens before the farmer
-        carveOval(98,48,7,5,Terrain.GRASS);   // post-event quiet bend
-        carveOval(85,43,6,4,Terrain.GRASS);   // old stone verge
-        carveOval(77,39,6,4,Terrain.GRASS);   // Yendor anomaly clearing
-        carveOval(91,24,7,4,Terrain.GRASS);   // old King's Road remains
+        carveOval(57,76,7,4,Terrain.GRASS);
+        carveOval(74,72,7,4,Terrain.GRASS);
+        carveOval(89,66,8,5,Terrain.GRASS);
+        carveOval(98,48,7,5,Terrain.GRASS);
+        carveOval(85,43,6,4,Terrain.GRASS);
+        carveOval(77,39,6,4,Terrain.GRASS);
+        carveOval(91,24,7,4,Terrain.GRASS);
     }
 
     private void buildRiverValley() {
-        // The river cuts across the early journey. Only the old narrow bridge is passable.
         for (int i = 0; i < RIVER.length - 1; i++) {
             paintLine(RIVER[i][0],RIVER[i][1],RIVER[i+1][0],RIVER[i+1][1],2,Terrain.WATER);
         }
-        rect(44,79,48,81,Terrain.EMPTY); // bridge deck / banks, aligned to BRIDGE_SCENE overlay
+        rect(44,79,48,81,Terrain.EMPTY);
         paintLine(45,82,47,78,1,Terrain.EMPTY);
-
-        // Riverbank lookout and wet-grass pocket: optional exploration, no clue/reward dependency.
         carveOval(22,75,8,4,Terrain.GRASS);
         paintLine(30,82,26,78,2,Terrain.GRASS);
         paintLine(26,78,22,75,1,Terrain.EMPTY_DECO);
     }
 
     private void buildCampSideArea() {
-        // A branch that must be chosen: the camp cannot be read from the main road in one glance.
         for (int i=0;i<CAMP_SPUR.length-1;i++) {
             paintLine(CAMP_SPUR[i][0],CAMP_SPUR[i][1],CAMP_SPUR[i+1][0],CAMP_SPUR[i+1][1],3,Terrain.GRASS);
             paintLine(CAMP_SPUR[i][0],CAMP_SPUR[i][1],CAMP_SPUR[i+1][0],CAMP_SPUR[i+1][1],1,Terrain.EMPTY_DECO);
         }
         carveOval(CAMP_X,CAMP_Y,13,9,Terrain.GRASS);
         carveOval(CAMP_X,CAMP_Y,10,7,Terrain.EMPTY_SP);
-        carveOval(20,66,6,4,Terrain.GRASS); // grassed-over rear trace
+        carveOval(20,66,6,4,Terrain.GRASS);
         paintLine(25,68,20,66,1,Terrain.EMPTY_DECO);
-
         map[cell(29,69)] = Terrain.EMBERS;
         int[][] livedIn = {{25,66},{33,65},{24,72},{35,72},{27,75},{38,68}};
         for (int[] p : livedIn) map[cell(p[0],p[1])] = Terrain.EMPTY_DECO;
     }
 
     private void buildFarmerArea() {
-        // A recognisable old pasture pinch rather than combat staged in the middle of a hallway.
         carveOval(FARMER_X,FARMER_Y,12,8,Terrain.GRASS);
         carveOval(FARMER_X,FARMER_Y,9,6,Terrain.EMPTY_SP);
         paintLine(96,64,103,59,2,Terrain.EMPTY);
         paintLine(103,59,106,53,2,Terrain.EMPTY);
-        rect(111,55,114,64,Terrain.GRASS); // collapsed fence-side slope
+        rect(111,55,114,64,Terrain.GRASS);
         map[cell(100,59)] = Terrain.EMPTY_DECO;
         map[cell(105,60)] = Terrain.EMPTY_DECO;
         map[cell(111,61)] = Terrain.HIGH_GRASS;
@@ -252,7 +226,6 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
     }
 
     private void buildShrineLoop() {
-        // The crow branch is a distinct enclosed woodland route, not a GPS arrow beside the road.
         for (int i=0;i<CROW_SPUR.length-1;i++) {
             paintLine(CROW_SPUR[i][0],CROW_SPUR[i][1],CROW_SPUR[i+1][0],CROW_SPUR[i+1][1],3,Terrain.GRASS);
             paintLine(CROW_SPUR[i][0],CROW_SPUR[i][1],CROW_SPUR[i+1][0],CROW_SPUR[i+1][1],1,Terrain.EMPTY_SP);
@@ -261,8 +234,6 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
         carveOval(SHRINE_X,SHRINE_Y,7,5,Terrain.EMPTY_SP);
         carveOval(SHRINE_X,SHRINE_Y,4,3,Terrain.EMPTY);
         map[cell(SHRINE_ALTAR_X,SHRINE_ALTAR_Y)] = Terrain.EMPTY_DECO;
-
-        // A second short path returns farther north: Scene 1's one explicit exploration loop.
         for (int i=0;i<SHRINE_RETURN.length-1;i++) {
             paintLine(SHRINE_RETURN[i][0],SHRINE_RETURN[i][1],SHRINE_RETURN[i+1][0],SHRINE_RETURN[i+1][1],3,Terrain.GRASS);
             paintLine(SHRINE_RETURN[i][0],SHRINE_RETURN[i][1],SHRINE_RETURN[i+1][0],SHRINE_RETURN[i+1][1],1,Terrain.EMPTY_DECO);
@@ -272,32 +243,37 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
     }
 
     private void buildCivilizationEdge() {
-        // The last 1-2 minutes are only environmental resolution: wider road, walls, field edges.
-        carveOval(90,18,9,5,Terrain.GRASS);
-        carveOval(84,10,10,6,Terrain.GRASS);
-        paintLine(94,24,90,18,6,Terrain.GRASS);
-        paintLine(90,18,83,15,6,Terrain.GRASS);
-        paintLine(83,15,84,3,7,Terrain.GRASS);
-        paintLine(94,24,90,18,2,Terrain.EMPTY);
-        paintLine(90,18,83,15,2,Terrain.EMPTY);
-        paintLine(83,15,84,3,2,Terrain.EMPTY);
-
+        carveOval(106,22,9,5,Terrain.GRASS);
+        carveOval(100,14,10,5,Terrain.GRASS);
+        carveOval(87,12,10,5,Terrain.GRASS);
+        paintLine(86,29,100,27,6,Terrain.GRASS);
+        paintLine(100,27,111,24,6,Terrain.GRASS);
+        paintLine(111,24,110,18,6,Terrain.GRASS);
+        paintLine(110,18,100,14,6,Terrain.GRASS);
+        paintLine(100,14,90,15,6,Terrain.GRASS);
+        paintLine(90,15,82,11,6,Terrain.GRASS);
+        paintLine(82,11,84,3,7,Terrain.GRASS);
+        paintLine(86,29,100,27,2,Terrain.EMPTY);
+        paintLine(100,27,111,24,2,Terrain.EMPTY);
+        paintLine(111,24,110,18,2,Terrain.EMPTY);
+        paintLine(110,18,100,14,2,Terrain.EMPTY);
+        paintLine(100,14,90,15,2,Terrain.EMPTY);
+        paintLine(90,15,82,11,2,Terrain.EMPTY);
+        paintLine(82,11,84,3,2,Terrain.EMPTY);
         rect(70,5,76,12,Terrain.EMPTY_SP);
-        rect(94,6,103,13,Terrain.EMPTY_SP);
+        rect(101,7,109,12,Terrain.EMPTY_SP);
         for (int x=71;x<=76;x+=2) map[cell(x,10)] = Terrain.EMPTY_DECO;
-        for (int x=95;x<=102;x+=2) map[cell(x,9)] = Terrain.EMPTY_DECO;
+        for (int x=102;x<=108;x+=2) map[cell(x,10)] = Terrain.EMPTY_DECO;
     }
 
     private void buildExplorationPockets() {
-        // Side spaces prevent the walk from feeling like a pipe while still keeping orientation clear.
         carveOval(62,70,5,4,Terrain.GRASS);
         carveOval(82,63,6,4,Terrain.GRASS);
         carveOval(111,51,5,4,Terrain.GRASS);
         carveOval(88,38,5,3,Terrain.GRASS);
         carveOval(62,27,5,4,Terrain.GRASS);
-        carveOval(98,20,5,3,Terrain.GRASS);
-
-        // A few short visual dead-ends deliberately use grass/old trace, never full road language.
+        carveOval(114,20,5,3,Terrain.GRASS);
+        carveOval(96,11,5,3,Terrain.GRASS);
         paintLine(81,70,84,75,1,Terrain.GRASS);
         paintLine(93,45,98,41,1,Terrain.GRASS);
         paintLine(59,18,56,13,1,Terrain.GRASS);
@@ -306,43 +282,32 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
     private void installVisualFoundation() {
         customTiles.removeIf(t -> t instanceof EchoesSurfaceTilemap || t instanceof EchoesLandmarkTilemap);
         customWalls.removeIf(t -> t instanceof EchoesSurfaceTilemap || t instanceof EchoesLandmarkTilemap);
-
         addSurfaceTile(EchoesSurfaceTilemap.DUNGEON_MOUTH, 18, 83);
         addSurfaceTile(EchoesSurfaceTilemap.BRIDGE_SCENE, 44, 79);
         addLandmarkTile(EchoesLandmarkTilemap.CAMP, 28, 67);
         addSurfaceTile(EchoesSurfaceTilemap.CAMP_SCENE, 25, 66);
         addLandmarkTile(EchoesLandmarkTilemap.WAGON, 100, 57);
         addLandmarkTile(EchoesLandmarkTilemap.SHRINE, 40, 20);
-        addLandmarkTile(EchoesLandmarkTilemap.SIGNPOST, 83, 10);
+        addLandmarkTile(EchoesLandmarkTilemap.SIGNPOST, 83, 8);
 
-        int[][] forest = {
-                {5,84},{11,76},{18,72},{35,76},{58,83},{72,81},{90,75},{113,70},
+        int[][] forest = {{5,84},{11,76},{18,72},{35,76},{58,83},{72,81},{90,75},{113,70},
                 {116,57},{109,45},{96,39},{67,43},{55,37},{34,30},{29,19},{49,12},
-                {72,13},{103,16},{111,30},{17,57},{8,44},{20,34}
-        };
-        for (int i=0;i<forest.length;i++) {
-            addSurfaceWall(i%3==0?EchoesSurfaceTilemap.FOREST_DEEP:
-                    i%2==0?EchoesSurfaceTilemap.FOREST_EDGE_B:EchoesSurfaceTilemap.FOREST_EDGE_A,
-                    forest[i][0], forest[i][1]);
-        }
+                {72,13},{116,16},{111,30},{17,57},{8,44},{20,34}};
+        for (int i=0;i<forest.length;i++) addSurfaceWall(i%3==0?EchoesSurfaceTilemap.FOREST_DEEP:
+                i%2==0?EchoesSurfaceTilemap.FOREST_EDGE_B:EchoesSurfaceTilemap.FOREST_EDGE_A,
+                forest[i][0], forest[i][1]);
 
-        int[][] features = {
-                {34,87},{27,77},{52,80},{61,74},{73,70},{86,67},{96,63},{111,59},
+        int[][] features = {{34,87},{27,77},{52,80},{61,74},{73,70},{86,67},{96,63},{111,59},
                 {101,50},{91,45},{82,42},{68,35},{61,32},{52,28},{46,24},{37,18},
-                {55,16},{70,21},{82,27},{92,23},{87,16},{80,8}
-        };
-        for (int i=0;i<features.length;i++) {
-            addSurfaceTile(i%4==0?EchoesSurfaceTilemap.FOREST_LOG:
-                    i%4==1?EchoesSurfaceTilemap.FOREST_ROCKS:
-                            i%4==2?EchoesSurfaceTilemap.FOREST_STUMP:EchoesSurfaceTilemap.FOREST_BUSH,
-                    features[i][0],features[i][1]);
-        }
+                {55,16},{70,21},{82,27},{106,25},{112,19},{101,13},{90,14},{80,9}};
+        for (int i=0;i<features.length;i++) addSurfaceTile(i%4==0?EchoesSurfaceTilemap.FOREST_LOG:
+                i%4==1?EchoesSurfaceTilemap.FOREST_ROCKS:
+                        i%4==2?EchoesSurfaceTilemap.FOREST_STUMP:EchoesSurfaceTilemap.FOREST_BUSH,
+                features[i][0],features[i][1]);
 
-        int[][] road = {
-                {28,83},{39,82},{52,77},{64,76},{71,72},{82,69},{91,65},{99,63},
+        int[][] road = {{28,83},{39,82},{52,77},{64,76},{71,72},{82,69},{91,65},{99,63},
                 {104,55},{101,48},{92,46},{84,42},{76,39},{72,35},{77,30},{87,28},
-                {93,23},{89,18},{84,15},{84,11},{84,7},{84,4}
-        };
+                {98,27},{108,24},{110,19},{101,14},{91,15},{83,11},{84,6},{84,4}};
         int[] kinds = {EchoesSurfaceTilemap.ROAD_WEEDS,EchoesSurfaceTilemap.ROAD_TRAMPLE,
                 EchoesSurfaceTilemap.ROAD_MUD,EchoesSurfaceTilemap.ROAD_RUTS,
                 EchoesSurfaceTilemap.ROAD_STONES,EchoesSurfaceTilemap.ROAD_SCAR,
@@ -355,15 +320,14 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
                 EchoesSurfaceTilemap.RIVER_WET_GRASS,EchoesSurfaceTilemap.RIVER_ROOTS};
         for (int i=0;i<creek.length;i++) addSurfaceTile(waterKinds[i],creek[i][0],creek[i][1]);
 
-        // Curated variation follows readable beats rather than random confetti.
         grassCluster(12,86); grassCluster(33,84); grassCluster(23,74); grassCluster(46,76);
         grassCluster(61,78); grassCluster(75,68); grassCluster(90,63); grassCluster(110,55);
         grassCluster(96,49); grassCluster(86,44); grassCluster(72,39); grassCluster(60,30);
         grassCluster(47,26); grassCluster(35,22); grassCluster(54,16); grassCluster(72,22);
-        grassCluster(97,22); grassCluster(74,9); grassCluster(96,10);
+        grassCluster(104,25); grassCluster(110,18); grassCluster(98,12); grassCluster(78,9);
 
         for (int x=71;x<=77;x+=2) addSurfaceTile(EchoesSurfaceTilemap.FENCE,x,10);
-        for (int x=95;x<=103;x+=2) addSurfaceTile(EchoesSurfaceTilemap.FENCE,x,9);
+        for (int x=102;x<=110;x+=2) addSurfaceTile(EchoesSurfaceTilemap.FENCE,x,10);
     }
 
     private void grassCluster(int x, int y) {
@@ -373,27 +337,18 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
         addSurfaceTile(EchoesSurfaceTilemap.GRASS_TUFT_B,x+1,y+1);
     }
 
-    private void addSurfaceTile(int kind,int x,int y){
-        EchoesSurfaceTilemap art=new EchoesSurfaceTilemap(kind); art.pos(x,y); customTiles.add(art);
-    }
-    private void addSurfaceWall(int kind,int x,int y){
-        EchoesSurfaceTilemap art=new EchoesSurfaceTilemap(kind); art.pos(x,y); customWalls.add(art);
-    }
-    private void addLandmarkTile(int kind,int x,int y){
-        EchoesLandmarkTilemap art=new EchoesLandmarkTilemap(kind); art.pos(x,y); customTiles.add(art);
-    }
+    private void addSurfaceTile(int kind,int x,int y){ EchoesSurfaceTilemap art=new EchoesSurfaceTilemap(kind); art.pos(x,y); customTiles.add(art); }
+    private void addSurfaceWall(int kind,int x,int y){ EchoesSurfaceTilemap art=new EchoesSurfaceTilemap(kind); art.pos(x,y); customWalls.add(art); }
+    private void addLandmarkTile(int kind,int x,int y){ EchoesLandmarkTilemap art=new EchoesLandmarkTilemap(kind); art.pos(x,y); customTiles.add(art); }
 
     @Override
     protected void createMobs() {
         ActOneReturnState state = ActOneReturnState.get();
         if (state == null) return;
-
         if (state.farmerOutcome == ActOneReturnState.FarmerOutcome.UNRESOLVED
                 || (state.farmerOutcome == ActOneReturnState.FarmerOutcome.RESCUED && !state.farmerDialogueCompleted)) {
-            ActOneReturnFarmer farmer = new ActOneReturnFarmer();
-            farmer.pos = cell(FARMER_X, FARMER_Y); mobs.add(farmer);
-            ActOneReturnDonkey donkey = new ActOneReturnDonkey();
-            donkey.pos = cell(FARMER_X+2, FARMER_Y); mobs.add(donkey);
+            ActOneReturnFarmer farmer = new ActOneReturnFarmer(); farmer.pos = cell(FARMER_X, FARMER_Y); mobs.add(farmer);
+            ActOneReturnDonkey donkey = new ActOneReturnDonkey(); donkey.pos = cell(FARMER_X+2, FARMER_Y); mobs.add(donkey);
         }
         if (state.wolvesOutcome == ActOneReturnState.WolvesOutcome.UNRESOLVED) {
             int[][] wolves = {{99,57},{106,56},{107,62}};
@@ -412,15 +367,11 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
         if (state.yendorTemporarilyMissing && !state.yendorRecovered) ensureShrineYendor();
     }
 
-    /** Called by ActOneReturnState once per actor tick while this authored scene is active. */
     public void tickScene(ActOneReturnState state) {
         if (Dungeon.hero == null || state == null) return;
-        int hx = Dungeon.hero.pos % width();
-        int hy = Dungeon.hero.pos / width();
-
+        int hx = Dungeon.hero.pos % width(), hy = Dungeon.hero.pos / width();
         ChapterOneAudio.tickTransientReturnAudio();
         ChapterOneAudio.updateStreamDistance(nearestPolylineDistance(hx,hy,RIVER));
-
         RegionState region = RegionState.current();
         if (region != null) region.discover(RegionState.Location.SURFACE_ENTRANCE);
 
@@ -428,28 +379,21 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
             state.campDiscovered = true;
             if (region != null) region.discover(RegionState.Location.ABANDONED_EXPEDITION_CAMP);
         }
-        if (state.campDiscovered && !state.campBedrollClueSeen
-                && distanceTo(hx,hy,29,69) <= 4) {
+        if (state.campDiscovered && !state.campBedrollClueSeen && distanceTo(hx,hy,29,69) <= 4) {
             state.campBedrollClueSeen = true;
             Game.runOnRenderThread(() -> GameScene.show(new WndMessage(
                     "熄灭的营火周围散着四处行军卧具。摆法和磨损都不一样。\n\n另一支远征队，大概在这里住过一阵。")));
         }
 
         int farmerDistance = distanceTo(hx,hy,FARMER_X,FARMER_Y);
-        if (!state.farmerEventSeen && farmerDistance <= 13) {
-            state.farmerEventSeen = true;
-            ChapterOneAudio.playWolfWarning();
-        }
-        if (state.farmerEventSeen && state.wolvesOutcome == ActOneReturnState.WolvesOutcome.UNRESOLVED
-                && !hasReturnWolf()) {
+        if (!state.farmerEventSeen && farmerDistance <= 13) { state.farmerEventSeen = true; ChapterOneAudio.playWolfWarning(); }
+        if (state.farmerEventSeen && state.wolvesOutcome == ActOneReturnState.WolvesOutcome.UNRESOLVED && !hasReturnWolf()) {
             state.wolvesOutcome = ActOneReturnState.WolvesOutcome.RESOLVED;
             state.farmerOutcome = ActOneReturnState.FarmerOutcome.RESCUED;
             state.donkeyOutcome = ActOneReturnState.DonkeyOutcome.SURVIVED;
             state.cartOutcome = ActOneReturnState.CartOutcome.USABLE;
         }
-        if (state.wolvesOutcome == ActOneReturnState.WolvesOutcome.UNRESOLVED
-                && hy <= 50 && farmerDistance > 18) {
-            // Walking past the pasture is a valid non-intervention outcome, never a soft lock.
+        if (state.wolvesOutcome == ActOneReturnState.WolvesOutcome.UNRESOLVED && hy <= 50 && farmerDistance > 18) {
             state.farmerEventSeen = true;
             state.farmerOutcome = ActOneReturnState.FarmerOutcome.IGNORED;
             state.donkeyOutcome = ActOneReturnState.DonkeyOutcome.SURVIVED;
@@ -458,20 +402,14 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
         }
 
         boolean farmerResolved = state.wolvesOutcome != ActOneReturnState.WolvesOutcome.UNRESOLVED;
-        if (farmerResolved && !state.yendorAnomalyStarted
-                && hx >= 74 && hx <= 84 && hy >= 36 && hy <= 43) {
-            state.yendorAnomalyStarted = true;
-            state.yendorAnomalyNoticeShown = true;
-            ChapterOneAudio.playYendorPulse();
+        if (farmerResolved && !state.yendorAnomalyStarted && hx >= 74 && hx <= 84 && hy >= 36 && hy <= 43) {
+            state.yendorAnomalyStarted = true; state.yendorAnomalyNoticeShown = true; ChapterOneAudio.playYendorPulse();
             Game.runOnRenderThread(() -> GameScene.show(new WndMessage(
                     "Yendor 贴着掌心，忽然热了一瞬。\n\n很轻。轻得几乎像错觉。\n\n你把护符拿出来看了看。它又安静下来。")));
         }
         if (state.yendorAnomalyStarted && !state.yendorTemporarilyMissing && !state.yendorRecovered
                 && hx >= 67 && hx <= 73 && hy >= 31 && hy <= 36) {
-            ChapterOneAudio.playYendorPulse();
-            state.beginYendorChase();
-            ensureCrow();
-            ensureShrineYendor();
+            ChapterOneAudio.playYendorPulse(); state.beginYendorChase(); ensureCrow(); ensureShrineYendor();
             Game.runOnRenderThread(() -> GameScene.show(new WndMessage(
                     "护符又短促地震了一下。\n\n你手指一松，一道黑影从树枝间扑近。吊链擦过指节，被乌鸦一把带了起来。\n\n它没有飞高，只钻进了左侧更密的林子。")));
         }
@@ -481,53 +419,29 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
             if (region != null) region.discover(RegionState.Location.OLD_KINGS_ROAD_SHRINE);
             ChapterOneAudio.returnShrineAmbience();
         }
-        if (state.shrineDiscovered && distanceTo(hx,hy,SHRINE_X,SHRINE_Y) > 10) {
-            ChapterOneAudio.surfaceAmbience();
-        }
-
-        if (state.yendorRecovered && !state.crowChaseResolved) {
-            state.crowChaseResolved = true;
-            state.crowChaseActive = false;
-        }
+        if (state.shrineDiscovered && distanceTo(hx,hy,SHRINE_X,SHRINE_Y) > 10) ChapterOneAudio.surfaceAmbience();
+        if (state.yendorRecovered && !state.crowChaseResolved) { state.crowChaseResolved = true; state.crowChaseActive = false; }
     }
 
-    private boolean hasReturnWolf() {
-        for (Mob mob : mobs) if (mob instanceof ActOneReturnWolf) return true;
-        return false;
-    }
-
+    private boolean hasReturnWolf() { for (Mob mob : mobs) if (mob instanceof ActOneReturnWolf) return true; return false; }
     private void ensureCrow() {
         for (Mob mob : mobs) if (mob instanceof ActOneReturnCrow) return;
-        ActOneReturnCrow crow = new ActOneReturnCrow();
-        crow.pos = crowStops()[0];
-        mobs.add(crow);
-        GameScene.add(crow);
+        ActOneReturnCrow crow = new ActOneReturnCrow(); crow.pos = crowStops()[0]; mobs.add(crow); GameScene.add(crow);
     }
-
     private void ensureShrineYendor() {
-        for (Heap heap : heaps.valueList()) {
-            for (Item item : heap.items) if (item instanceof ActOneYendorAtShrine) return;
-        }
+        for (Heap heap : heaps.valueList()) for (Item item : heap.items) if (item instanceof ActOneYendorAtShrine) return;
         drop(new ActOneYendorAtShrine(), cell(SHRINE_ALTAR_X,SHRINE_ALTAR_Y));
     }
-
-    /** Four sparse stops produce three actual direction changes before the shrine. */
-    public int[] crowStops() {
-        return new int[]{cell(62,33),cell(54,31),cell(47,27),cell(42,22)};
-    }
+    public int[] crowStops() { return new int[]{cell(62,33),cell(54,31),cell(47,27),cell(42,22)}; }
 
     @Override
     public boolean activateTransition(Hero hero, LevelTransition transition) {
         if (transition.type == LevelTransition.Type.REGULAR_ENTRANCE) {
-            GLog.p("潮湿的石阶重新没入地下。你已经把要带出来的东西带出来了。");
-            return false;
+            GLog.p("潮湿的石阶重新没入地下。你已经把要带出来的东西带出来了。"); return false;
         }
         if (transition.type == LevelTransition.Type.REGULAR_EXIT) {
             ActOneReturnState state = ActOneReturnState.get();
-            if (state != null && state.yendorTemporarilyMissing && !state.yendorRecovered) {
-                GLog.w("Yendor 还在林子里的神龛附近。");
-                return false;
-            }
+            if (state != null && state.yendorTemporarilyMissing && !state.yendorRecovered) { GLog.w("Yendor 还在林子里的神龛附近。"); return false; }
             if (state != null) {
                 state.northExitReached = true;
                 if (!state.northExitNoticeShown) {
@@ -546,11 +460,9 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
     @Override public int randomRespawnCell(Char ch){ return cell(START_X,START_Y-1); }
 
     private static RegionPoi poi(RegionState.Location location, RegionPoi.Category category,
-                                 int x,int y,int heardX,int heardY,int radius,
-                                 String name,String heard,String discovered){
+                                 int x,int y,int heardX,int heardY,int radius,String name,String heard,String discovered){
         return new RegionPoi(location,category,x,y,heardX,heardY,radius,name,heard,discovered);
     }
-
     private void paintLine(int x1,int y1,int x2,int y2,int radius,int terrain){
         int steps=Math.max(Math.abs(x2-x1),Math.abs(y2-y1));
         for(int i=0;i<=steps;i++){
@@ -560,29 +472,19 @@ public class ActOneReturnLevel extends Level implements RegionAreaLevel {
                 if(Math.abs(dx)+Math.abs(dy)<=radius+1&&inside(x+dx,y+dy)) map[cell(x+dx,y+dy)]=terrain;
         }
     }
-
     private void rect(int x1,int y1,int x2,int y2,int terrain){
-        for(int y=Math.max(1,y1);y<=Math.min(HEIGHT-2,y2);y++)
-            for(int x=Math.max(1,x1);x<=Math.min(WIDTH-2,x2);x++) map[cell(x,y)]=terrain;
+        for(int y=Math.max(1,y1);y<=Math.min(HEIGHT-2,y2);y++) for(int x=Math.max(1,x1);x<=Math.min(WIDTH-2,x2);x++) map[cell(x,y)]=terrain;
     }
-
     private void carveOval(int cx,int cy,int rx,int ry,int terrain){
-        for(int y=Math.max(1,cy-ry);y<=Math.min(HEIGHT-2,cy+ry);y++) {
-            for(int x=Math.max(1,cx-rx);x<=Math.min(WIDTH-2,cx+rx);x++) {
-                float nx=(x-cx)/(float)Math.max(1,rx);
-                float ny=(y-cy)/(float)Math.max(1,ry);
-                if(nx*nx+ny*ny<=1f) map[cell(x,y)]=terrain;
-            }
+        for(int y=Math.max(1,cy-ry);y<=Math.min(HEIGHT-2,cy+ry);y++) for(int x=Math.max(1,cx-rx);x<=Math.min(WIDTH-2,cx+rx);x++) {
+            float nx=(x-cx)/(float)Math.max(1,rx), ny=(y-cy)/(float)Math.max(1,ry);
+            if(nx*nx+ny*ny<=1f) map[cell(x,y)]=terrain;
         }
     }
-
     private boolean inside(int x,int y){ return x>0&&y>0&&x<WIDTH-1&&y<HEIGHT-1; }
     public int cell(int x,int y){ return x+y*width(); }
     private static int distanceTo(int x1,int y1,int x2,int y2){ return Math.abs(x1-x2)+Math.abs(y1-y2); }
-
     private static int nearestPolylineDistance(int x,int y,int[][] points){
-        int best=Integer.MAX_VALUE;
-        for(int[] p:points) best=Math.min(best,distanceTo(x,y,p[0],p[1]));
-        return best;
+        int best=Integer.MAX_VALUE; for(int[] p:points) best=Math.min(best,distanceTo(x,y,p[0],p[1])); return best;
     }
 }
