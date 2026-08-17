@@ -60,6 +60,7 @@ jobs:
             @{ Name="Mixkit Little Birds Singing"; Url="https://assets.mixkit.co/active_storage/sfx/17/17-preview.mp3"; Target="core/src/main/assets/sounds/echoes/ch1_birds.mp3"; Sha256="31afb3341b8c583038acbdc1a120f2c45699767ddd3a8fa200ec5f72fb54e89f" },
             @{ Name="Mixkit Wolves at Scary Forest"; Url="https://assets.mixkit.co/active_storage/sfx/2485/2485-preview.mp3"; Target="core/src/main/assets/sounds/echoes/ch1_wolves.mp3"; Sha256="d164d2d1abeaf633199cc482b580b224724c94ebab71fd6fe0749aa6d77d09b4" },
             @{ Name="Mixkit Donkey Scream"; Url="https://assets.mixkit.co/active_storage/sfx/1770/1770-preview.mp3"; Target="core/src/main/assets/sounds/echoes/ch1_donkey.mp3"; Sha256="DISCOVER" },
+            @{ Name="OpenGameArt Crow Caw CC0"; Url="https://opengameart.org/sites/default/files/crow_caw.wav"; Target="core/src/main/assets/sounds/echoes/ch1_raven_caw.wav"; Sha256="DISCOVER" },
             @{ Name="Book Opening"; Url="https://raw.githubusercontent.com/bushnghiem/Project04/cba32629189ca35261bae0e666d9f63afc429830/Audio/book-opening-345808.mp3"; Target="core/src/main/assets/sounds/echoes/ledger_book_open.mp3"; Sha256="137b6b7a15b5415671589c5094394ff9e343000bec42650e04917b0541045ded" },
             @{ Name="Flipping Book Page"; Url="https://raw.githubusercontent.com/mr-vishwakarma/illuster-coaching-classes/c5367b5acf7be172b2b4d3152bdd74b833a1443c/public/sounds/dragon-studio-flipping-book-page-499646.mp3"; Target="core/src/main/assets/sounds/echoes/ledger_page_turn.mp3"; Sha256="600be61dd4591f09cdc1711fa8e07098fd3d948f619a7e096513ed6ab5aa82d8" },
             @{ Name="Book Closing"; Url="https://raw.githubusercontent.com/MikhaellaJingCarumbana/AUTOMA/7d2890fac0d4faf362debdd274665cd65510c896/Chapters/Chapter%201/audios/sounds/book-closing-48311.mp3"; Target="core/src/main/assets/sounds/echoes/ledger_book_close.mp3"; Sha256="bec81ccf7cc302fa3dad21b90cb73394cf9060ef7222006590ee85980c78d0da" },
@@ -77,6 +78,24 @@ jobs:
             elseif ($actual -ne $asset.Sha256) { throw "Echoes audio SHA256 mismatch for $($asset.Name). Expected $($asset.Sha256), got $actual" }
             else { Write-Host "Verified $($asset.Name): $actual" }
           }
+
+          $wingZip = Join-Path $env:RUNNER_TEMP "wings_flap_large.zip"
+          $wingUrl = "https://opengameart.org/sites/default/files/wings_flap_large.zip"
+          curl.exe -L --fail --retry 3 --retry-delay 2 $wingUrl -o $wingZip
+          if ($LASTEXITCODE -ne 0) { throw "Failed to download OpenGameArt Large Wings Flap CC0." }
+          $wingHash = (Get-FileHash -Path $wingZip -Algorithm SHA256).Hash.ToLowerInvariant()
+          Write-Host "DISCOVERED SHA256 OpenGameArt Large Wings Flap CC0 ZIP: $wingHash"
+          $wingExtract = Join-Path $env:RUNNER_TEMP "wings_flap_large"
+          Expand-Archive -Path $wingZip -DestinationPath $wingExtract -Force
+          $wing = Get-ChildItem -Path $wingExtract -Recurse -File -Filter "*.ogg" | Select-Object -First 1
+          if (-not $wing) { throw "Large Wings Flap archive did not contain an OGG file." }
+          $wingTarget = "core/src/main/assets/sounds/echoes/ch1_raven_wings.ogg"
+          New-Item -ItemType Directory -Force -Path (Split-Path -Parent $wingTarget) | Out-Null
+          Copy-Item $wing.FullName $wingTarget -Force
+          Write-Host "Selected wing member: $($wing.Name); member SHA256: $((Get-FileHash $wing.FullName -Algorithm SHA256).Hash.ToLowerInvariant())"
+
+      - name: Generate deterministic Yendor signature cue
+        run: python tools/generate_yendor_signature.py
 
       - name: Generate Visual Foundation terrain atlases
         run: python tools/generate_visual_foundation.py
