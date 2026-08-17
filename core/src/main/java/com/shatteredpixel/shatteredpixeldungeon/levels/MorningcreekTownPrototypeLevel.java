@@ -32,8 +32,8 @@ public class MorningcreekTownPrototypeLevel extends Level implements RegionAreaL
 
     public static final int START_X = 48;
     public static final int START_Y = 68;
-    public static final int INN_DOOR_X = 28;
-    public static final int INN_DOOR_Y = 32;
+    public static final int INN_DOOR_X = 40;
+    public static final int INN_DOOR_Y = 50;
 
     private static final String TOWN_TILES = "environment/tiles_town_v1.png";
     private static final String SURFACE_WATER = "environment/water_surface_v1.png";
@@ -46,16 +46,16 @@ public class MorningcreekTownPrototypeLevel extends Level implements RegionAreaL
                     48, 64, 48, 64, 5, "南门车马坪",
                     "南门附近似乎有供车马停靠的空地。", "商旅进镇前整理货物、饮马和等候检查的车马坪。"),
             poi(RegionState.Location.CENTRAL_MARKET, RegionPoi.Category.SERVICE,
-                    48, 54, 48, 54, 7, "中心市场",
+                    50, 55, 50, 55, 7, "中心市场",
                     "主街中段有人群和摊贩聚集。", "晨溪最繁忙的公共空间，主街与多条支路在这里汇合。"),
             poi(RegionState.Location.MARKET_WELL, RegionPoi.Category.LANDMARK,
                     48, 56, 48, 56, 4, "市场水井",
                     "市场中央有一处常用的公共水源。", "市场中央的石砌水井，是镇民最常用的指路参照。"),
             poi(RegionState.Location.OLD_CROW_INN, RegionPoi.Category.TRAVEL,
-                    28, 30, 29, 43, 7, "老鸦旅店",
-                    "听说旅店在市场西北、靠近河岸的一带。", "黑乌鸦招牌悬在宽阔的旅店正门前；建筑规模远大于旧 Demo。"),
+                    30, 47, 36, 55, 7, "老鸦旅店",
+                    "听说旅店在市场西侧、靠近南岸的一带。", "黑乌鸦招牌悬在宽阔的旅店正门前；建筑规模远大于旧 Demo。"),
             poi(RegionState.Location.OLD_CROW_REAR_YARD, RegionPoi.Category.SERVICE,
-                    13, 27, 16, 30, 5, "老鸦后院",
+                    13, 46, 16, 48, 5, "老鸦后院",
                     "旅店后方有供货和牲口进出的院落。", "旅店后院预留了马厩、货物入口和未来的替代出入口。"),
             poi(RegionState.Location.STONE_BRIDGE, RegionPoi.Category.LANDMARK,
                     48, 36, 48, 36, 7, "晨溪大石桥",
@@ -85,7 +85,7 @@ public class MorningcreekTownPrototypeLevel extends Level implements RegionAreaL
                     89, 41, 88, 42, 5, "东河埠头",
                     "东侧河岸有一处小型埠头。", "面向东部河谷的装卸埠头，也是未来区域路线的重要参照。"),
             poi(RegionState.Location.BLACKSMITH, RegionPoi.Category.SERVICE,
-                    14, 54, 16, 54, 6, "铁匠铺",
+                    14, 56, 16, 56, 6, "铁匠铺",
                     "南门西侧能听见打铁声。", "靠近南侧运输路线的铁匠铺，方便车队和居民修理工具。"),
             poi(RegionState.Location.PUBLIC_STABLES, RegionPoi.Category.SERVICE,
                     18, 65, 18, 64, 6, "公共马厩",
@@ -133,92 +133,73 @@ public class MorningcreekTownPrototypeLevel extends Level implements RegionAreaL
     @Override
     protected boolean build() {
         setSize(WIDTH, HEIGHT);
-
-        // Base urban ground. The edge remains solid to make future regional exits explicit.
         rect(1, 1, WIDTH - 2, HEIGHT - 2, Terrain.GRASS);
 
-        // Primary navigation spine and the two riverbank lanes.
         rect(44, 1, 52, 70, Terrain.EMPTY);
         rect(2, 31, 93, 33, Terrain.EMPTY);
         rect(2, 40, 93, 42, Terrain.EMPTY);
 
-        // Morningcreek River: broad enough to read as a real boundary, not a decorative ditch.
         rect(1, 34, 94, 39, Terrain.WATER);
-        // Stone bridge carries the main street across the full river band.
         rect(44, 33, 52, 40, Terrain.EMPTY_SP);
 
-        // Central market and approach streets.
         rect(32, 47, 63, 62, Terrain.EMPTY_SP);
         rect(4, 52, 32, 56, Terrain.EMPTY);
         rect(63, 50, 92, 54, Terrain.EMPTY);
-        rect(57, 42, 60, 67, Terrain.EMPTY); // east back alley / service connector
+        rect(57, 42, 60, 67, Terrain.EMPTY);
         rect(24, 61, 43, 65, Terrain.EMPTY);
         rect(53, 61, 78, 65, Terrain.EMPTY);
 
-        // North civic cross-streets and east clinic access.
         rect(2, 18, 43, 21, Terrain.EMPTY);
         rect(19, 8, 43, 11, Terrain.EMPTY);
         rect(19, 23, 43, 29, Terrain.EMPTY_SP);
         rect(53, 20, 93, 23, Terrain.EMPTY);
         rect(53, 26, 93, 29, Terrain.EMPTY);
 
-        // Ravenfeather district. Large solid footprints intentionally establish massing first.
-        block(6, 5, 18, 16);       // Ravenfeather Tower mass
-        block(21, 10, 37, 21);     // Registry facade
-        rect(21, 23, 38, 29, Terrain.EMPTY_SP); // Archive Court
-        block(4, 24, 16, 30);      // west residential/service block
-        block(34, 3, 42, 15);      // north-west housing
+        block(6, 5, 18, 16);
+        block(21, 10, 37, 21);
+        rect(21, 23, 38, 29, Terrain.EMPTY_SP);
+        block(4, 24, 16, 30);
+        block(34, 3, 42, 15);
 
-        // Old Crow Inn parcel and rear service yard.
-        block(18, 23, 38, 32);
-        rect(7, 23, 17, 31, Terrain.EMPTY_SP);
-        rect(7, 29, 18, 32, Terrain.EMPTY);
-        int innDoor = cell(INN_DOOR_X, INN_DOOR_Y);
-        map[innDoor] = Terrain.EXIT;
-        transitions.add(new LevelTransition(this, innDoor, LevelTransition.Type.REGULAR_EXIT));
-
-        // East clinic, garden and residential blocks.
         block(62, 11, 79, 24);
         rect(81, 10, 92, 28, Terrain.GRASS);
-        for (int y = 12; y <= 26; y += 4) {
-            rect(82, y, 91, y + 1, Terrain.HIGH_GRASS);
-        }
+        for (int y = 12; y <= 26; y += 4) rect(82, y, 91, y + 1, Terrain.HIGH_GRASS);
         rect(85, 10, 86, 28, Terrain.WATER);
         block(54, 4, 60, 15);
         block(54, 25, 61, 30);
 
-        // South-west services.
-        block(6, 48, 20, 59);      // blacksmith
-        block(6, 63, 22, 69);      // public stables
-        block(25, 64, 31, 69);     // south-west housing
+        block(19, 43, 40, 51);
+        rect(7, 43, 18, 49, Terrain.EMPTY_SP);
+        rect(7, 48, 19, 51, Terrain.EMPTY);
+        int innDoor = cell(INN_DOOR_X, INN_DOOR_Y);
+        map[innDoor] = Terrain.EXIT;
+        transitions.add(new LevelTransition(this, innDoor, LevelTransition.Type.REGULAR_EXIT));
 
-        // South/east residential and warehouse fabric.
+        block(6, 52, 18, 61);
+        block(6, 63, 22, 69);
+        block(25, 64, 31, 69);
+
         block(64, 63, 75, 69);
         block(79, 62, 90, 69);
         block(64, 44, 75, 49);
         block(64, 55, 75, 59);
         block(79, 44, 91, 52);
         block(79, 55, 91, 59);
-        rect(61, 43, 63, 60, Terrain.EMPTY); // loading lane
-        rect(76, 43, 78, 60, Terrain.EMPTY); // warehouse lane
-        rect(92, 40, 94, 43, Terrain.EMPTY); // river landing / east route mouth
+        rect(61, 43, 63, 60, Terrain.EMPTY);
+        rect(76, 43, 78, 60, Terrain.EMPTY);
+        rect(92, 40, 94, 43, Terrain.EMPTY);
 
-        // Smaller residential blocks ensure side streets stay spatially dense.
-        block(23, 43, 30, 49);
         block(23, 56, 30, 60);
         block(33, 64, 41, 69);
         block(54, 64, 61, 69);
 
-        // Future permanent shortcut mouths. They are walkable stubs, not active transitions yet.
         rect(1, 19, 5, 21, Terrain.EMPTY);
         rect(91, 40, 94, 42, Terrain.EMPTY);
         rect(64, 1, 70, 5, Terrain.EMPTY);
 
-        // Market well/fountain footprint.
-        rect(46, 54, 50, 58, Terrain.WATER);
+        rect(47, 55, 49, 57, Terrain.WATER);
         map[cell(48, 56)] = Terrain.EMPTY_DECO;
 
-        // Street furniture / breaks in long straight runs.
         for (int y = 44; y <= 66; y += 7) {
             map[cell(42, y)] = Terrain.EMPTY_DECO;
             map[cell(54, y)] = Terrain.EMPTY_DECO;
@@ -246,16 +227,15 @@ public class MorningcreekTownPrototypeLevel extends Level implements RegionAreaL
     private void installVisualFoundation() {
         customTiles.removeIf(t -> t instanceof EchoesLandmarkTilemap);
         customWalls.removeIf(t -> t instanceof EchoesLandmarkTilemap);
-
         addWall(EchoesLandmarkTilemap.TOWN_GATE, 45, 67);
         addWall(EchoesLandmarkTilemap.TOWN_GATE, 45, 1);
-        addWall(EchoesLandmarkTilemap.OLD_CROW_INN, 22, 25);
-        addTile(EchoesLandmarkTilemap.OLD_CROW_SIGN, 29, 30);
-        addWall(EchoesLandmarkTilemap.BLACKSMITH, 9, 51);
+        addWall(EchoesLandmarkTilemap.OLD_CROW_INN, 25, 44);
+        addTile(EchoesLandmarkTilemap.OLD_CROW_SIGN, 38, 49);
+        addWall(EchoesLandmarkTilemap.BLACKSMITH, 9, 54);
         addWall(EchoesLandmarkTilemap.FARMHOUSE, 11, 64);
-        addWall(EchoesLandmarkTilemap.SHOP, 24, 13); // registry placeholder facade
-        addWall(EchoesLandmarkTilemap.SHOP, 67, 14); // clinic placeholder facade
-        addWall(EchoesLandmarkTilemap.SHOP, 68, 45); // warehouse placeholder facade
+        addWall(EchoesLandmarkTilemap.SHOP, 24, 13);
+        addWall(EchoesLandmarkTilemap.SHOP, 67, 14);
+        addWall(EchoesLandmarkTilemap.SHOP, 68, 45);
         addTile(EchoesLandmarkTilemap.WELL, 47, 55);
         addTile(EchoesLandmarkTilemap.NOTICE_BOARD, 22, 25);
         addTile(EchoesLandmarkTilemap.SIGNPOST, 3, 20);
@@ -311,13 +291,13 @@ public class MorningcreekTownPrototypeLevel extends Level implements RegionAreaL
         addVillager(38, 55, "水果摊主", "河那边是鸦羽区和诊所；东边的仓库这会儿正忙。", 1);
         addVillager(55, 53, "跑腿少年", "我走后巷比主街快。只是下雨天那边会积水。", 2);
         addVillager(47, 45, "桥边老人", "这座桥比很多房子都老。镇子长大了，它倒一直在这里。", 3);
-        addVillager(25, 28, "旅店伙计", "正门在河岸路这边。后院现在只让送货车进。", 4);
-        addVillager(29, 22, "抄写员", "登记处今天照常开门，不过档案院里还有几间房没整理。", 5);
+        addVillager(42, 50, "旅店伙计", "正门就在市场西边。后院现在只让送货车进。", 4);
+        addVillager(29, 30, "抄写员", "登记处今天照常开门，不过档案院里还有几间房没整理。", 5);
         addVillager(67, 27, "药圃学徒", "别踩东边的药畦。那些不是杂草。", 6);
         addVillager(85, 22, "采药人", "晨溪外的草药更好，但镇里的药圃至少不用和野猪抢。", 7);
-        addVillager(65, 51, "搬运工", "重车都走装卸巷，不然市场早被堵死了。", 0);
+        addVillager(62, 51, "搬运工", "重车都走装卸巷，不然市场早被堵死了。", 0);
         addVillager(88, 42, "河工", "顺河往东还有路，只是现在那一段不好走。", 1);
-        addVillager(17, 61, "马夫", "要跑远路先看马蹄。省下的时间都在这些小地方。", 2);
+        addVillager(20, 62, "马夫", "要跑远路先看马蹄。省下的时间都在这些小地方。", 2);
         addVillager(48, 8, "北门巡丁", "北面地势高，风也大。今天还算好走。", 3);
     }
 
