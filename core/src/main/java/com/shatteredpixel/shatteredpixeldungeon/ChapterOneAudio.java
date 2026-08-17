@@ -19,6 +19,9 @@ public final class ChapterOneAudio {
     private static final String BIRDS = "sounds/echoes/ch1_birds.mp3";
     private static final String WOLVES = "sounds/echoes/ch1_wolves.mp3";
     private static final String DONKEY = "sounds/echoes/ch1_donkey.mp3";
+    private static final String RAVEN_CAW = "sounds/echoes/ch1_raven_caw.wav";
+    private static final String RAVEN_WINGS = "sounds/echoes/ch1_raven_wings.ogg";
+    private static final String YENDOR_SIGNATURE = "sounds/echoes/ch1_yendor_signature.wav";
 
     private enum Area { NONE, SURFACE, OLD_ROAD, FARM, INN }
 
@@ -27,6 +30,7 @@ public final class ChapterOneAudio {
     private static float bedRelativeVolume = 1f;
     private static boolean samplesLoaded;
     private static boolean bgmDucked;
+    private static float duckRelativeMultiplier = 1f;
     private static int transientDuckTicks;
     private static boolean appPaused;
     private static boolean surfaceTransitionPending;
@@ -37,7 +41,7 @@ public final class ChapterOneAudio {
     public static void preload() {
         if (samplesLoaded) return;
         samplesLoaded = true;
-        Sample.INSTANCE.load(new String[]{BIRDS, WOLVES, DONKEY});
+        Sample.INSTANCE.load(new String[]{BIRDS, WOLVES, DONKEY, RAVEN_CAW, RAVEN_WINGS, YENDOR_SIGNATURE});
     }
 
     /**
@@ -50,6 +54,7 @@ public final class ChapterOneAudio {
         area = Area.NONE;
         playingBed = null;
         bgmDucked = false;
+        duckRelativeMultiplier = 1f;
         transientDuckTicks = 0;
         Music.INSTANCE.fadeOut(0.42f, new Callback() {
             @Override public void call() {
@@ -74,6 +79,7 @@ public final class ChapterOneAudio {
         area = Area.SURFACE;
         transientDuckTicks = 0;
         bgmDucked = false;
+        duckRelativeMultiplier = 1f;
         playBed(SURFACE_AMBIENCE, 0.34f);
     }
 
@@ -113,7 +119,8 @@ public final class ChapterOneAudio {
 
     public static void syncSettings() {
         if (appPaused || playingBed == null) return;
-        Music.INSTANCE.volume(musicSettingFactor() * (bgmDucked ? 0.42f : bedRelativeVolume));
+        Music.INSTANCE.volume(musicSettingFactor() * bedRelativeVolume
+                * (bgmDucked ? duckRelativeMultiplier : 1f));
     }
 
     public static void stopAmbience() {
@@ -121,6 +128,7 @@ public final class ChapterOneAudio {
         playingBed = null;
         bedRelativeVolume = 1f;
         bgmDucked = false;
+        duckRelativeMultiplier = 1f;
         transientDuckTicks = 0;
         Music.INSTANCE.stop();
     }
@@ -134,18 +142,25 @@ public final class ChapterOneAudio {
         // Silence is preferable to a fake dungeon impact cue.
     }
 
-    /**
-     * v0.2 intentionally retires the old Yendor bass Sample after real-device testing found it
-     * abrasive. The anomaly now works by briefly thinning the natural ambience only. This is a
-     * deliberate quality decision, not a missing asset fallback: a future signature cue must be
-     * genuinely better before it is reintroduced.
-     */
+    /** First Return anomaly defaults to the deliberately barely-there intensity. */
     public static void playYendorPulse() {
+        playYendorPulse(0.58f);
+    }
+
+    /**
+     * v0.3 signature: deterministic project-owned 0.92s cue plus a short ambience attenuation.
+     * Intensity changes level only; pitch/timbre stay constant so this can grow into a long-term motif.
+     */
+    public static void playYendorPulse(float intensity) {
         preload();
+        float strength = Math.max(0f, Math.min(1f, intensity));
+        play(YENDOR_SIGNATURE, 0.30f * strength, 1f);
         if (!appPaused && playingBed != null) {
             bgmDucked = true;
+            // ~0.66 for the first anomaly, ~0.57 for the theft beat: noticeable space, never a hard mute.
+            duckRelativeMultiplier = 0.80f - 0.25f * strength;
             transientDuckTicks = 2;
-            Music.INSTANCE.volume(musicSettingFactor() * bedRelativeVolume * 0.42f);
+            syncSettings();
         }
     }
 
@@ -161,8 +176,19 @@ public final class ChapterOneAudio {
         restoreBgm();
     }
 
-    /** Raven remains a declared gap; an unrelated bird cue would defeat the soundscape pass. */
+    /** A real, short crow recording. Never looped. */
     public static void playRaven() {
+        play(RAVEN_CAW, 0.25f, 1f);
+    }
+
+    /** Lost-player recovery is intentionally quieter and slightly lower than the nearby call. */
+    public static void playRavenDistant() {
+        play(RAVEN_CAW, 0.13f, 0.96f);
+    }
+
+    /** The source is a larger-wing CC0 flap, kept quiet and pitched up so it reads as a small bird. */
+    public static void playRavenWings() {
+        play(RAVEN_WINGS, 0.14f, 1.20f);
     }
 
     /**
@@ -191,6 +217,7 @@ public final class ChapterOneAudio {
     public static void reset() {
         appPaused = false;
         bgmDucked = false;
+        duckRelativeMultiplier = 1f;
         transientDuckTicks = 0;
         surfaceTransitionPending = false;
         area = Area.NONE;
@@ -230,6 +257,7 @@ public final class ChapterOneAudio {
         transientDuckTicks = 0;
         if (bgmDucked) {
             bgmDucked = false;
+            duckRelativeMultiplier = 1f;
             if (!appPaused && playingBed != null) {
                 Music.INSTANCE.volume(musicSettingFactor() * bedRelativeVolume);
             }
