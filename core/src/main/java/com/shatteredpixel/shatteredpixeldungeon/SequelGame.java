@@ -31,6 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.RegionAreaLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SurfaceEntranceLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.TrainingGroundLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.ActOneOpeningScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.LedgerIntroScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.SequelTransitionScene;
 import com.watabou.utils.FileUtils;
@@ -74,21 +75,19 @@ public final class SequelGame {
 
         ReturningHero.apply(Dungeon.hero, profile);
 
-        // Formal-region infrastructure remains alive in parallel to legacy SequelState even
-        // while Morningcreek Town is deferred for later Act 1 use.
-        RegionState.get();
+        RegionState region = RegionState.get();
+        if (region != null) region.beginFormalActOne();
+        ActOneReturnState.get();
         new Amulet().collect();
         Statistics.amuletObtained = true;
 
         Dungeon.depth = 0;
         Dungeon.branch = 0;
 
-        // FORMAL ACT 1 SURFACE REDESIGN PENDING.
-        // SurfaceEntranceLevel is the legacy vertical-slice map and is used here only as a
-        // temporary technical opening placeholder. Do not treat its old Demo story/audio/state
-        // behavior as the final Act 1 opening design. The Morningcreek prototype remains intact
-        // below and is intentionally no longer the default campaign spawn.
-        enterSurfaceEntrance();
+        // Formal Act 1 now owns a clean opening sequence and authored Return level.
+        // Legacy SurfaceEntranceLevel and the archived Morningcreek prototype remain available
+        // below for compatibility/reference but are not the default formal-campaign spawn.
+        ShatteredPixelDungeon.switchNoFade(ActOneOpeningScene.class);
     }
 
     public static boolean startTrainingMemory() {
@@ -150,7 +149,7 @@ public final class SequelGame {
 
     private static void cleanupTrainingMemorySlot() {
         FileUtils.deleteDir(GamesInProgress.gameFolder(TRAINING_MEMORY_SLOT));
-        GamesInProgress.delete(TRAINING_MEMORY_SLOT);
+        GamesInProgress.delete(GamesInProgress.curSlot);
     }
 
     // --- Formal Morningcreek Region v0.1 prototype transitions ---
