@@ -74,25 +74,21 @@ public final class SequelGame {
 
         ReturningHero.apply(Dungeon.hero, profile);
 
-        // Formal-region prototype state is intentionally parallel to legacy SequelState.
-        // The old five-map demo remains in the repository but is no longer the default
-        // entry path while Morningcreek Town / Region v0.1 is under spatial review.
-        RegionState region = RegionState.get();
+        // Formal-region infrastructure remains alive in parallel to legacy SequelState even
+        // while Morningcreek Town is deferred for later Act 1 use.
+        RegionState.get();
         new Amulet().collect();
         Statistics.amuletObtained = true;
 
         Dungeon.depth = 0;
         Dungeon.branch = 0;
 
-        MorningcreekTownPrototypeLevel town = new MorningcreekTownPrototypeLevel();
-        town.create();
-        if (region != null) {
-            region.discover(RegionState.Location.SOUTH_GATE);
-            region.discover(RegionState.Location.SOUTH_CARAVAN_APRON);
-            region.restoreExploration(town);
-        }
-        enterCreated(town, town.cell(MorningcreekTownPrototypeLevel.START_X,
-                MorningcreekTownPrototypeLevel.START_Y));
+        // FORMAL ACT 1 SURFACE REDESIGN PENDING.
+        // SurfaceEntranceLevel is the legacy vertical-slice map and is used here only as a
+        // temporary technical opening placeholder. Do not treat its old Demo story/audio/state
+        // behavior as the final Act 1 opening design. The Morningcreek prototype remains intact
+        // below and is intentionally no longer the default campaign spawn.
+        enterSurfaceEntrance();
     }
 
     public static boolean startTrainingMemory() {
