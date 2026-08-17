@@ -7,6 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekMainStreetLev
 import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekOutskirtsLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.OldCrowInnLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.OldKingsRoadLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.RegionAreaLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SurfaceEntranceLevel;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -120,6 +121,9 @@ public class TaskGuidanceToast extends Component {
     }
 
     private static String regionName() {
+        if (Dungeon.level instanceof RegionAreaLevel) {
+            return ((RegionAreaLevel) Dungeon.level).regionAreaName();
+        }
         if (Dungeon.level instanceof SurfaceEntranceLevel) return "地表入口 · 林缘";
         if (Dungeon.level instanceof OldKingsRoadLevel) return "旧王道";
         if (Dungeon.level instanceof MorningcreekOutskirtsLevel) return "晨溪郊外";
