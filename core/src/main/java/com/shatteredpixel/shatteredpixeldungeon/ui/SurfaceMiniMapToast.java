@@ -96,7 +96,9 @@ public class SurfaceMiniMapToast extends Toast {
     public static void sync() {
         if (!(Game.scene() instanceof GameScene) || Dungeon.level == null || Dungeon.hero == null) return;
         String signature = signature();
-        if (signature.equals(lastSignature) && instance != null && instance.exists && instance.parent == Game.scene()) return;
+        float targetY = Math.max(38f, TaskGuidanceToast.miniMapTop());
+        if (signature.equals(lastSignature) && instance != null && instance.exists
+                && instance.parent == Game.scene() && Math.abs(instance.y - targetY) < 0.01f) return;
         lastSignature = signature;
         if (instance != null) {
             instance.killAndErase();
@@ -104,7 +106,7 @@ public class SurfaceMiniMapToast extends Toast {
         }
         instance = new SurfaceMiniMapToast();
         instance.camera = PixelScene.uiCamera;
-        instance.setPos(Math.max(1, PixelScene.uiCamera.width - instance.width() - 2), 38);
+        instance.setPos(Math.max(1, PixelScene.uiCamera.width - instance.width() - 2), targetY);
         Game.scene().addToFront(instance);
     }
 
