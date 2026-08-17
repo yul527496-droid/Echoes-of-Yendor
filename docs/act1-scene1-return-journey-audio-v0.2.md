@@ -27,15 +27,17 @@ The level now starts from dense authored forest (`WALL`) and carves a controlled
 
 ### Authored route metrics
 
-The CI source gate parses the route arrays and enforces minimum travel lengths:
+The CI source gate parses the route arrays and enforces minimum travel lengths. Current authored metrics are:
 
-- main authored road polyline: **237 Manhattan cells**
+- main authored road polyline: **275 Manhattan cells**
 - camp spur: **33 cells one way** (~66 for a visit and return)
+- crow spur: **43 cells**
+- shrine alternate return path: **66 cells**
 - crow spur + shrine return path: **109 cells**
 - farmer-area road checkpoint to anomaly checkpoint: **51 cells**
-- main-road rejoin after shrine to north exit: **76 cells**
+- main-road rejoin after shrine to north exit: **84 cells**
 
-The mandatory crow/shrine route adds roughly **88 cells** compared with staying on the direct old-road segment. A plot-complete traversal therefore carries roughly **325 authored movement cells** before local combat, observation, dialogue and optional exploration; visiting the camp adds roughly another 66 authored cells.
+The direct old-road segment from the crow-diversion point `(71,35)` to the rejoin `(86,29)` is only 21 cells. Following the mandatory Yendor/crow/shrine route instead uses 109 cells, adding roughly **88 authored movement cells**. A plot-complete traversal therefore carries roughly **363 authored movement cells** before local combat, observation, dialogue and optional exploration; visiting the camp adds roughly another **66** for about **429 authored movement cells**.
 
 These are geometry/pacing guards, not claims of final player completion time. Real-device timing remains the acceptance authority.
 
@@ -51,7 +53,7 @@ The same Scene 1 plot beats are preserved and separated by environmental travel:
 6. **Farmer → anomaly pacing valley** — long quiet bend with road construction becoming more legible before Yendor acts.
 7. **Crow spur** — four sparse crow stop positions across a separate enclosed woodland route; no breadcrumb on every cell.
 8. **Shrine loop** — same small shrine information layer, followed by a different path that rejoins farther north.
-9. **Civilization tail** — wider road, milestones, low walls and field-edge rhythm before the safe development exit.
+9. **Civilization tail** — the route deliberately folds east/northeast before returning toward the north exit, using wider road, milestones, low walls and field-edge rhythm so the scene does not end immediately after the shrine.
 
 No new formal plot conclusion is added.
 
