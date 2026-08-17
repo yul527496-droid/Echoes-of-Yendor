@@ -56,7 +56,8 @@ STYLES=[
  ('blacksmith',('slate0','slate1','slate2','slate3'),('stone0','stone1','wood1','wood2'),'ironHi'),
  ('house_green',('green0','green1','green2','green3'),('wood0','plaster0','plaster1','plaster2'),'wood3'),
 ]
-structures=C(256,80)
+# 80 painted modules plus one fully transparent 16x16 module at atlas index 80.
+structures=C(256,96)
 for sid,(name,rp,wp,accent) in enumerate(STYLES):
     base=sid*8
     for mod in range(8):
