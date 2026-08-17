@@ -8,10 +8,12 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekMainStreetLev
 import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekOutskirtsLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.OldCrowInnLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.OldKingsRoadLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.RegionAreaLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SurfaceEntranceLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndRegionAreaMap;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndRegionMap;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
@@ -69,7 +71,11 @@ public class SurfaceMiniMapToast extends Toast {
 
         expand = new Button() {
             @Override protected void onClick() {
-                GameScene.show(new WndRegionMap());
+                if (Dungeon.level instanceof RegionAreaLevel) {
+                    GameScene.show(new WndRegionAreaMap());
+                } else {
+                    GameScene.show(new WndRegionMap());
+                }
             }
 
             @Override protected String hoverText() {
@@ -227,7 +233,7 @@ public class SurfaceMiniMapToast extends Toast {
         if (level instanceof MorningcreekMainStreetLevel)
             return ((MorningcreekMainStreetLevel) level).cell(MorningcreekMainStreetLevel.INN_X, MorningcreekMainStreetLevel.INN_Y);
         if (level instanceof OldCrowInnLevel)
-            return ((OldCrowInnLevel) level).cell(OldCrowInnLevel.LEDGER_X, OldCrowInnLevel.LEDGER_Y);
+            return ((OldCrowInnLevel) level).cell(OldCrowInnInnLevel.LEDGER_X, OldCrowInnLevel.LEDGER_Y);
         return -1;
     }
 
