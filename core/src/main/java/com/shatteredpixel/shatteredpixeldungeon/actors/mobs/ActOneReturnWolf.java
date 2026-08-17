@@ -1,6 +1,7 @@
 /* Echoes of Yendor modifications Copyright (C) 2026 */
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
+import com.shatteredpixel.shatteredpixeldungeon.ActOneReturnState;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.EchoesWolfSprite;
 import com.watabou.utils.Random;
@@ -14,6 +15,17 @@ public class ActOneReturnWolf extends Mob {
         defenseSkill = 4;
         EXP = 0;
         maxLvl = 30;
+    }
+
+    @Override
+    protected boolean act() {
+        ActOneReturnState state = ActOneReturnState.current();
+        if (state != null && state.wolvesOutcome == ActOneReturnState.WolvesOutcome.ABANDONED) {
+            destroy();
+            if (sprite != null) sprite.die();
+            return true;
+        }
+        return super.act();
     }
 
     @Override
