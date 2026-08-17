@@ -25,6 +25,8 @@ Windows real-device playtesting of the v0.1 candidate found two production failu
 
 The level now starts from dense authored forest (`WALL`) and carves a controlled walkable travel ribbon, wide clearings, riverbank space, side pockets and two deliberate side structures. This prevents the expanded dimensions from becoming a shortcut-friendly grass rectangle.
 
+A structural passability audit also caught a generation-order bug in the first v0.2 draft: a decorative south-bank grass spur was painted after the river and accidentally reopened a second ford near the start, making the camp reachable much too early. `ActOneReturnCandidateLevel` now reasserts the river after base geometry generation and then reopens only the authored old bridge. The runtime candidate therefore has one deliberate early river crossing rather than a hidden shortcut.
+
 ### Authored route metrics
 
 The CI source gate parses the route arrays and enforces minimum travel lengths. Current authored metrics are:
@@ -111,6 +113,7 @@ Because geometry changed from 88×68 to 124×92, loading a stored old-size Retur
 - farmer→Yendor pacing valley
 - shrine→north tail
 - crow stop layout
+- single authored early river crossing / no accidental second ford
 - Morningcreek heard-only behavior
 - Yendor item safety
 - render-thread item windows
