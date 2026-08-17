@@ -1,11 +1,18 @@
 /* Echoes of Yendor modifications Copyright (C) 2026 */
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
+import com.shatteredpixel.shatteredpixeldungeon.ActOneReturnState;
+import com.shatteredpixel.shatteredpixeldungeon.ChapterOneAudio;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.RegionPoi;
 import com.shatteredpixel.shatteredpixeldungeon.RegionState;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.ActOneReturnCrow;
 import com.shatteredpixel.shatteredpixeldungeon.items.ActOneShrineInscription;
+import com.shatteredpixel.shatteredpixeldungeon.items.ActOneYendorAtShrine;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.ActOneReturnShrineTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesLandmarkTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesReturnPropTilemap;
@@ -52,6 +59,40 @@ public class ActOneReturnCandidateLevel extends ActOneReturnLevel {
         installReturnProps();
     }
 
+    /**
+     * v0.2's second anomaly immediately opened a text window. Intercept only that already-authored
+     * trigger so the player sees the ordinary crow act first. The temporary flag exists only for the
+     * duration of the synchronous super call; it is never persisted and does not alter chase canon.
+     */
+    @Override
+    public void tickScene(ActOneReturnState state) {
+        if (Dungeon.hero == null || state == null) {
+            super.tickScene(state);
+            return;
+        }
+
+        int hx = Dungeon.hero.pos % width();
+        int hy = Dungeon.hero.pos / width();
+        boolean farmerResolved = state.wolvesOutcome != ActOneReturnState.WolvesOutcome.UNRESOLVED;
+        boolean firstPulseNow = farmerResolved && !state.yendorAnomalyStarted
+                && hx >= 74 && hx <= 84 && hy >= 36 && hy <= 43;
+        boolean theftNow = state.yendorAnomalyStarted && !state.yendorTemporarilyMissing
+                && !state.yendorRecovered && hx >= 67 && hx <= 73 && hy >= 31 && hy <= 36;
+
+        if (firstPulseNow && Dungeon.hero.sprite != null) Dungeon.hero.sprite.flash();
+
+        if (theftNow) state.yendorTemporarilyMissing = true;
+        super.tickScene(state);
+        if (theftNow) {
+            state.yendorTemporarilyMissing = false;
+            if (Dungeon.hero.sprite != null) Dungeon.hero.sprite.flash();
+            ChapterOneAudio.playYendorPulse(0.92f);
+            state.beginYendorChase();
+            ensureReadableCrow();
+            ensureSingleShrineYendor();
+        }
+    }
+
     @Override
     public RegionPoi[] regionPois() {
         RegionPoi[] base = super.regionPois();
@@ -73,6 +114,21 @@ public class ActOneReturnCandidateLevel extends ActOneReturnLevel {
             }
         }
         return safe;
+    }
+
+    private void ensureReadableCrow() {
+        for (Mob mob : mobs) if (mob instanceof ActOneReturnCrow) return;
+        ActOneReturnCrow crow = new ActOneReturnCrow();
+        crow.pos = crowStops()[0];
+        mobs.add(crow);
+        GameScene.add(crow);
+    }
+
+    private void ensureSingleShrineYendor() {
+        for (Heap heap : heaps.valueList()) {
+            for (Item item : heap.items) if (item instanceof ActOneYendorAtShrine) return;
+        }
+        drop(new ActOneYendorAtShrine(), cell(42,21));
     }
 
     private void sealUnintendedEarlyFord() {
