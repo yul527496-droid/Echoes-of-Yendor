@@ -5,6 +5,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
+import com.watabou.noosa.Game;
 
 /** Non-collectible old-road shrine inscription. The wording is canon-locked. */
 public class ActOneShrineInscription extends Item {
@@ -12,7 +13,8 @@ public class ActOneShrineInscription extends Item {
     @Override public boolean doPickUp(Hero hero,int pos){
         ActOneReturnState state=ActOneReturnState.get();
         if(state!=null) state.inscriptionRead=true;
-        GameScene.show(new WndMessage("石面上的字已经被风雨磨去大半，只剩一句仍然完整：\n\n「力量会使你迷失。」"));
+        String message = "石面上的字已经被风雨磨去大半，只剩一句仍然完整：\n\n「力量会使你迷失。」";
+        Game.runOnRenderThread(() -> GameScene.show(new WndMessage(message)));
         return false;
     }
     @Override public String name(){ return "古老神龛的刻字"; }
