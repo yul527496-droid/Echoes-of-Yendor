@@ -36,6 +36,10 @@
 			</intent-filter>
 		</activity>
 		<activity
+			android:name=".AndroidCrashReportActivity"
+			android:exported="false"
+			android:excludeFromRecents="true" />
+		<activity
 			android:name=".AndroidMissingNativesHandler">
 		</activity>
 	</application>
