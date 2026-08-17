@@ -7,9 +7,15 @@ import com.watabou.noosa.Image;
 /** Native 48px dialogue portraits authored directly for Echoes' SPD-scale UI. */
 final class EchoesDialoguePortraits {
 
-    private static final String TEXTURE = "interfaces/echoes/echoes_dialogue_portraits_v1.png";
+    private static final String TEXTURE = "interfaces/echoes/echoes_dialogue_portraits_v2.png";
     private static final int SIZE = 48;
 
+    enum HeroExpression {
+        NEUTRAL, ALERT, CONCERNED
+    }
+
+    // Heroes occupy frames 0..17: class-major, then neutral/alert/concerned.
+    private static final int HERO_EXPRESSIONS = 3;
     private static final int HERO_WARRIOR = 0;
     private static final int HERO_MAGE = 1;
     private static final int HERO_ROGUE = 2;
@@ -17,29 +23,34 @@ final class EchoesDialoguePortraits {
     private static final int HERO_DUELIST = 4;
     private static final int HERO_CLERIC = 5;
 
-    private static final int FARMER_NEUTRAL = 6;
-    private static final int FARMER_WARM = 7;
-    private static final int FARMER_CONFUSED = 8;
-    private static final int FARMER_FIXATED = 9;
-    private static final int FARMER_SHAKEN = 10;
+    private static final int FARMER_NEUTRAL = 18;
+    private static final int FARMER_WARM = 19;
+    private static final int FARMER_CONFUSED = 20;
+    private static final int FARMER_FIXATED = 21;
+    private static final int FARMER_SHAKEN = 22;
 
-    private static final int INNKEEPER_NEUTRAL = 11;
-    private static final int INNKEEPER_ATTENTIVE = 12;
-    private static final int INNKEEPER_SERIOUS = 13;
+    private static final int INNKEEPER_NEUTRAL = 23;
+    private static final int INNKEEPER_ATTENTIVE = 24;
+    private static final int INNKEEPER_SERIOUS = 25;
 
     private EchoesDialoguePortraits() {}
 
-    static Image hero(HeroClass heroClass) {
-        if (heroClass == null) return frame(HERO_WARRIOR);
-        switch (heroClass) {
-            case MAGE: return frame(HERO_MAGE);
-            case ROGUE: return frame(HERO_ROGUE);
-            case HUNTRESS: return frame(HERO_HUNTRESS);
-            case DUELIST: return frame(HERO_DUELIST);
-            case CLERIC: return frame(HERO_CLERIC);
-            case WARRIOR:
-            default: return frame(HERO_WARRIOR);
+    static Image hero(HeroClass heroClass, HeroExpression expression) {
+        int classIndex;
+        if (heroClass == null) classIndex = HERO_WARRIOR;
+        else {
+            switch (heroClass) {
+                case MAGE: classIndex = HERO_MAGE; break;
+                case ROGUE: classIndex = HERO_ROGUE; break;
+                case HUNTRESS: classIndex = HERO_HUNTRESS; break;
+                case DUELIST: classIndex = HERO_DUELIST; break;
+                case CLERIC: classIndex = HERO_CLERIC; break;
+                case WARRIOR:
+                default: classIndex = HERO_WARRIOR; break;
+            }
         }
+        int expressionIndex = expression == null ? 0 : expression.ordinal();
+        return frame(classIndex * HERO_EXPRESSIONS + expressionIndex);
     }
 
     static Image image(WndDialogueStage.Portrait portrait) {
