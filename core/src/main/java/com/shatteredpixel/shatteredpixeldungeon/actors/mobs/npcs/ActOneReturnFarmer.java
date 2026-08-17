@@ -74,7 +74,10 @@ public class ActOneReturnFarmer extends NPC {
                         current.farmerDialogueCompleted = true;
                     }
                     RegionState region = RegionState.current();
-                    if (region != null) region.hear(RegionState.Location.MORNINGCREEK);
+                    if (region != null) {
+                        region.hear(RegionState.Location.MORNINGCREEK);
+                        region.syncHud();
+                    }
                     dialogueOpen = false;
                 })));
         return true;
