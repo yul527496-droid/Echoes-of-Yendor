@@ -23,7 +23,8 @@ public class RegionState extends Buff {
 
     public enum Area {
         MORNINGCREEK_TOWN,
-        OLD_CROW_INN
+        OLD_CROW_INN,
+        ACT_ONE_RETURN
     }
 
     public enum Knowledge {
@@ -129,7 +130,9 @@ public class RegionState extends Buff {
         NORTH_MILL_PATH_MOUTH,
         SURFACE_ENTRANCE,
         OLD_KINGS_ROAD_SHRINE,
-        OLD_MILL
+        OLD_MILL,
+        ABANDONED_EXPEDITION_CAMP,
+        MORNINGCREEK
     }
 
     public enum TravelNode {
@@ -163,11 +166,10 @@ public class RegionState extends Buff {
     private static final String LEADS = "region_leads";
     private static final String TRAVEL = "region_travel";
     private static final String SHORTCUTS = "region_shortcuts";
+    private static final String FORMAL_ACT_ONE = "region_formal_act_one";
     private static final String VISITED_PREFIX = "region_visited_";
     private static final String MAPPED_PREFIX = "region_mapped_";
 
-    // Actor logic and Noosa rendering use separate threads. Prevent repeated actor ticks from
-    // stacking identical HUD work faster than Android can consume the render-thread queue.
     private static volatile boolean hudSyncPending;
 
     private int time = TimeBand.AFTERNOON.ordinal();
@@ -181,6 +183,7 @@ public class RegionState extends Buff {
     private int[] shortcuts = new int[Shortcut.values().length];
     private int[][] visitedByArea = new int[Area.values().length][];
     private int[][] mappedByArea = new int[Area.values().length][];
+    private boolean formalActOne;
 
     public RegionState() {
         for (int i = 0; i < shortcuts.length; i++) shortcuts[i] = ShortcutState.UNKNOWN.ordinal();
@@ -198,9 +201,18 @@ public class RegionState extends Buff {
         return Dungeon.hero == null ? null : Dungeon.hero.buff(RegionState.class);
     }
 
+    /** Formal Act 1 starts without the old Region prototype's pre-seeded Inn/Registry leads. */
+    public void beginFormalActOne() {
+        formalActOne = true;
+        locationKnowledge[Location.OLD_CROW_INN.ordinal()] = Knowledge.UNKNOWN.ordinal();
+        locationKnowledge[Location.RAVENFEATHER_REGISTRY.ordinal()] = Knowledge.UNKNOWN.ordinal();
+        leads[Lead.OLD_CROW_INN.ordinal()] = LeadState.UNKNOWN.ordinal();
+        leads[Lead.RAVENFEATHER_REGISTRY.ordinal()] = LeadState.UNKNOWN.ordinal();
+    }
+
     private void seedPrototypeKnowledge() {
-        // The ledger flow already names the inn, while the v0.1 prototype also starts with
-        // a deliberately vague civic lead so HEARD_OF rendering can be exercised immediately.
+        if (formalActOne) return;
+        // Archived prototype/testing behavior remains intact outside the formal Act 1 start.
         hear(Location.OLD_CROW_INN);
         hear(Location.RAVENFEATHER_REGISTRY);
         setLead(Lead.OLD_CROW_INN, LeadState.AVAILABLE);
@@ -355,10 +367,7 @@ public class RegionState extends Buff {
         if (state.ordinal() > shortcuts[shortcut.ordinal()]) shortcuts[shortcut.ordinal()] = state.ordinal();
     }
 
-    /**
-     * Captures authored-area map knowledge before a fixed Level object is discarded.
-     * Persistent story/world state remains in this Buff; only explored geometry is copied here.
-     */
+    /** Captures authored-area map knowledge before a fixed Level object is discarded. */
     public void captureExploration(Level level) {
         if (!(level instanceof RegionAreaLevel)) return;
         Area area = ((RegionAreaLevel) level).regionArea();
@@ -393,6 +402,10 @@ public class RegionState extends Buff {
     public String objectiveText() {
         if (Dungeon.level instanceof RegionAreaLevel) {
             Area area = ((RegionAreaLevel) Dungeon.level).regionArea();
+            if (area == Area.ACT_ONE_RETURN) {
+                ActOneReturnState scene = ActOneReturnState.current();
+                return scene == null ? "离开地下城旧址" : scene.objectiveText();
+            }
             if (area == Area.OLD_CROW_INN) {
                 return "空间勘察：检查旅店公共层布局，并从正门返回镇区";
             }
@@ -434,6 +447,7 @@ public class RegionState extends Buff {
         bundle.put(LEADS, leads);
         bundle.put(TRAVEL, travel);
         bundle.put(SHORTCUTS, shortcuts);
+        bundle.put(FORMAL_ACT_ONE, formalActOne);
         for (Area area : Area.values()) {
             int i = area.ordinal();
             bundle.put(VISITED_PREFIX + area.name(), visitedByArea[i] == null ? new int[0] : visitedByArea[i]);
@@ -453,6 +467,7 @@ public class RegionState extends Buff {
         leads = normalized(bundle.getIntArray(LEADS), Lead.values().length);
         travel = normalized(bundle.getIntArray(TRAVEL), TravelNode.values().length);
         shortcuts = normalized(bundle.getIntArray(SHORTCUTS), Shortcut.values().length);
+        formalActOne = bundle.getBoolean(FORMAL_ACT_ONE);
         for (Area area : Area.values()) {
             int i = area.ordinal();
             visitedByArea[i] = bundle.getIntArray(VISITED_PREFIX + area.name());
