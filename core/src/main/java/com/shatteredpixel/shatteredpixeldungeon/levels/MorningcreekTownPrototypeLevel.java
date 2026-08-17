@@ -428,18 +428,29 @@ public class MorningcreekTownPrototypeLevel extends Level implements RegionAreaL
 
     @Override
     protected void createMobs() {
-        addVillager(48, 65, "南门守卫", "市场过桥就是北城区。第一次来晨溪的话，别只沿一条街走。", 0);
-        addVillager(38, 55, "水果摊主", "河那边是鸦羽区和诊所；东边的仓库这会儿正忙。", 1);
-        addVillager(55, 53, "跑腿少年", "我走后巷比主街快。只是下雨天那边会积水。", 2);
-        addVillager(47, 45, "桥边老人", "这座桥比很多房子都老。镇子长大了，它倒一直在这里。", 3);
-        addVillager(42, 50, "旅店伙计", "正门就在市场西边。后院现在只让送货车进。", 4);
-        addVillager(29, 30, "抄写员", "登记处今天照常开门，不过档案院里还有几间房没整理。", 5);
-        addVillager(67, 27, "药圃学徒", "别踩东边的药畦。那些不是杂草。", 6);
-        addVillager(85, 22, "采药人", "晨溪外的草药更好，但镇里的药圃至少不用和野猪抢。", 7);
-        addVillager(62, 51, "搬运工", "重车都走装卸巷，不然市场早被堵死了。", 0);
-        addVillager(88, 42, "河工", "顺河往东还有路，只是现在那一段不好走。", 1);
-        addVillager(20, 62, "马夫", "要跑远路先看马蹄。省下的时间都在这些小地方。", 2);
-        addVillager(48, 8, "北门巡丁", "北面地势高，风也大。今天还算好走。", 3);
+        // South gate traffic cluster.
+        addVillager(48, 65, "南门守卫", "沿大路进镇先到市场，再往前就是石桥。货车大多往两边绕。", 0);
+        addVillager(20, 62, "马夫", "马厩和铁匠都在南门这边，货车不用穿过市场。", 2);
+
+        // Market / Old Crow cluster: intentionally busier than the civic quarter.
+        addVillager(38, 55, "水果摊主", "旅店在这边，桥在前面；东边那条窄路能避开摊子。", 1);
+        addVillager(55, 53, "跑腿少年", "我从这条后巷绕仓库，比挤市场快。", 2);
+        addVillager(42, 51, "旅店伙计", "正门朝市场，送货都走侧巷和后院。", 4);
+        addVillager(47, 45, "桥边老人", "站在桥边看，西边是旅店，东边顺河去仓房；过桥以后石路就旧了。", 3);
+
+        // Ravenfeather is sparse and quiet rather than evenly populated.
+        addVillager(31, 21, "文书员", "过桥后石路安静多了。塔和那座围着内庭的公房很好认。", 5);
+        addVillager(11, 26, "鸦羽区老人", "这小院没什么事，图个清静。", 6);
+
+        // Clinic/garden pair.
+        addVillager(79, 21, "药圃学徒", "药圃在东边，仓房在河下游，别把两条路走混了。", 6);
+        addVillager(89, 23, "采药人", "灌水沟有小桥，别踩进水里。", 7);
+
+        // Warehouse/river work cluster.
+        addVillager(71, 50, "搬运工", "重车走装卸巷，窄归窄，总比市场省事。", 0);
+        addVillager(88, 42, "河工", "沿河一直走到那边就是埠头，再往前现在没路。", 1);
+
+        addVillager(48, 8, "北门巡丁", "北门这边风大，旁边那条小路还没通。", 3);
     }
 
     private void addVillager(int x, int y, String name, String line, int variant) {
