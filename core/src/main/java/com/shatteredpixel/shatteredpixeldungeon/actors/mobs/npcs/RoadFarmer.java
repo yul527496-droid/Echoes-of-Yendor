@@ -75,6 +75,9 @@ public class RoadFarmer extends NPC {
         if (!story.isAtLeast(SequelState.Phase.FARMER_NORMAL_TALK_DONE)) {
             if (!journeyStarted) {
                 int heroY = Dungeon.hero.pos / Dungeon.level.width();
+                // Surface Entrance was compacted to 38 rows. The old y>=47 gate could
+                // never fire here, so the farmer/cart began pathing the instant the map loaded.
+                // Start the approach only once the hero has actually moved north past camp.
                 if (heroY >= SurfaceEntranceLevel.CAMP_Y2) {
                     spend(TICK);
                     return true;
@@ -103,6 +106,7 @@ public class RoadFarmer extends NPC {
             return true;
         }
 
+        // A reload in the middle of the conversation resumes from the last stable checkpoint.
         if (pos != meet && getCloser(meet)) {
             spend(1f / speed());
         } else {
@@ -190,7 +194,7 @@ public class RoadFarmer extends NPC {
                                     WndDialogueStage.Portrait.FARMER_NEUTRAL)
                     };
 
-                    play(normal, 0, this::heroMeaningChoice);
+                    play(normal, 0, () -> heroMeaningChoice());
                 });
     }
 
@@ -316,18 +320,47 @@ public class RoadFarmer extends NPC {
         GameScene.show(new WndDialogueStage(speaker, text, portrait, listener, choices));
     }
 
+    private void recoilFromDonkey() {
+        if (!(Dungeon.level instanceof SurfaceEntranceLevel)) return;
+        int target = pos + Dungeon.level.width();
+        if (target >= 0 && target < Dungeon.level.length()
+                && Dungeon.level.passable[target] && Actor.findChar(target) == null) {
+            int from = pos;
+            pos = target;
+            if (sprite != null) sprite.move(from, target);
+        }
+    }
+
     private int cell(int x, int y) {
         return x + y * Dungeon.level.width();
     }
 
-    private void recoilFromDonkey() {
-        int push = pos - Dungeon.hero.pos;
-        int step = Integer.signum(push % Dungeon.level.width()) + Integer.signum(push / Dungeon.level.width()) * Dungeon.level.width();
-        int target = pos + step;
-        if (Dungeon.level.insideMap(target) && Dungeon.level.passable[target] && Actor.findChar(target) == null) {
-            pos = target;
-            if (sprite != null) sprite.place(pos);
-        }
-        Buff.detach(this, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo.class);
+    @Override
+    public int defenseSkill(Char enemy) {
+        return INFINITE_EVASION;
+    }
+
+    @Override
+    public void damage(int dmg, Object src) {
+    }
+
+    @Override
+    public boolean add(Buff buff) {
+        return false;
+    }
+
+    @Override
+    public boolean reset() {
+        return true;
+    }
+
+    @Override
+    public String name() {
+        return "路边的老农";
+    }
+
+    @Override
+    public String description() {
+        return "一位沿旧王道赶车的年长农夫。此刻他更害怕的，似乎是刚才那个不像自己的念头。";
     }
 }
