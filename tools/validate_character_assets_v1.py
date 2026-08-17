@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Chapter 1 production map-character runtime assets."""
+"""Validate Chapter 1 production map-character and dialogue-portrait runtime assets."""
 from pathlib import Path
 import struct
 import zlib
@@ -9,6 +9,8 @@ PNG = b"\x89PNG\r\n\x1a\n"
 EXPECTED = {
     Path("core/src/main/assets/sprites/echoes_ch1_character_sprites_v1.png"): (128, 272),
     Path("core/src/main/assets/sprites/echoes_donkey_cart_v5.png"): (256, 16),
+    # 26 native 48x48 portrait frames in one horizontal row.
+    Path("core/src/main/assets/interfaces/echoes/echoes_dialogue_portraits_v2.png"): (1248, 48),
 }
 
 def dimensions(path):
@@ -47,4 +49,4 @@ for rel, expected in EXPECTED.items():
         raise SystemExit(f"{rel}: expected {expected[0]}x{expected[1]}, got {got[0]}x{got[1]}")
     print(f"Production PNG OK: {rel} ({got[0]}x{got[1]})")
 
-print("Chapter 1 production map-character asset contract OK.")
+print("Chapter 1 production character/portrait asset contract OK.")
