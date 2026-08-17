@@ -149,7 +149,7 @@ public final class SequelGame {
 
     private static void cleanupTrainingMemorySlot() {
         FileUtils.deleteDir(GamesInProgress.gameFolder(TRAINING_MEMORY_SLOT));
-        GamesInProgress.delete(GamesInProgress.curSlot);
+        GamesInProgress.delete(TRAINING_MEMORY_SLOT);
     }
 
     // --- Formal Morningcreek Region v0.1 prototype transitions ---
