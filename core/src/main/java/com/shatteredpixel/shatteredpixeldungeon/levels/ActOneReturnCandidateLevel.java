@@ -35,12 +35,12 @@ public class ActOneReturnCandidateLevel extends ActOneReturnLevel {
         for (int i = 0; i < safe.length; i++) {
             RegionPoi poi = safe[i];
             if (poi != null && poi.location == RegionState.Location.MORNINGCREEK) {
-                // The formal Scene 1 can only HEAR about Morningcreek. Put its exact discovery
-                // anchor behind the impassable far-east border so proximity can never promote it.
+                // Scene 1 can only HEAR about Morningcreek. The exact discovery anchor lives
+                // in the unreachable bottom-right border; its closest walkable cell is > radius.
                 safe[i] = new RegionPoi(
                         RegionState.Location.MORNINGCREEK,
                         RegionPoi.Category.TRAVEL,
-                        86, 1,
+                        87, 67,
                         46, 4,
                         1,
                         "晨溪",
