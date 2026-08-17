@@ -15,6 +15,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.SurfaceVillager;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesLandmarkTilemap;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesTownBuildingTilemap;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesTownPropTilemap;
 import com.watabou.utils.Bundle;
 
 /**
@@ -352,36 +354,186 @@ public class MorningcreekTownPrototypeLevel extends Level implements RegionAreaL
     }
 
     private void installVisualFoundation() {
-        customTiles.removeIf(t -> t instanceof EchoesLandmarkTilemap);
-        customWalls.removeIf(t -> t instanceof EchoesLandmarkTilemap);
+        customTiles.removeIf(t -> t instanceof EchoesLandmarkTilemap || t instanceof EchoesTownPropTilemap);
+        customWalls.removeIf(t -> t instanceof EchoesLandmarkTilemap
+                || t instanceof EchoesTownBuildingTilemap
+                || t instanceof EchoesTownPropTilemap);
 
-        // Three primary spatial landmarks: the two gates, Old Crow Inn, and the bridge geometry above.
+        // Keep the two accepted gate silhouettes and a few semantic one-off markers.
         addWall(EchoesLandmarkTilemap.TOWN_GATE, 45, 67);
         addWall(EchoesLandmarkTilemap.TOWN_GATE, 45, 1);
-        addWall(EchoesLandmarkTilemap.OLD_CROW_INN, 29, 44);
         addTile(EchoesLandmarkTilemap.OLD_CROW_SIGN, 38, 49);
-
-        // South transport quarter and market props. These reuse existing placeholders only.
-        addWall(EchoesLandmarkTilemap.BLACKSMITH, 7, 54);
-        addWall(EchoesLandmarkTilemap.FARMHOUSE, 8, 65);
-        addTile(EchoesLandmarkTilemap.WAGON, 40, 65);
-        addTile(EchoesLandmarkTilemap.WAGON, 11, 49);
-        addTile(EchoesLandmarkTilemap.WELL, 47, 55);
-        addTile(EchoesLandmarkTilemap.NOTICE_BOARD, 40, 54);
-        addWall(EchoesLandmarkTilemap.SHOP, 58, 56);
-
-        // Ravenfeather is intentionally distinguished mostly through footprint and stone courts.
-        // A small old shrine makes the optional quiet courtyard worth noticing without implying plot.
         addTile(EchoesLandmarkTilemap.SHRINE, 14, 25);
-        addTile(EchoesLandmarkTilemap.NOTICE_BOARD, 31, 20);
-
-        // East clinic/warehouse placeholders stay modest; geometry carries most of their identity.
-        addWall(EchoesLandmarkTilemap.FARMHOUSE, 63, 14);
-        addTile(EchoesLandmarkTilemap.WAGON, 84, 49);
-
         addTile(EchoesLandmarkTilemap.SIGNPOST, 3, 20);
         addTile(EchoesLandmarkTilemap.SIGNPOST, 92, 41);
         addTile(EchoesLandmarkTilemap.SIGNPOST, 67, 3);
+
+        // Old Crow: broad warm facade plus a separate service/stable wing.
+        addBuilding(EchoesTownBuildingTilemap.OLD_CROW_INN, 25, 44, 40, 51,
+                EchoesTownBuildingTilemap.FRONT_EAST, 6);
+        addBuilding(EchoesTownBuildingTilemap.STABLE, 16, 43, 23, 48,
+                EchoesTownBuildingTilemap.FRONT_SOUTH, 4);
+
+        // South gate transport quarter: intentionally rougher and more timber-heavy.
+        addBuilding(EchoesTownBuildingTilemap.BLACKSMITH, 6, 53, 14, 59,
+                EchoesTownBuildingTilemap.FRONT_SOUTH, 4);
+        addBuilding(EchoesTownBuildingTilemap.STABLE, 16, 54, 22, 60,
+                EchoesTownBuildingTilemap.FRONT_EAST, 3);
+        addBuilding(EchoesTownBuildingTilemap.STABLE, 7, 64, 15, 69,
+                EchoesTownBuildingTilemap.FRONT_EAST, 3);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_WARM, 17, 63, 25, 69,
+                EchoesTownBuildingTilemap.FRONT_NORTH, 4);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_STONE, 28, 64, 34, 69,
+                EchoesTownBuildingTilemap.FRONT_NORTH, 2);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_WARM, 35, 64, 41, 69,
+                EchoesTownBuildingTilemap.FRONT_WEST, 2);
+
+        // South-east residential rows use three related palettes instead of one repeated wall mass.
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_WARM, 55, 63, 62, 69,
+                EchoesTownBuildingTilemap.FRONT_NORTH, 4);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_GREEN, 65, 64, 72, 69,
+                EchoesTownBuildingTilemap.FRONT_NORTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_STONE, 75, 63, 82, 69,
+                EchoesTownBuildingTilemap.FRONT_NORTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_WARM, 85, 63, 91, 69,
+                EchoesTownBuildingTilemap.FRONT_NORTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_GREEN, 57, 55, 63, 60,
+                EchoesTownBuildingTilemap.FRONT_EAST, 3);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_STONE, 66, 55, 72, 59,
+                EchoesTownBuildingTilemap.FRONT_NORTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_WARM, 75, 55, 82, 60,
+                EchoesTownBuildingTilemap.FRONT_NORTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_GREEN, 85, 54, 91, 59,
+                EchoesTownBuildingTilemap.FRONT_NORTH, 3);
+
+        // Warehouse sheds share one functional language but remain visibly separate buildings.
+        addBuilding(EchoesTownBuildingTilemap.WAREHOUSE, 63, 44, 70, 47,
+                EchoesTownBuildingTilemap.FRONT_SOUTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.WAREHOUSE, 73, 44, 79, 48,
+                EchoesTownBuildingTilemap.FRONT_SOUTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.WAREHOUSE, 82, 44, 88, 47,
+                EchoesTownBuildingTilemap.FRONT_SOUTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.WAREHOUSE, 63, 52, 69, 56,
+                EchoesTownBuildingTilemap.FRONT_WEST, 2);
+        addBuilding(EchoesTownBuildingTilemap.WAREHOUSE, 72, 52, 79, 57,
+                EchoesTownBuildingTilemap.FRONT_NONE, -1);
+        addBuilding(EchoesTownBuildingTilemap.WAREHOUSE, 82, 51, 88, 56,
+                EchoesTownBuildingTilemap.FRONT_SOUTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.WAREHOUSE, 89, 47, 92, 52,
+                EchoesTownBuildingTilemap.FRONT_NONE, -1);
+
+        // Ravenfeather uses darker slate/stone civic modules across the whole U-shaped complex.
+        addBuilding(EchoesTownBuildingTilemap.RAVENFEATHER_TOWER, 8, 8, 17, 16,
+                EchoesTownBuildingTilemap.FRONT_SOUTH, 4);
+        addBuilding(EchoesTownBuildingTilemap.RAVENFEATHER_CIVIC, 23, 10, 29, 19,
+                EchoesTownBuildingTilemap.FRONT_SOUTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.RAVENFEATHER_CIVIC, 35, 10, 41, 19,
+                EchoesTownBuildingTilemap.FRONT_SOUTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.RAVENFEATHER_CIVIC, 23, 8, 41, 10,
+                EchoesTownBuildingTilemap.FRONT_NONE, -1);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_STONE, 5, 24, 11, 29,
+                EchoesTownBuildingTilemap.FRONT_WEST, 3);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_STONE, 13, 24, 19, 29,
+                EchoesTownBuildingTilemap.FRONT_EAST, 3);
+        addBuilding(EchoesTownBuildingTilemap.RAVENFEATHER_CIVIC, 24, 24, 30, 28,
+                EchoesTownBuildingTilemap.FRONT_NORTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.RAVENFEATHER_CIVIC, 34, 24, 40, 29,
+                EchoesTownBuildingTilemap.FRONT_NORTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_STONE, 31, 3, 40, 6,
+                EchoesTownBuildingTilemap.FRONT_SOUTH, 4);
+
+        // East clinic/living quarter deliberately shifts to lower, greener roofs and softer walls.
+        addBuilding(EchoesTownBuildingTilemap.CLINIC, 61, 11, 70, 18,
+                EchoesTownBuildingTilemap.FRONT_SOUTH, 6);
+        addBuilding(EchoesTownBuildingTilemap.CLINIC, 72, 13, 77, 18,
+                EchoesTownBuildingTilemap.FRONT_SOUTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_STONE, 54, 4, 60, 9,
+                EchoesTownBuildingTilemap.FRONT_SOUTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_GREEN, 71, 4, 77, 9,
+                EchoesTownBuildingTilemap.FRONT_SOUTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_WARM, 54, 25, 60, 30,
+                EchoesTownBuildingTilemap.FRONT_NORTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_STONE, 63, 25, 69, 30,
+                EchoesTownBuildingTilemap.FRONT_NORTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_GREEN, 72, 25, 78, 30,
+                EchoesTownBuildingTilemap.FRONT_NORTH, 3);
+        addBuilding(EchoesTownBuildingTilemap.HOUSE_WARM, 82, 25, 88, 30,
+                EchoesTownBuildingTilemap.FRONT_NONE, -1);
+
+        installBridgeVisuals();
+        installTownProps();
+    }
+
+    private void installBridgeVisuals() {
+        for (int y = 34; y <= 39; y++) {
+            for (int x = 45; x <= 51; x++) addTownProp(EchoesTownPropTilemap.BRIDGE_DECK, x, y);
+            addTownWallProp(EchoesTownPropTilemap.BRIDGE_PARAPET, 44, y);
+            addTownWallProp(EchoesTownPropTilemap.BRIDGE_PARAPET, 52, y);
+        }
+        addTownWallProp(EchoesTownPropTilemap.BRIDGE_PILLAR, 42, 33);
+        addTownWallProp(EchoesTownPropTilemap.BRIDGE_PILLAR, 54, 33);
+        addTownWallProp(EchoesTownPropTilemap.BRIDGE_PILLAR, 42, 40);
+        addTownWallProp(EchoesTownPropTilemap.BRIDGE_PILLAR, 54, 40);
+        addTownProp(EchoesTownPropTilemap.BRAZIER, 43, 32);
+        addTownProp(EchoesTownPropTilemap.BRAZIER, 53, 32);
+    }
+
+    private void installTownProps() {
+        // Compact market cluster.
+        addTownProp(EchoesTownPropTilemap.WELL, 47, 54);
+        addTownProp(EchoesTownPropTilemap.NOTICE_BOARD, 40, 53);
+        addTownProp(EchoesTownPropTilemap.MARKET_STALL_RED, 36, 54);
+        addTownProp(EchoesTownPropTilemap.MARKET_STALL_BLUE, 52, 54);
+        addTownProp(EchoesTownPropTilemap.BARREL, 39, 57);
+        addTownProp(EchoesTownPropTilemap.CRATE, 54, 57);
+        addTownProp(EchoesTownPropTilemap.BENCH, 44, 58);
+
+        // Old Crow service side and south transport quarter.
+        addTownProp(EchoesTownPropTilemap.BARREL, 23, 47);
+        addTownProp(EchoesTownPropTilemap.WOODPILE, 18, 49);
+        addTownProp(EchoesTownPropTilemap.CART, 40, 65);
+        addTownProp(EchoesTownPropTilemap.WOODPILE, 14, 59);
+        addTownProp(EchoesTownPropTilemap.CHICKEN_COOP, 24, 66);
+
+        // Warehouse loading grammar and the deliberately optional river dead-end.
+        addTownProp(EchoesTownPropTilemap.LOADING_FRAME, 68, 48);
+        addTownProp(EchoesTownPropTilemap.CART, 80, 49);
+        addTownProp(EchoesTownPropTilemap.CRATE, 73, 50);
+        addTownProp(EchoesTownPropTilemap.BARREL, 84, 50);
+        addTownProp(EchoesTownPropTilemap.SACK, 87, 53);
+        addTownProp(EchoesTownPropTilemap.ROPE, 90, 42);
+        addTownProp(EchoesTownPropTilemap.BOLLARD, 88, 33);
+        addTownProp(EchoesTownPropTilemap.BOLLARD, 91, 33);
+        addTownProp(EchoesTownPropTilemap.BOAT, 88, 35);
+
+        // Clinic/herb-garden language stays greener and less industrial.
+        for (int x : new int[]{82, 89}) {
+            addTownProp(EchoesTownPropTilemap.HERB_BED, x, 13);
+            addTownProp(EchoesTownPropTilemap.HERB_BED, x, 26);
+        }
+        addTownProp(EchoesTownPropTilemap.FLOWER_BED, 79, 18);
+        addTownProp(EchoesTownPropTilemap.FENCE, 80, 17);
+        addTownProp(EchoesTownPropTilemap.FENCE, 88, 17);
+        addTownProp(EchoesTownPropTilemap.BENCH, 78, 22);
+    }
+
+    private void addBuilding(int style, int x1, int y1, int x2, int y2, int front, int doorOffset) {
+        EchoesTownBuildingTilemap art = new EchoesTownBuildingTilemap(
+                style, x2 - x1 + 1, y2 - y1 + 1, front, doorOffset);
+        art.pos(x1, y1);
+        customWalls.add(art);
+    }
+
+    private void addTownProp(int kind, int x, int y) {
+        EchoesTownPropTilemap art = new EchoesTownPropTilemap(kind);
+        art.pos(x, y);
+        customTiles.add(art);
+    }
+
+    private void addTownWallProp(int kind, int x, int y) {
+        EchoesTownPropTilemap art = new EchoesTownPropTilemap(kind);
+        art.pos(x, y);
+        customWalls.add(art);
     }
 
     private void addTile(int kind, int x, int y) {
