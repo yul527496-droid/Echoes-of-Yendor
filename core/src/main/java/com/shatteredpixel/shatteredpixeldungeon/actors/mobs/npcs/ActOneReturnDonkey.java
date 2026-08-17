@@ -1,6 +1,7 @@
 /* Echoes of Yendor modifications Copyright (C) 2026 */
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 
+import com.shatteredpixel.shatteredpixeldungeon.ActOneReturnState;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.EchoesDonkeyCartSprite;
@@ -15,6 +16,12 @@ public class ActOneReturnDonkey extends NPC {
 
     @Override
     protected boolean act() {
+        ActOneReturnState state = ActOneReturnState.current();
+        if (state != null && state.farmerOutcome == ActOneReturnState.FarmerOutcome.IGNORED) {
+            destroy();
+            if (sprite != null) sprite.die();
+            return true;
+        }
         spend(TICK);
         return true;
     }
