@@ -84,7 +84,8 @@ public class ActOneReturnState extends Buff {
 
     public String objectiveText() {
         if (crowChaseActive && !yendorRecovered) return "找回 Yendor";
-        if (morningcreekHeardOf || yendorRecovered) return "前往晨溪";
+        if (morningcreekHeardOf) return "前往晨溪";
+        if (farmerEventSeen || yendorAnomalyStarted || yendorRecovered) return "沿旧王道向北";
         return "离开地下城旧址";
     }
 
