@@ -6,6 +6,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ChapterOneAudio;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.RegionPoi;
 import com.shatteredpixel.shatteredpixeldungeon.RegionState;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.ActOneReturnCrow;
 import com.shatteredpixel.shatteredpixeldungeon.items.ActOneShrineInscription;
@@ -16,6 +17,9 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.ActOneReturnShrineTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesLandmarkTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesReturnPropTilemap;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
+import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
 
 import java.util.ArrayList;
@@ -114,6 +118,29 @@ public class ActOneReturnCandidateLevel extends ActOneReturnLevel {
             }
         }
         return safe;
+    }
+
+    /** Keep the development-safe north boundary, but report the actual runtime candidate version. */
+    @Override
+    public boolean activateTransition(Hero hero, LevelTransition transition) {
+        if (transition.type != LevelTransition.Type.REGULAR_EXIT) {
+            return super.activateTransition(hero, transition);
+        }
+
+        ActOneReturnState state = ActOneReturnState.get();
+        if (state != null && state.yendorTemporarilyMissing && !state.yendorRecovered) {
+            GLog.w("Yendor 还在林子里的神龛附近。");
+            return false;
+        }
+        if (state != null) {
+            state.northExitReached = true;
+            if (!state.northExitNoticeShown) {
+                state.northExitNoticeShown = true;
+                Game.runOnRenderThread(() -> GameScene.show(new WndMessage(
+                        "开发占位 · 晨溪方向\n\nAct 1 Scene 1 — Return / 归来 v0.3 Event Readability & Signature Audio Candidate 到此结束。\n下一正式场景尚未接入；封存的 Morningcreek Town prototype 不会在这里被冒充为正式后续。")));
+            }
+        }
+        return false;
     }
 
     private void ensureReadableCrow() {
