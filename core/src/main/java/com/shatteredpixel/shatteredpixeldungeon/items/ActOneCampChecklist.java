@@ -5,6 +5,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
+import com.watabou.noosa.Game;
 import java.util.ArrayList;
 
 public class ActOneCampChecklist extends Item {
@@ -17,7 +18,8 @@ public class ActOneCampChecklist extends Item {
         super.execute(hero,action);
         if(AC_READ.equals(action)){
             seen();
-            GameScene.show(new WndMessage("纸张被水泡过，边缘几乎粘成一团。还能辨认的只是几行出发前的核对记录：\n\n医疗包——沃……\n测绘工具——霍……\n防水纸——芬……\n\n再往下，墨迹已经彻底化开。"));
+            String message = "纸张被水泡过，边缘几乎粘成一团。还能辨认的只是几行出发前的核对记录：\n\n医疗包——沃……\n测绘工具——霍……\n防水纸——芬……\n\n再往下，墨迹已经彻底化开。";
+            Game.runOnRenderThread(() -> GameScene.show(new WndMessage(message)));
         }
     }
     private void seen(){ ActOneReturnState s=ActOneReturnState.get(); if(s!=null) s.campListClueSeen=true; }
