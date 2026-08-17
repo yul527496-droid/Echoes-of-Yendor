@@ -82,6 +82,8 @@ jobs:
           }
       - name: Generate Visual Foundation terrain atlases
         run: python tools/generate_visual_foundation.py
+      - name: Generate production dialogue portraits
+        run: python tools/generate_dialogue_portraits_v1.py
       - name: Validate custom PNG assets
         run: python tools/validate_pngs.py
       - name: Validate production character assets
