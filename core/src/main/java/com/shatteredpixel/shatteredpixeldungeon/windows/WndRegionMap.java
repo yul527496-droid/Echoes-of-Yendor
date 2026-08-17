@@ -3,12 +3,15 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.RegionMapSettings;
+import com.shatteredpixel.shatteredpixeldungeon.RegionPoi;
+import com.shatteredpixel.shatteredpixeldungeon.RegionState;
 import com.shatteredpixel.shatteredpixeldungeon.SequelState;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekMainStreetLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MorningcreekOutskirtsLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.OldCrowInnLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.OldKingsRoadLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.RegionAreaLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SurfaceEntranceLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -23,12 +26,12 @@ import com.watabou.noosa.ui.Component;
 import java.util.ArrayList;
 
 /**
- * North-up explored-region map.
+ * North-up explored Area Map.
  *
  * Terrain is knowledge-only: FOV is bright, visited is normal, mapped-only is dim,
- * and unknown cells are never rendered. Exact objective/landmark markers are also
- * withheld until the relevant location has actually been seen or learned by story.
- * The scroll pane provides mouse/touch panning at enlarged zoom levels.
+ * and unknown cells are never rendered. Formal region POIs additionally use cognition:
+ * UNKNOWN is absent, HEARD_OF uses only a coarse district anchor, and DISCOVERED uses
+ * the exact authored anchor. The scroll pane provides mouse/touch panning at enlarged zoom.
  */
 public class WndRegionMap extends Window {
 
@@ -37,9 +40,8 @@ public class WndRegionMap extends Window {
     private static final int VIEW_X = 10, VIEW_Y = 27, VIEW_W = 200, VIEW_H = 112;
     private static final int HERO = 0xF2D36B, WATER = 0x4B93A0, WALL = 0x3E5940,
             ROAD = 0xA78B62, GRASS = 0x6F9954, EXIT = 0xE7D9A0,
-            TARGET = 0xD64D9C, LANDMARK = 0x65C7C0;
+            TARGET = 0xD64D9C, LANDMARK = 0x65C7C0, RUMOR = 0xC8A66B;
 
-    // Used only while changing zoom so the map stays on the player's current observation center.
     private static Float pendingCenterCellX;
     private static Float pendingCenterCellY;
 
@@ -51,12 +53,16 @@ public class WndRegionMap extends Window {
         zoom = RegionMapSettings.zoom();
         resize(WIDTH, HEIGHT);
 
-        RenderedTextBlock title = PixelScene.renderTextBlock("区域地图   N ↑", 9);
+        Level level = Dungeon.level;
+        String titleText = "区域地图   N ↑";
+        if (level instanceof RegionAreaLevel) {
+            titleText = "区域地图 · " + ((RegionAreaLevel) level).regionAreaName() + "   N ↑";
+        }
+        RenderedTextBlock title = PixelScene.renderTextBlock(titleText, 9);
         title.hardlight(TITLE_COLOR);
         title.setPos(MARGIN, MARGIN);
         add(title);
 
-        Level level = Dungeon.level;
         if (level == null || Dungeon.hero == null) {
             RenderedTextBlock none = PixelScene.renderTextBlock("暂无区域数据", 7);
             none.setPos(MARGIN, 32);
@@ -67,10 +73,19 @@ public class WndRegionMap extends Window {
         drawMap(level);
         buildZoomControls();
 
-        SequelState state = Dungeon.hero.buff(SequelState.class);
-        String objectiveText = state == null ? "" : state.objectiveText();
-        RenderedTextBlock legend = PixelScene.renderTextBlock(
-                "金：你   紫：已确认目标   青：已发现地标\n" + objectiveText, 6);
+        String objectiveText = "";
+        RegionState region = RegionState.current();
+        if (level instanceof RegionAreaLevel && region != null) {
+            objectiveText = region.objectiveText();
+        } else {
+            SequelState state = Dungeon.hero.buff(SequelState.class);
+            if (state != null) objectiveText = state.objectiveText();
+        }
+
+        String key = level instanceof RegionAreaLevel
+                ? "金：你   青：已发现   黄：听说的大致区域\n"
+                : "金：你   紫：已确认目标   青：已发现地标\n";
+        RenderedTextBlock legend = PixelScene.renderTextBlock(key + objectiveText, 6);
         legend.maxWidth(WIDTH - MARGIN * 2);
         legend.setPos(MARGIN, 166);
         add(legend);
@@ -122,11 +137,11 @@ public class WndRegionMap extends Window {
 
         ArrayList<Landmark> landmarks = discoveredLandmarks(level);
         for (Landmark landmark : landmarks) {
-            drawMarker(content, mapOriginX, mapOriginY, cell, landmark, LANDMARK);
+            drawMarker(content, mapOriginX, mapOriginY, cell, landmark,
+                    landmark.approximate ? RUMOR : LANDMARK);
         }
 
         mapPane = new MapScrollPane(content, landmarks, mapOriginX, mapOriginY, cell, w, h);
-        // ScrollPane.layout() resolves its parent camera, so it must be attached before setRect().
         add(mapPane);
         mapPane.setRect(VIEW_X, VIEW_Y, VIEW_W, VIEW_H);
 
@@ -195,8 +210,30 @@ public class WndRegionMap extends Window {
 
     private static ArrayList<Landmark> discoveredLandmarks(Level level) {
         ArrayList<Landmark> result = new ArrayList<>();
-        SequelState state = Dungeon.hero == null ? null : Dungeon.hero.buff(SequelState.class);
 
+        if (level instanceof RegionAreaLevel) {
+            RegionState region = RegionState.current();
+            if (region == null) return result;
+            RegionPoi[] pois = ((RegionAreaLevel) level).regionPois();
+            if (pois == null) return result;
+            for (RegionPoi poi : pois) {
+                if (poi == null || poi.location == null) continue;
+                RegionState.Knowledge knowledge = region.knowledge(poi.location);
+                if (knowledge == RegionState.Knowledge.UNKNOWN) continue;
+                if (knowledge == RegionState.Knowledge.HEARD_OF) {
+                    add(result, poi.heardX, poi.heardY,
+                            "听说 · " + poi.name,
+                            categoryText(poi.category) + "\n" + poi.heardDescription
+                                    + "\n\n位置尚未确认：地图只显示大致区域。", true);
+                } else {
+                    add(result, poi.x, poi.y, poi.name,
+                            categoryText(poi.category) + "\n" + poi.discoveredDescription, false);
+                }
+            }
+            return result;
+        }
+
+        SequelState state = Dungeon.hero == null ? null : Dungeon.hero.buff(SequelState.class);
         if (level instanceof SurfaceEntranceLevel) {
             if (state != null && state.campVisited) {
                 add(result, 12, 27, "废弃营地", "林间的旧远征营地。你已经确认这里有人停留过。" );
@@ -263,8 +300,27 @@ public class WndRegionMap extends Window {
         return result;
     }
 
+    private static String categoryText(RegionPoi.Category category) {
+        if (category == null) return "地点";
+        switch (category) {
+            case TRAVEL: return "旅行节点";
+            case SERVICE: return "服务地点";
+            case INVESTIGATION: return "调查地点";
+            case SHORTCUT: return "永久捷径";
+            case CIVIC: return "公共机构";
+            case AMBIENT: return "生活地点";
+            case LANDMARK:
+            default: return "地标";
+        }
+    }
+
     private static void add(ArrayList<Landmark> result, int x, int y, String name, String description) {
-        result.add(new Landmark(x, y, name, description));
+        add(result, x, y, name, description, false);
+    }
+
+    private static void add(ArrayList<Landmark> result, int x, int y,
+                            String name, String description, boolean approximate) {
+        result.add(new Landmark(x, y, name, description, approximate));
     }
 
     private static void drawMarker(Component content, float originX, float originY, int cell,
@@ -273,6 +329,13 @@ public class WndRegionMap extends Window {
         float cy = originY + (landmark.cellY + 0.5f) * cell;
         float arm = Math.max(1f, cell * 0.34f);
         float core = Math.max(1f, cell * 0.46f);
+
+        if (landmark.approximate) {
+            addPixel(content, cx - core / 2f, cy - core / 2f, core, core, color);
+            addPixel(content, cx - core * 1.5f, cy - arm / 2f, core, arm, color);
+            addPixel(content, cx + core * 0.5f, cy - arm / 2f, core, arm, color);
+            return;
+        }
 
         addPixel(content, cx - core / 2f, cy - core / 2f, core, core, color);
         addPixel(content, cx - arm / 2f, cy - core / 2f - arm, arm, arm, color);
@@ -300,6 +363,7 @@ public class WndRegionMap extends Window {
     }
 
     private static int objectiveCell(Level level) {
+        if (level instanceof RegionAreaLevel) return -1;
         if (level instanceof SurfaceEntranceLevel)
             return ((SurfaceEntranceLevel) level).cell(SurfaceEntranceLevel.NORTH_X, SurfaceEntranceLevel.NORTH_Y);
         if (level instanceof OldKingsRoadLevel)
@@ -333,12 +397,14 @@ public class WndRegionMap extends Window {
         final int cellY;
         final String name;
         final String description;
+        final boolean approximate;
 
-        Landmark(int cellX, int cellY, String name, String description) {
+        Landmark(int cellX, int cellY, String name, String description, boolean approximate) {
             this.cellX = cellX;
             this.cellY = cellY;
             this.name = name;
             this.description = description;
+            this.approximate = approximate;
         }
     }
 
