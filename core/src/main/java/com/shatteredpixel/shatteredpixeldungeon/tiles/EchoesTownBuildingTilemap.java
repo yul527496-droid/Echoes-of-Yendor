@@ -1,15 +1,17 @@
 /* Echoes of Yendor modifications Copyright (C) 2026 */
 package com.shatteredpixel.shatteredpixeldungeon.tiles;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.watabou.noosa.Tilemap;
 import com.watabou.utils.Bundle;
 
 /**
  * Modular Morningcreek building overlay.
  *
- * One instance covers one authored wall footprint. Gameplay collision still comes from the
- * Level's Terrain.WALL cells; this class only replaces the visually empty wall mass with a
- * deterministic roof/facade composition made from 16x16 modules.
+ * One instance covers one authored blockout rectangle. Gameplay collision still comes from the
+ * Level map. Cells later carved into streets/yards are mapped to a transparent atlas module, so
+ * the visual layer can follow the v0.2 footprint without painting fake walls across shortcuts.
  */
 public class EchoesTownBuildingTilemap extends CustomTilemap {
     public static final int HOUSE_WARM = 0;
@@ -35,6 +37,7 @@ public class EchoesTownBuildingTilemap extends CustomTilemap {
     private static final String DOOR = "door";
     private static final int ROOF = 0, ROOF_NORTH = 1, ROOF_SOUTH = 2, ROOF_LEFT = 3, ROOF_RIGHT = 4;
     private static final int WALL = 5, WINDOW = 6, DOOR_TILE = 7;
+    private static final int TRANSPARENT = 80;
 
     private int style = HOUSE_WARM;
     private int front = FRONT_SOUTH;
@@ -56,9 +59,22 @@ public class EchoesTownBuildingTilemap extends CustomTilemap {
         texture = TEXTURE;
         Tilemap result = super.create();
         int[] data = new int[tileW * tileH];
-        for (int y = 0; y < tileH; y++) for (int x = 0; x < tileW; x++) data[x + y * tileW] = style * 8 + moduleAt(x, y);
+        for (int y = 0; y < tileH; y++) {
+            for (int x = 0; x < tileW; x++) {
+                data[x + y * tileW] = occupiesWallCell(x, y) ? style * 8 + moduleAt(x, y) : TRANSPARENT;
+            }
+        }
         result.map(data, tileW);
         return result;
+    }
+
+    private boolean occupiesWallCell(int localX, int localY) {
+        if (Dungeon.level == null || Dungeon.level.map == null) return true;
+        int x = tileX + localX;
+        int y = tileY + localY;
+        if (x < 0 || y < 0 || x >= Dungeon.level.width() || y >= Dungeon.level.height()) return false;
+        int terrain = Dungeon.level.map[x + y * Dungeon.level.width()];
+        return terrain == Terrain.WALL || terrain == Terrain.EXIT;
     }
 
     private int moduleAt(int x, int y) {
