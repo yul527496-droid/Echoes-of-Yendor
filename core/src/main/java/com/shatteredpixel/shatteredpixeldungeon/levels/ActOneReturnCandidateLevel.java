@@ -3,13 +3,20 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.RegionPoi;
 import com.shatteredpixel.shatteredpixeldungeon.RegionState;
+import com.shatteredpixel.shatteredpixeldungeon.items.ActOneShrineInscription;
+import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.ActOneReturnShrineTilemap;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesLandmarkTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesReturnPropTilemap;
 import com.watabou.utils.Bundle;
 
+import java.util.ArrayList;
+
 /**
- * v0.2 Journey & Audio Pass candidate dressing layer for the formal Return geometry.
- * Keeps the authored route/state in ActOneReturnLevel while giving each travel beat a readable
- * project-owned 16px prop language. This remains candidate art, not final art.
+ * v0.3 Event Readability & Signature Audio candidate dressing/presentation layer.
+ * The accepted 124x92 v0.2 journey geometry remains frozen; this class only repairs
+ * presentation semantics and the already-authored river/crow/shrine staging.
  */
 public class ActOneReturnCandidateLevel extends ActOneReturnLevel {
 
@@ -20,19 +27,28 @@ public class ActOneReturnCandidateLevel extends ActOneReturnLevel {
     @Override
     protected boolean build() {
         boolean ok = super.build();
-        // Super builds the river before a decorative south-bank exploration spur. In v0.1/v0.2-first-pass
-        // that later grass paint accidentally reopened a second crossing. Reassert the river here, then
-        // reopen only the authored old bridge. This is runtime geometry, not a cosmetic overlay.
+        // Super builds the river before a decorative south-bank exploration spur. Reassert the
+        // river here, then reopen only the authored old bridge. This preserves the accepted v0.2 route.
         sealUnintendedEarlyFord();
+        installReturnShrineInteraction();
         installReturnProps();
         return ok;
     }
 
     @Override
+    protected void createItems() {
+        super.createItems();
+        // v0.3: architecture is no longer represented by a non-pickable Item/Heap.
+        removeLegacyShrineInscriptionHeaps();
+    }
+
+    @Override
     public void restoreFromBundle(Bundle bundle) {
         super.restoreFromBundle(bundle);
+        removeLegacyShrineInscriptionHeaps();
         customTiles.removeIf(t -> t instanceof EchoesReturnPropTilemap);
         customWalls.removeIf(t -> t instanceof EchoesReturnPropTilemap);
+        installReturnShrineInteraction();
         installReturnProps();
     }
 
@@ -68,6 +84,31 @@ public class ActOneReturnCandidateLevel extends ActOneReturnLevel {
         // pathfinding from being snagged on a water corner.
         fillTerrainRect(44,79,48,81,Terrain.EMPTY);
         paintTerrainLine(45,82,47,78,1,Terrain.EMPTY);
+    }
+
+    private void installReturnShrineInteraction() {
+        // Replace only the generic 2x2 Return shrine visual at this authored location. Other
+        // Echoes landmarks are untouched. The replacement uses the same art but owns inspect text.
+        customTiles.removeIf(t -> t instanceof EchoesLandmarkTilemap
+                && t.tileX == 40 && t.tileY == 20 && t.tileW == 2 && t.tileH == 2);
+        ActOneReturnShrineTilemap shrine = new ActOneReturnShrineTilemap();
+        shrine.pos(40,20);
+        customTiles.add(shrine);
+    }
+
+    /**
+     * v0.2 saves may deserialize an ActOneShrineInscription Heap before this candidate restores.
+     * Remove only that obsolete architecture-as-item representation; leave every other Heap intact.
+     */
+    private void removeLegacyShrineInscriptionHeaps() {
+        ArrayList<Heap> emptyHeaps = new ArrayList<>();
+        for (Heap heap : heaps.valueList()) {
+            for (Item item : heap.items.toArray(new Item[0])) {
+                if (item instanceof ActOneShrineInscription) heap.items.remove(item);
+            }
+            if (heap.items.isEmpty()) emptyHeaps.add(heap);
+        }
+        for (Heap heap : emptyHeaps) heap.destroy();
     }
 
     private void paintTerrainLine(int x1, int y1, int x2, int y2, int radius, int terrain) {
@@ -139,12 +180,12 @@ public class ActOneReturnCandidateLevel extends ActOneReturnLevel {
         prop(EchoesReturnPropTilemap.LOW_WALL, 87, 42);
         prop(EchoesReturnPropTilemap.ROOTS, 78, 39);
 
-        // Crow spur: a few readable anchors, never a breadcrumb every tile.
+        // Crow stops deliberately sit beside distinct anchors: wall -> stump -> roots -> shrine.
         prop(EchoesReturnPropTilemap.LOW_WALL, 61, 33);
         prop(EchoesReturnPropTilemap.STUMP, 54, 30);
         prop(EchoesReturnPropTilemap.ROOTS, 47, 26);
 
-        // Shrine: small human-scale offering architecture and almost invisible four-fold wear.
+        // Shrine: compact visual chain from final crow perch to Yendor altar to readable stonework.
         prop(EchoesReturnPropTilemap.OFFERING_BOWL, 41, 22);
         prop(EchoesReturnPropTilemap.FOUR_RECESSES, 38, 20);
         prop(EchoesReturnPropTilemap.ROOTS, 46, 24);
