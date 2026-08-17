@@ -15,6 +15,7 @@ public class EchoesReturnPropTilemap extends CustomTilemap {
     public static final int ROOTS=20, STUMP=21;
 
     private static final String TEX="environment/echoes/act1_return/return_props_v1.png";
+    private static final int TEX_WIDTH=256;
     private static final String KIND="kind";
     private int kind;
     private int tx,ty,tw=1,th=1;
@@ -39,13 +40,13 @@ public class EchoesReturnPropTilemap extends CustomTilemap {
             case ROOTS: tx=6; ty=1; break; case STUMP: tx=7; ty=1; break;
             default: kind=BEDROLL_A; tx=0; ty=0; break;
         }
-        texture=TEX; textureWidth=256; tileW=tw; tileH=th;
+        texture=TEX; tileW=tw; tileH=th;
     }
 
     @Override public Tilemap create(){
         configure();
         Tilemap result=super.create();
-        result.map(mapSimpleImage(tx,ty,textureWidth),tileW);
+        result.map(mapSimpleImage(tx,ty,TEX_WIDTH),tileW);
         return result;
     }
     @Override public void storeInBundle(Bundle b){ super.storeInBundle(b); b.put(KIND,kind); }
