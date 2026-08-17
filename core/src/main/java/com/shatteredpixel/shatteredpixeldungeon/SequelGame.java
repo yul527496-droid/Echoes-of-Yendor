@@ -66,6 +66,10 @@ public final class SequelGame {
 
         Dungeon.initSeed();
         Dungeon.init();
+        // Dungeon.init() resets actors and creates a new hero, but upstream normally clears
+        // the old level in Dungeon.newLevel(). Formal sequel maps bypass newLevel(), so clear
+        // any level object left by training/another run before touching transition lifecycle.
+        Dungeon.level = null;
         ChapterOneAudio.reset();
 
         ReturningHero.apply(Dungeon.hero, profile);
@@ -105,6 +109,7 @@ public final class SequelGame {
 
         Dungeon.initSeed();
         Dungeon.init();
+        Dungeon.level = null;
         ChapterOneAudio.stopAmbience();
 
         Dungeon.hero.belongings.clear();
