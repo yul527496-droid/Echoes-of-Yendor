@@ -101,6 +101,8 @@ candidate=read("core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/leve
 for prop in ("BEDROLL_A","BEDROLL_B","BEDROLL_C","BEDROLL_D","FADED_TENT","MILESTONE","OFFERING_BOWL","FOUR_RECESSES","FIELD_EDGE"):
     require(candidate,prop,f"candidate dressing missing {prop}")
 require(candidate,"123, 91","Morningcreek exact POI anchor is not safely unreachable in 124x92 geometry")
+require(candidate,"sealUnintendedEarlyFord();","early river shortcut seal is no longer applied to runtime geometry")
+require(candidate,"paintTerrainLine(45,82,47,78,1,Terrain.EMPTY);","authored old bridge crossing is not explicitly restored")
 
 region=read("core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/RegionState.java")
 require(region,"ACT_ONE_RETURN","Region Area integration missing")
@@ -120,5 +122,5 @@ print(
     "Act 1 Scene 1 Return v0.2 gate OK: "
     f"main={main_steps} cells, camp spur={camp_steps}, crow+loop={crow_loop_steps}, "
     f"farmer->anomaly={farmer_to_anomaly}, post-shrine={post_shrine_tail}; "
-    "canon, state, UI-thread safety and retired-Yendor-audio locks intact."
+    "canon, state, UI-thread safety, single authored river crossing and retired-Yendor-audio locks intact."
 )
