@@ -75,9 +75,6 @@ public class RoadFarmer extends NPC {
         if (!story.isAtLeast(SequelState.Phase.FARMER_NORMAL_TALK_DONE)) {
             if (!journeyStarted) {
                 int heroY = Dungeon.hero.pos / Dungeon.level.width();
-                // Surface Entrance was compacted to 38 rows. The old y>=47 gate could
-                // never fire here, so the farmer/cart began pathing the instant the map loaded.
-                // Start the approach only once the hero has actually moved north past camp.
                 if (heroY >= SurfaceEntranceLevel.CAMP_Y2) {
                     spend(TICK);
                     return true;
@@ -106,7 +103,6 @@ public class RoadFarmer extends NPC {
             return true;
         }
 
-        // A reload in the middle of the conversation resumes from the last stable checkpoint.
         if (pos != meet && getCloser(meet)) {
             spend(1f / speed());
         } else {
@@ -194,7 +190,7 @@ public class RoadFarmer extends NPC {
                                     WndDialogueStage.Portrait.FARMER_NEUTRAL)
                     };
 
-                    play(normal, 0, () -> heroMeaningChoice());
+                    play(normal, 0, this::heroMeaningChoice);
                 });
     }
 
@@ -202,14 +198,14 @@ public class RoadFarmer extends NPC {
         showChoice(
                 "返回者",
                 "你怎么回答？",
-                WndDialogueStage.Portrait.HERO,
+                WndDialogueStage.Portrait.HERO_NEUTRAL,
                 new String[]{"没有什么值得拿命换。", "有些东西，进去以后才知道。", "我还没想明白。"},
                 choice -> {
                     String line = choice == 0 ? "没有什么值得拿命换。"
                             : choice == 1 ? "有些东西，进去以后才知道。"
                             : "我还没想明白。";
 
-                    showPage("返回者", line, WndDialogueStage.Portrait.HERO, () -> {
+                    showPage("返回者", line, WndDialogueStage.Portrait.HERO_NEUTRAL, () -> {
                         SequelState story = SequelState.get();
                         if (story != null) story.advanceTo(SequelState.Phase.FARMER_NORMAL_TALK_DONE);
                         anomaly();
@@ -226,7 +222,7 @@ public class RoadFarmer extends NPC {
                 new Beat("", "不要顺着它想。", WndDialogueStage.Portrait.NONE),
                 new Beat("路边的老农", "……\n等等。", WndDialogueStage.Portrait.FARMER_CONFUSED),
                 new Beat("路边的老农", "你包里……是什么？", WndDialogueStage.Portrait.FARMER_CONFUSED),
-                new Beat("返回者", "什么都别碰。", WndDialogueStage.Portrait.HERO),
+                new Beat("返回者", "什么都别碰。", WndDialogueStage.Portrait.HERO_ALERT),
                 new Beat("路边的老农", "我没有要碰。", WndDialogueStage.Portrait.FARMER_CONFUSED),
                 new Beat("路边的老农", "我只是看看。", WndDialogueStage.Portrait.FARMER_FIXATED),
                 new Beat("路边的老农", "给我看一眼。", WndDialogueStage.Portrait.FARMER_FIXATED),
@@ -257,7 +253,7 @@ public class RoadFarmer extends NPC {
         showChoice(
                 "返回者",
                 "你怎么回答？",
-                WndDialogueStage.Portrait.HERO,
+                WndDialogueStage.Portrait.HERO_CONCERNED,
                 new String[]{"你想抢我的东西。", "你一直盯着我的背包。", "你不记得？"},
                 choice -> {
                     String line = choice == 0 ? "你想抢我的东西。"
@@ -265,7 +261,7 @@ public class RoadFarmer extends NPC {
                             : "你不记得？";
 
                     Beat[] after = {
-                            new Beat("返回者", line, WndDialogueStage.Portrait.HERO),
+                            new Beat("返回者", line, WndDialogueStage.Portrait.HERO_CONCERNED),
                             new Beat("路边的老农", "我不抢东西。", WndDialogueStage.Portrait.FARMER_SHAKEN),
                             new Beat("路边的老农", "至少上一刻，我还不想。", WndDialogueStage.Portrait.FARMER_SHAKEN),
                             new Beat("路边的老农", "我甚至不知道你包里有什么。", WndDialogueStage.Portrait.FARMER_SHAKEN),
@@ -290,7 +286,7 @@ public class RoadFarmer extends NPC {
                 new Beat("路边的老农", "下去的。", WndDialogueStage.Portrait.FARMER_SHAKEN),
                 new Beat("路边的老农", "没回来的。", WndDialogueStage.Portrait.FARMER_SHAKEN),
                 new Beat("路边的老农", "还有回来以后变得不太对劲的。", WndDialogueStage.Portrait.FARMER_SHAKEN),
-                new Beat("返回者", "不太对劲？", WndDialogueStage.Portrait.HERO),
+                new Beat("返回者", "不太对劲？", WndDialogueStage.Portrait.HERO_CONCERNED),
                 new Beat("路边的老农", "你去问她。\n我今天已经够不对劲了。", WndDialogueStage.Portrait.FARMER_SHAKEN)
         };
 
@@ -320,47 +316,18 @@ public class RoadFarmer extends NPC {
         GameScene.show(new WndDialogueStage(speaker, text, portrait, listener, choices));
     }
 
-    private void recoilFromDonkey() {
-        if (!(Dungeon.level instanceof SurfaceEntranceLevel)) return;
-        int target = pos + Dungeon.level.width();
-        if (target >= 0 && target < Dungeon.level.length()
-                && Dungeon.level.passable[target] && Actor.findChar(target) == null) {
-            int from = pos;
-            pos = target;
-            if (sprite != null) sprite.move(from, target);
-        }
-    }
-
     private int cell(int x, int y) {
         return x + y * Dungeon.level.width();
     }
 
-    @Override
-    public int defenseSkill(Char enemy) {
-        return INFINITE_EVASION;
-    }
-
-    @Override
-    public void damage(int dmg, Object src) {
-    }
-
-    @Override
-    public boolean add(Buff buff) {
-        return false;
-    }
-
-    @Override
-    public boolean reset() {
-        return true;
-    }
-
-    @Override
-    public String name() {
-        return "路边的老农";
-    }
-
-    @Override
-    public String description() {
-        return "一位沿旧王道赶车的年长农夫。此刻他更害怕的，似乎是刚才那个不像自己的念头。";
+    private void recoilFromDonkey() {
+        int push = pos - Dungeon.hero.pos;
+        int step = Integer.signum(push % Dungeon.level.width()) + Integer.signum(push / Dungeon.level.width()) * Dungeon.level.width();
+        int target = pos + step;
+        if (Dungeon.level.insideMap(target) && Dungeon.level.passable[target] && Actor.findChar(target) == null) {
+            pos = target;
+            if (sprite != null) sprite.place(pos);
+        }
+        Buff.detach(this, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo.class);
     }
 }
