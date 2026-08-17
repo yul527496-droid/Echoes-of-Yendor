@@ -41,70 +41,70 @@ public class MorningcreekTownPrototypeLevel extends Level implements RegionAreaL
     private static final RegionPoi[] POIS = new RegionPoi[]{
             poi(RegionState.Location.SOUTH_GATE, RegionPoi.Category.TRAVEL,
                     48, 68, 48, 66, 6, "晨溪南门",
-                    "晨溪南侧的城门区域。", "晨溪通往旧王道方向的南门，也是主要旅行节点。"),
+                    "晨溪南侧的城门区域。", "宽阔的南门交通口连接车马坪、马厩和进城主路。"),
             poi(RegionState.Location.SOUTH_CARAVAN_APRON, RegionPoi.Category.AMBIENT,
                     48, 64, 48, 64, 5, "南门车马坪",
-                    "南门附近似乎有供车马停靠的空地。", "商旅进镇前整理货物、饮马和等候检查的车马坪。"),
+                    "南门附近似乎有供车马停靠的空地。", "比普通街道更开阔、更粗粝的车马坪，是晨溪南侧的运输缓冲区。"),
             poi(RegionState.Location.CENTRAL_MARKET, RegionPoi.Category.SERVICE,
-                    50, 55, 50, 55, 7, "中心市场",
-                    "主街中段有人群和摊贩聚集。", "晨溪最繁忙的公共空间，主街与多条支路在这里汇合。"),
+                    45, 54, 49, 55, 7, "中心市场",
+                    "主街中段有人群和摊贩聚集。", "被旅店、住宅和支路挤压出的紧凑市场，摊位与水井让这里比主路更杂乱。"),
             poi(RegionState.Location.MARKET_WELL, RegionPoi.Category.LANDMARK,
                     48, 56, 48, 56, 4, "市场水井",
-                    "市场中央有一处常用的公共水源。", "市场中央的石砌水井，是镇民最常用的指路参照。"),
+                    "市场中央有一处常用的公共水源。", "市场中央的石砌水井，是南城区最容易记住的近距离参照。"),
             poi(RegionState.Location.OLD_CROW_INN, RegionPoi.Category.TRAVEL,
-                    30, 47, 36, 55, 7, "老鸦旅店",
-                    "听说旅店在市场西侧、靠近南岸的一带。", "黑乌鸦招牌悬在宽阔的旅店正门前；建筑规模远大于旧 Demo。"),
+                    40, 50, 36, 54, 7, "老鸦旅店",
+                    "听说旅店在市场西侧、靠近南岸的一带。", "旅店主楼、乌鸦招牌、侧巷与独立服务翼共同形成明显大于普通住宅的街角体量。"),
             poi(RegionState.Location.OLD_CROW_REAR_YARD, RegionPoi.Category.SERVICE,
-                    13, 46, 16, 48, 5, "老鸦后院",
-                    "旅店后方有供货和牲口进出的院落。", "旅店后院预留了马厩、货物入口和未来的替代出入口。"),
+                    12, 47, 18, 50, 5, "老鸦后院",
+                    "旅店后方有供货和牲口进出的院落。", "从市场旁的窄侧巷可以绕到旅店后院，再接回西侧河路。"),
             poi(RegionState.Location.STONE_BRIDGE, RegionPoi.Category.LANDMARK,
                     48, 36, 48, 36, 7, "晨溪大石桥",
-                    "主街跨河处有一座大桥。", "宽阔石桥把南北城区连在一起，是整个晨溪最稳定的空间参照之一。"),
+                    "主街跨河处有一座大桥。", "七格宽桥面、石质桥头和两侧桥栏把它从普通道路中明确分离出来。"),
             poi(RegionState.Location.RAVENFEATHER_TOWER, RegionPoi.Category.LANDMARK,
-                    12, 11, 18, 13, 7, "鸦羽塔",
-                    "西北城区有一座高耸的旧塔。", "鸦羽区最醒目的垂直地标；最终美术尚未制作，当前用大型体量占位。"),
+                    12, 12, 18, 16, 7, "鸦羽塔",
+                    "西北城区有一座高耸的旧塔。", "削去四角的独立塔体与环绕石庭让它成为鸦羽区最特殊的占地轮廓。"),
             poi(RegionState.Location.RAVENFEATHER_REGISTRY, RegionPoi.Category.TRAVEL,
-                    28, 16, 20, 15, 7, "鸦羽登记处",
-                    "听说登记处位于西北的鸦羽区，靠近一座高塔。", "晨溪的重要登记与档案机构；未来调查权限会在这里逐层开放。"),
+                    32, 20, 24, 20, 7, "鸦羽登记处",
+                    "听说登记处位于西北的鸦羽区，靠近一座高塔。", "U 形公务建筑围绕内庭展开，正面通过石质前庭接入北城区；未来 interior 入口已留出空间。"),
             poi(RegionState.Location.ARCHIVE_COURT, RegionPoi.Category.INVESTIGATION,
-                    29, 26, 23, 25, 5, "档案庭院",
-                    "登记处附近似乎还有独立档案院落。", "连接登记处与档案区的安静庭院，适合未来承载调查与权限变化。"),
+                    31, 22, 24, 25, 5, "档案庭院",
+                    "登记处附近似乎还有独立档案院落。", "登记处南侧更安静的石庭与窄路形成一段非主街步行空间。"),
             poi(RegionState.Location.EAST_CLINIC, RegionPoi.Category.SERVICE,
-                    70, 18, 70, 20, 7, "东城诊所",
-                    "东城区有一处诊所。", "晨溪主要诊疗点，旁边直接连着药圃。"),
+                    69, 19, 72, 20, 7, "东城诊所",
+                    "东城区有一处诊所。", "较低矮的诊所建筑贴着生活街道，旁边直接过渡到药圃与灌溉沟。"),
             poi(RegionState.Location.HERB_GARDEN, RegionPoi.Category.SERVICE,
-                    86, 20, 84, 20, 6, "诊所药圃",
-                    "诊所旁似乎种着药草。", "分畦种植的药圃与小水渠，让东城区具有明显的生活功能。"),
+                    89, 24, 84, 21, 6, "诊所药圃",
+                    "诊所旁似乎种着药草。", "分畦高草与窄水渠把这里和仓储区的硬质装卸空间明显区分开。"),
             poi(RegionState.Location.RIVER_WAREHOUSES, RegionPoi.Category.INVESTIGATION,
-                    76, 49, 74, 48, 7, "河岸仓储区",
-                    "南岸东侧分布着成片仓库。", "沿河排列的仓储建筑群，未来既可提供物资也可承载调查证据。"),
+                    85, 48, 74, 49, 7, "河岸仓储区",
+                    "南岸东侧分布着成片仓库。", "多栋狭长仓房沿装卸巷分开排列，不再是一整块不可穿越的墙体。"),
             poi(RegionState.Location.WAREHOUSE_LOADING_LANE, RegionPoi.Category.AMBIENT,
-                    64, 47, 66, 47, 5, "仓库装卸巷",
-                    "仓库之间有专门的装卸通道。", "连接市场、仓库和河岸的狭长运输巷，车流避开了主市场。"),
+                    71, 50, 68, 50, 5, "仓库装卸巷",
+                    "仓库之间有专门的装卸通道。", "两三格宽的纵向装卸巷把重车流从市场主空间中剥离出来。"),
             poi(RegionState.Location.RIVER_LANDING, RegionPoi.Category.LANDMARK,
-                    89, 41, 88, 42, 5, "东河埠头",
-                    "东侧河岸有一处小型埠头。", "面向东部河谷的装卸埠头，也是未来区域路线的重要参照。"),
+                    90, 41, 88, 42, 5, "东河埠头",
+                    "东侧河岸有一处小型埠头。", "沿河路尽头的小埠头与旧船占位形成一个不承担任务、但值得走过去看的水边死角。"),
             poi(RegionState.Location.BLACKSMITH, RegionPoi.Category.SERVICE,
-                    14, 56, 16, 56, 6, "铁匠铺",
-                    "南门西侧能听见打铁声。", "靠近南侧运输路线的铁匠铺，方便车队和居民修理工具。"),
+                    10, 60, 14, 60, 6, "铁匠铺",
+                    "南门西侧能听见打铁声。", "铁匠铺贴着运输横街，和周围马厩、车马坪共同塑造南门交通区。"),
             poi(RegionState.Location.PUBLIC_STABLES, RegionPoi.Category.SERVICE,
-                    18, 65, 18, 64, 6, "公共马厩",
-                    "南门附近有公共马厩。", "面向商旅的公共马厩，为未来 Travel Skip 提供现实世界基础。"),
+                    20, 62, 20, 64, 6, "公共马厩",
+                    "南门附近有公共马厩。", "数栋分开的马厩与工作棚围着车马通道，而不是一整块封死的大建筑。"),
             poi(RegionState.Location.EAST_BACK_ALLEY, RegionPoi.Category.AMBIENT,
-                    59, 53, 59, 53, 5, "东侧后巷",
-                    "市场东侧有一条避开主街的窄巷。", "夹在住宅与仓储区之间的窄巷，可绕开市场最拥挤的路段。"),
+                    57, 60, 58, 58, 5, "东侧后巷",
+                    "市场东侧有一条避开主街的窄巷。", "一条只有数格宽的纵向后巷连接市场、南侧住宅与仓库回路。"),
             poi(RegionState.Location.NORTH_GATE, RegionPoi.Category.TRAVEL,
                     48, 3, 48, 5, 6, "晨溪北门",
-                    "主街北端通向镇外。", "通往北部高地的北门，未来将成为正式旅行节点。"),
+                    "主街北端通向镇外。", "北城区石路沿主脊柱收束到北门，材质和南门交通区明显不同。"),
             poi(RegionState.Location.HUNTERS_ROAD_MOUTH, RegionPoi.Category.SHORTCUT,
                     3, 20, 8, 20, 5, "猎人路入口",
-                    "西侧城缘似乎有猎人使用的小路。", "一条尚未开放的永久捷径入口；未来可连接晨溪与西侧林地。"),
+                    "西侧城缘似乎有猎人使用的小路。", "一条尚未开放的永久捷径入口；现在只作为可见的未来路线承诺。"),
             poi(RegionState.Location.RIVERSIDE_ROAD_MOUTH, RegionPoi.Category.SHORTCUT,
                     92, 41, 88, 41, 5, "河岸路入口",
-                    "东河岸有沿水延伸的小路。", "尚未开放的河岸永久捷径，未来可减少穿过市场的往返。"),
+                    "东河岸有沿水延伸的小路。", "沿水延伸的永久捷径口仍未开放，但从仓储回路上已经能自然看到。"),
             poi(RegionState.Location.NORTH_MILL_PATH_MOUTH, RegionPoi.Category.SHORTCUT,
                     67, 3, 65, 7, 5, "北磨坊小径",
-                    "北门附近另有一条偏离主路的小径。", "通往旧磨坊方向的永久捷径入口，目前只完成空间预留。")
+                    "北门附近另有一条偏离主路的小径。", "偏离北门主路的封闭小径已经形成可辨认的未来出口空间。")
     };
 
     {
@@ -294,7 +294,6 @@ public class MorningcreekTownPrototypeLevel extends Level implements RegionAreaL
         rect(8, 43, 10, 49, Terrain.EMPTY);
 
         // Micro-loop 2: an east river walk wraps behind the warehouses before returning to market.
-        // The lanes are already carved above; this short south return makes the loop obvious on foot.
         rect(84, 57, 91, 59, Terrain.EMPTY);
 
         // Micro-loop 3: a completely optional quiet Ravenfeather courtyard.
@@ -355,17 +354,31 @@ public class MorningcreekTownPrototypeLevel extends Level implements RegionAreaL
     private void installVisualFoundation() {
         customTiles.removeIf(t -> t instanceof EchoesLandmarkTilemap);
         customWalls.removeIf(t -> t instanceof EchoesLandmarkTilemap);
+
+        // Three primary spatial landmarks: the two gates, Old Crow Inn, and the bridge geometry above.
         addWall(EchoesLandmarkTilemap.TOWN_GATE, 45, 67);
         addWall(EchoesLandmarkTilemap.TOWN_GATE, 45, 1);
-        addWall(EchoesLandmarkTilemap.OLD_CROW_INN, 25, 44);
+        addWall(EchoesLandmarkTilemap.OLD_CROW_INN, 29, 44);
         addTile(EchoesLandmarkTilemap.OLD_CROW_SIGN, 38, 49);
-        addWall(EchoesLandmarkTilemap.BLACKSMITH, 9, 54);
-        addWall(EchoesLandmarkTilemap.FARMHOUSE, 11, 64);
-        addWall(EchoesLandmarkTilemap.SHOP, 24, 13);
-        addWall(EchoesLandmarkTilemap.SHOP, 67, 14);
-        addWall(EchoesLandmarkTilemap.SHOP, 68, 45);
+
+        // South transport quarter and market props. These reuse existing placeholders only.
+        addWall(EchoesLandmarkTilemap.BLACKSMITH, 7, 54);
+        addWall(EchoesLandmarkTilemap.FARMHOUSE, 8, 65);
+        addTile(EchoesLandmarkTilemap.WAGON, 40, 65);
+        addTile(EchoesLandmarkTilemap.WAGON, 11, 49);
         addTile(EchoesLandmarkTilemap.WELL, 47, 55);
-        addTile(EchoesLandmarkTilemap.NOTICE_BOARD, 22, 25);
+        addTile(EchoesLandmarkTilemap.NOTICE_BOARD, 40, 54);
+        addWall(EchoesLandmarkTilemap.SHOP, 58, 56);
+
+        // Ravenfeather is intentionally distinguished mostly through footprint and stone courts.
+        // A small old shrine makes the optional quiet courtyard worth noticing without implying plot.
+        addTile(EchoesLandmarkTilemap.SHRINE, 14, 25);
+        addTile(EchoesLandmarkTilemap.NOTICE_BOARD, 31, 20);
+
+        // East clinic/warehouse placeholders stay modest; geometry carries most of their identity.
+        addWall(EchoesLandmarkTilemap.FARMHOUSE, 63, 14);
+        addTile(EchoesLandmarkTilemap.WAGON, 84, 49);
+
         addTile(EchoesLandmarkTilemap.SIGNPOST, 3, 20);
         addTile(EchoesLandmarkTilemap.SIGNPOST, 92, 41);
         addTile(EchoesLandmarkTilemap.SIGNPOST, 67, 3);
