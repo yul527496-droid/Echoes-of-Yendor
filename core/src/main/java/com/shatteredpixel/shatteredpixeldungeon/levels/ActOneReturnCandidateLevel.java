@@ -13,9 +13,17 @@ import com.watabou.utils.Bundle;
  */
 public class ActOneReturnCandidateLevel extends ActOneReturnLevel {
 
+    private static final int[][] EARLY_RIVER = {
+            {7,78},{18,79},{30,80},{43,80},{55,78},{67,77}
+    };
+
     @Override
     protected boolean build() {
         boolean ok = super.build();
+        // Super builds the river before a decorative south-bank exploration spur. In v0.1/v0.2-first-pass
+        // that later grass paint accidentally reopened a second crossing. Reassert the river here, then
+        // reopen only the authored old bridge. This is runtime geometry, not a cosmetic overlay.
+        sealUnintendedEarlyFord();
         installReturnProps();
         return ok;
     }
@@ -49,6 +57,38 @@ public class ActOneReturnCandidateLevel extends ActOneReturnLevel {
             }
         }
         return safe;
+    }
+
+    private void sealUnintendedEarlyFord() {
+        for (int i = 0; i < EARLY_RIVER.length - 1; i++) {
+            paintTerrainLine(EARLY_RIVER[i][0], EARLY_RIVER[i][1],
+                    EARLY_RIVER[i+1][0], EARLY_RIVER[i+1][1], 2, Terrain.WATER);
+        }
+        // The old bridge is the one deliberate crossing. Its broad deck also keeps diagonal
+        // pathfinding from being snagged on a water corner.
+        fillTerrainRect(44,79,48,81,Terrain.EMPTY);
+        paintTerrainLine(45,82,47,78,1,Terrain.EMPTY);
+    }
+
+    private void paintTerrainLine(int x1, int y1, int x2, int y2, int radius, int terrain) {
+        int steps = Math.max(Math.abs(x2-x1), Math.abs(y2-y1));
+        for (int i=0; i<=steps; i++) {
+            float t = steps == 0 ? 0 : i/(float)steps;
+            int x = Math.round(x1+(x2-x1)*t);
+            int y = Math.round(y1+(y2-y1)*t);
+            for (int dy=-radius; dy<=radius; dy++) {
+                for (int dx=-radius; dx<=radius; dx++) {
+                    if (Math.abs(dx)+Math.abs(dy) <= radius+1
+                            && x+dx > 0 && y+dy > 0 && x+dx < WIDTH-1 && y+dy < HEIGHT-1) {
+                        map[cell(x+dx,y+dy)] = terrain;
+                    }
+                }
+            }
+        }
+    }
+
+    private void fillTerrainRect(int x1, int y1, int x2, int y2, int terrain) {
+        for (int y=y1; y<=y2; y++) for (int x=x1; x<=x2; x++) map[cell(x,y)] = terrain;
     }
 
     private void installReturnProps() {
