@@ -12,6 +12,10 @@ subprocess.run([sys.executable, "tools/generate_surface_vertical_slice.py"], che
 subprocess.run([sys.executable, "tools/generate_surface_characters_v2.py"], check=True)
 subprocess.run([sys.executable, "tools/generate_farmer_v3.py"], check=True)
 subprocess.run([sys.executable, "tools/generate_story_art_v1.py"], check=True)
+subprocess.run([sys.executable, "tools/generate_morningcreek_visual_assets_v1.py"], check=True)
+
+MORNINGCREEK_STRUCTURES = Path("core/src/main/assets/environment/echoes/morningcreek/town_structures_v1.png")
+MORNINGCREEK_PROPS = Path("core/src/main/assets/environment/echoes/morningcreek/town_props_v1.png")
 
 FILES = [
     Path("core/src/main/assets/environment/tiles_surface.png"),
@@ -29,6 +33,8 @@ FILES = [
     Path("core/src/main/assets/environment/echoes/ch1_surface/river.png"),
     Path("core/src/main/assets/environment/echoes/ch1_surface/bridge.png"),
     Path("core/src/main/assets/environment/echoes/ch1_surface/camp_ruin.png"),
+    MORNINGCREEK_STRUCTURES,
+    MORNINGCREEK_PROPS,
     Path("core/src/main/assets/interfaces/echoes/minimap_pixel.png"),
     Path("core/src/main/assets/interfaces/echoes/echoes_dialogue_portraits_v1.png"),
     Path("core/src/main/assets/sprites/echoes_innkeeper_v1.png"),
@@ -59,6 +65,8 @@ EXPECTED_DIMENSIONS = {
     Path("core/src/main/assets/environment/echoes/ch1_surface/river.png"): (128, 32),
     Path("core/src/main/assets/environment/echoes/ch1_surface/bridge.png"): (64, 48),
     Path("core/src/main/assets/environment/echoes/ch1_surface/camp_ruin.png"): (192, 64),
+    MORNINGCREEK_STRUCTURES: (256, 96),
+    MORNINGCREEK_PROPS: (256, 64),
     Path("core/src/main/assets/interfaces/echoes/echoes_dialogue_portraits_v1.png"): (672, 48),
     Path("core/src/main/assets/sprites/echoes_innkeeper_v1.png"): (64, 16),
     Path("core/src/main/assets/sprites/echoes_farmer_v3.png"): (128, 16),
@@ -120,6 +128,9 @@ def validate_png(path: Path) -> tuple[int, int]:
     expected = EXPECTED_DIMENSIONS.get(path)
     if expected is not None and dimensions != expected:
         raise SystemExit(f"{path}: expected {expected[0]}x{expected[1]}, got {dimensions[0]}x{dimensions[1]}")
+    if path in (MORNINGCREEK_STRUCTURES, MORNINGCREEK_PROPS):
+        if dimensions[0] % 16 != 0 or dimensions[1] % 16 != 0:
+            raise SystemExit(f"{path}: Morningcreek atlas is not aligned to the native 16px grid")
     print(f"PNG OK: {path} ({dimensions[0]}x{dimensions[1]})")
     return dimensions
 
@@ -128,5 +139,6 @@ for file_path in FILES:
     validate_png(file_path)
 
 print("Surface art scale contract OK: environment packs remain integer multiples of SPD's 16px grid.")
+print("Morningcreek visual asset contract OK: structures and props are deterministic native-16px atlases.")
 print("Character art contract OK: Farmer v3 and Old Crow innkeeper are native 16px-frame sheets.")
 print("Dialogue portrait contract OK: 14 native 48x48 portraits are packed into a 672x48 nearest-neighbor atlas.")
