@@ -67,6 +67,15 @@ public final class ChapterOneAudio {
         playBed(SURFACE_AMBIENCE, 0.72f);
     }
 
+    /** Return's old shrine gets no new mystery score: only the same forest bed, thinned out. */
+    public static void returnShrineAmbience() {
+        preload();
+        area = Area.SURFACE;
+        // End the temporary Yendor duck here; isolation comes from a quieter natural bed.
+        bgmDucked = false;
+        playBed(SURFACE_AMBIENCE, 0.34f);
+    }
+
     /** Old King's Road deliberately reuses the forest bed at a lower, quieter level. */
     public static void oldRoadAmbience() {
         preload();
