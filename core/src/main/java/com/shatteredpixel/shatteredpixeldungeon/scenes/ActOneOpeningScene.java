@@ -6,8 +6,7 @@ package com.shatteredpixel.shatteredpixeldungeon.scenes;
 
 import com.shatteredpixel.shatteredpixeldungeon.ActOneReturnState;
 import com.shatteredpixel.shatteredpixeldungeon.ChapterOneAudio;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.levels.ActOneReturnLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.ActOneReturnCandidateLevel;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Game;
@@ -24,7 +23,6 @@ public class ActOneOpeningScene extends PixelScene {
             "我独自一人。"
     };
 
-    // A little breathing space between beats, with a longer hold on the final statement.
     private static final float FIRST_AT = 0.80f;
     private static final float STEP = 1.15f;
     private static final float FINAL_HOLD = 1.55f;
@@ -51,8 +49,6 @@ public class ActOneOpeningScene extends PixelScene {
         text.camera = uiCamera;
         add(text);
 
-        // A loaded scene should never replay this sequence. The transition is still delayed
-        // until create() so there is no partially initialized GameScene in between.
         ActOneReturnState state = ActOneReturnState.get();
         if (state != null && state.openingShown) finish();
     }
@@ -95,7 +91,7 @@ public class ActOneOpeningScene extends PixelScene {
         ActOneReturnState state = ActOneReturnState.get();
         if (state != null) state.openingShown = true;
 
-        ActOneReturnLevel level = new ActOneReturnLevel();
+        ActOneReturnCandidateLevel level = new ActOneReturnCandidateLevel();
         level.create();
         SequelTransitionScene.enter(level, -1);
     }
