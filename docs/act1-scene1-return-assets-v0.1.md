@@ -38,14 +38,20 @@ Because no external pixels were copied, there is no downstream third-party textu
 
 ## Runtime audio actually used
 
-Return v0.1 intentionally reuses only already-integrated Chapter 1 assets whose build-time fetch/checksum pipeline already exists:
+For this candidate, the **workflow injection list is the build-time source of truth** for the four sounds Scene 1 actually calls. The older `docs/chapter1-audio-sources.md` documents an earlier Pixabay-derived Chapter 1 audio pass and must not be read as the current provenance for these four target paths.
 
-- `music/echoes/ch1_surface_ambience.mp3` — restrained surface forest bed
-- `sounds/echoes/ch1_stream_loop.mp3` — proximity stream bed
-- `sounds/echoes/ch1_wolves.mp3` — one roadside warning cue
-- `sounds/echoes/ch1_yendor_bass.mp3` — short Yendor anomaly signature cue
+Mixkit's official Sound Effects Free License applies to these downloads. Mixkit states that its free sound effects may be used in commercial and personal projects and that attribution is not required. The source files are fetched at build time from Mixkit's official asset host and verified against fixed SHA-256 values before packaging.
 
-`ChapterOneAudio.playRaven()` remains intentionally silent because no trustworthy crow source is pinned. `playFarmerApproach()` remains intentionally silent because no verified carriage cue is pinned. Farmer dialogue is text-only Dialogue Stage and **no human/street/tavern voice recording is used by the Return scene**.
+| Runtime game asset | Current build-time source | License | SHA-256 pinned by CI | Scene 1 use |
+| --- | --- | --- | --- | --- |
+| `music/echoes/ch1_surface_ambience.mp3` | Mixkit — Forest Birds Ambience, `https://assets.mixkit.co/active_storage/sfx/1210/1210-preview.mp3` | Mixkit Sound Effects Free License | `47ab079aac704576d45d252c416de1da31dd016b69b5b9a2eaaa720efb6c2411` | restrained forest surface bed |
+| `sounds/echoes/ch1_stream_loop.mp3` | Mixkit — Water Flowing Ambience Loop, `https://assets.mixkit.co/active_storage/sfx/3126/3126-preview.mp3` | Mixkit Sound Effects Free License | `f66d790fde40c2bad3f36039dd570b819509519d0fb8a3a458b3571a0928a2a0` | creek proximity bed |
+| `sounds/echoes/ch1_wolves.mp3` | Mixkit — Wolves at Scary Forest, `https://assets.mixkit.co/active_storage/sfx/2485/2485-preview.mp3` | Mixkit Sound Effects Free License | `d164d2d1abeaf633199cc482b580b224724c94ebab71fd6fe0749aa6d77d09b4` | one roadside warning cue |
+| `sounds/echoes/ch1_yendor_bass.mp3` | Mixkit — Mysterious Bass Pulse, `https://assets.mixkit.co/active_storage/sfx/2298/2298-preview.mp3` | Mixkit Sound Effects Free License | `91f21dd769074523820477d31b28b09c775426100926c3c40ecf2513de29f5aa` | short Yendor anomaly signature cue |
+
+Official license page: `https://mixkit.co/license/` (Sound Effects → Free License). Official sound-effects library/FAQ: `https://mixkit.co/free-sound-effects/`.
+
+`ChapterOneAudio.playRaven()` remains intentionally silent because no trustworthy crow source is pinned. `playFarmerApproach()` remains intentionally silent because no verified carriage cue is pinned. Farmer dialogue is text-only Dialogue Stage and **no human/street/tavern voice recording is used by the Return scene**. The build workflow may inject other pre-existing Chapter 1 / Ledger audio files for other scenes; those files are not called by Return v0.1 and are outside this candidate's actual-use list.
 
 No new raw Sonniss sound file is committed for Return v0.1. Sonniss #GameAudioGDC remains an optional future source governed by its official license at `https://sonniss.com/gdc-bundle-license/`: synchronization/modification in games is allowed under the license, but source recordings must not be redistributed as an as-is standalone sound library. The project therefore keeps the existing build-time download → SHA256 verification → packaged-game-asset pattern for any such restricted source.
 
