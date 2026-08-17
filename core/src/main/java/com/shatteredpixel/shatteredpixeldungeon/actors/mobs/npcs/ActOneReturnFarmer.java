@@ -23,6 +23,12 @@ public class ActOneReturnFarmer extends NPC {
 
     @Override
     protected boolean act() {
+        ActOneReturnState state = ActOneReturnState.current();
+        if (state != null && state.farmerOutcome == ActOneReturnState.FarmerOutcome.IGNORED) {
+            destroy();
+            if (sprite != null) sprite.die();
+            return true;
+        }
         spend(TICK);
         return true;
     }
