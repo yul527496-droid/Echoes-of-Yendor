@@ -26,6 +26,17 @@ def subroute_distance(route, start, end):
         raise SystemExit(f"Return v0.3 gate failed: journey checkpoint missing: {exc}")
     if a>b: a,b=b,a
     return manhattan_route(route[a:b+1])
+def route_corridor_contains(route, point, radius=3):
+    """Mirror ActOneReturnLevel.paintLine enough to validate a stop lies in the carved corridor."""
+    px,py=point
+    for (x1,y1),(x2,y2) in zip(route,route[1:]):
+        steps=max(abs(x2-x1),abs(y2-y1))
+        for i in range(steps+1):
+            t=0 if steps==0 else i/steps
+            x=round(x1+(x2-x1)*t); y=round(y1+(y2-y1)*t)
+            if abs(px-x)+abs(py-y) <= radius+1:
+                return True
+    return False
 
 opening=read("core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/scenes/ActOneOpeningScene.java")
 locked='''private static final String[] LINES = {\n            "我成功了。",\n            "我杀死了古神。",\n            "我带着 Yendor 回来了。",\n            "……",\n            "我独自一人。"\n    };'''
@@ -61,7 +72,7 @@ require_true(crow_loop_steps==109,f"frozen crow/shrine route changed to {crow_lo
 require_true(farmer_to_anomaly==51,f"frozen farmer-to-anomaly valley changed to {farmer_to_anomaly} cells")
 require_true(post_shrine_tail==84,f"frozen post-shrine tail changed to {post_shrine_tail} cells")
 for stop in ((62,33),(54,31),(47,27),(42,22)):
-    require_true(stop in crow,f"crow stop {stop} is no longer on the authored crow spur")
+    require_true(route_corridor_contains(crow,stop,3),f"crow stop {stop} left the authored passable crow corridor")
 
 state=read("core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/ActOneReturnState.java")
 for key in ("openingShown","journeyStarted","campDiscovered","campBedrollClueSeen","campListClueSeen",
