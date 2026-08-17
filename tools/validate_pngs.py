@@ -10,6 +10,7 @@ PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 # editable text rather than opaque binary blobs while guaranteeing deterministic CI assets.
 subprocess.run([sys.executable, "tools/generate_surface_vertical_slice.py"], check=True)
 subprocess.run([sys.executable, "tools/generate_act1_return_props_v1.py"], check=True)
+subprocess.run([sys.executable, "tools/validate_act1_return_candidate.py"], check=True)
 subprocess.run([sys.executable, "tools/generate_surface_characters_v2.py"], check=True)
 subprocess.run([sys.executable, "tools/generate_farmer_v3.py"], check=True)
 subprocess.run([sys.executable, "tools/generate_story_art_v1.py"], check=True)
