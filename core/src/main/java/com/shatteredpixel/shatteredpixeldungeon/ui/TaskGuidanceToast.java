@@ -10,7 +10,6 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.OldKingsRoadLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SurfaceEntranceLevel;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
-import com.shatteredpixel.shatteredpixeldungeon.windows.WndRegionMap;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.NinePatch;
@@ -25,7 +24,6 @@ import com.watabou.noosa.ui.Component;
  */
 public class TaskGuidanceToast extends Component {
 
-    private static final int BG = 0x221E19;
     private static final int ACCENT = 0xA88B5C;
     private static final int REGION = 0xBCA77D;
     private static final int OBJECTIVE = 0xE6DDC8;
@@ -38,7 +36,6 @@ public class TaskGuidanceToast extends Component {
     private final Image accent;
     private final RenderedTextBlock region;
     private final RenderedTextBlock objective;
-    private final IconButton mapButton;
 
     private TaskGuidanceToast(String text) {
         super();
@@ -46,9 +43,8 @@ public class TaskGuidanceToast extends Component {
         width = Math.min(PixelScene.landscape() ? 180 : 116,
                 Math.max(88, PixelScene.uiCamera.width - 20));
 
-        bg = Chrome.get(Chrome.Type.BLANK);
-        bg.hardlight(BG);
-        bg.alpha(0.86f);
+        // Use the same native translucent chrome as the minimap Toast so both read as one HUD family.
+        bg = Chrome.get(Chrome.Type.TOAST_TR);
         add(bg);
 
         accent = new Image(PIXEL);
@@ -57,26 +53,15 @@ public class TaskGuidanceToast extends Component {
 
         region = PixelScene.renderTextBlock(regionName(), 5);
         region.hardlight(REGION);
-        region.maxWidth((int)width - 30);
+        region.maxWidth((int)width - 10);
         add(region);
 
         objective = PixelScene.renderTextBlock(cleanObjective(text), 6);
         objective.hardlight(OBJECTIVE);
-        objective.maxWidth((int)width - 30);
+        objective.maxWidth((int)width - 10);
         add(objective);
 
         height = Math.max(24, objective.height() + 15);
-
-        mapButton = new IconButton(Icons.get(Icons.MAGNIFY)) {
-            @Override protected void onClick() {
-                GameScene.show(new WndRegionMap());
-            }
-
-            @Override protected String hoverText() {
-                return "区域地图";
-            }
-        };
-        add(mapButton);
     }
 
     public static void showObjective(String text) {
@@ -97,7 +82,8 @@ public class TaskGuidanceToast extends Component {
 
         instance = new TaskGuidanceToast(display);
         instance.camera = PixelScene.uiCamera;
-        instance.setPos((PixelScene.uiCamera.width - instance.width()) / 2f, 5);
+        // Share the minimap's right-hand anchor instead of floating independently at screen center.
+        instance.setPos(Math.max(2, PixelScene.uiCamera.width - instance.width() - 2), 5);
         PixelScene.align(instance);
         Game.scene().addToFront(instance);
     }
@@ -140,7 +126,6 @@ public class TaskGuidanceToast extends Component {
 
         region.setPos(x + 5, y + 4);
         objective.setPos(x + 5, y + 11);
-        mapButton.setRect(x + width - 21, y + 4, 17, Math.max(16, height - 8));
     }
 
     @Override
