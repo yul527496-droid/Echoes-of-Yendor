@@ -166,6 +166,10 @@ public class RegionState extends Buff {
     private static final String VISITED_PREFIX = "region_visited_";
     private static final String MAPPED_PREFIX = "region_mapped_";
 
+    // Actor logic and Noosa rendering use separate threads. Prevent repeated actor ticks from
+    // stacking identical HUD work faster than Android can consume the render-thread queue.
+    private static volatile boolean hudSyncPending;
+
     private int time = TimeBand.AFTERNOON.ordinal();
     private int[] locationKnowledge = new int[Location.values().length];
     private int[] evidence = new int[Evidence.values().length];
@@ -398,8 +402,13 @@ public class RegionState extends Buff {
     }
 
     public void syncHud() {
-        String objective = objectiveText();
-        Game.runOnRenderThread(() -> TaskGuidanceToast.showObjective(objective));
+        if (hudSyncPending) return;
+        final String objective = objectiveText();
+        hudSyncPending = true;
+        Game.runOnRenderThread(() -> {
+            hudSyncPending = false;
+            TaskGuidanceToast.showObjective(objective);
+        });
     }
 
     @Override
