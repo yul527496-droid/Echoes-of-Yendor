@@ -24,6 +24,10 @@ import com.watabou.noosa.ui.Component;
  */
 public class TaskGuidanceToast extends Component {
 
+    // Keep the custom surface HUD below the desktop debug/performance strip and debug buttons.
+    private static final float SAFE_TOP = 25f;
+    private static final float STACK_GAP = 4f;
+
     private static final int ACCENT = 0xA88B5C;
     private static final int REGION = 0xBCA77D;
     private static final int OBJECTIVE = 0xE6DDC8;
@@ -66,26 +70,42 @@ public class TaskGuidanceToast extends Component {
 
     public static void showObjective(String text) {
         if (!(Game.scene() instanceof GameScene)) return;
-        SurfaceMiniMapToast.sync();
 
         String display = text == null ? "" : text.trim();
         String signature = regionName() + '|' + display;
         if (signature.equals(shownSignature) && instance != null
-                && instance.exists && instance.parent == Game.scene()) return;
+                && instance.exists && instance.parent == Game.scene()) {
+            SurfaceMiniMapToast.sync();
+            return;
+        }
 
         shownSignature = signature;
         if (instance != null) {
             instance.killAndErase();
             instance = null;
         }
-        if (display.isEmpty()) return;
+        if (display.isEmpty()) {
+            SurfaceMiniMapToast.sync();
+            return;
+        }
 
         instance = new TaskGuidanceToast(display);
         instance.camera = PixelScene.uiCamera;
-        // Share the minimap's right-hand anchor instead of floating independently at screen center.
-        instance.setPos(Math.max(2, PixelScene.uiCamera.width - instance.width() - 2), 5);
+        // Share the minimap's right-hand anchor, but stay below the desktop debug/performance strip.
+        instance.setPos(Math.max(2, PixelScene.uiCamera.width - instance.width() - 2), SAFE_TOP);
         PixelScene.align(instance);
         Game.scene().addToFront(instance);
+
+        // Build/reposition the minimap only after the objective bar has a real measured bottom edge.
+        SurfaceMiniMapToast.sync();
+    }
+
+    /** Returns the first safe y-coordinate for the minimap below the objective bar. */
+    static float miniMapTop() {
+        if (instance != null && instance.exists) {
+            return instance.y + instance.height() + STACK_GAP;
+        }
+        return 38f;
     }
 
     public static void dismissObjective() {
