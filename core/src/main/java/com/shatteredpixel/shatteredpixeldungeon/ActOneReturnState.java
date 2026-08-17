@@ -23,6 +23,7 @@ public class ActOneReturnState extends Buff {
     public enum WolvesOutcome { UNRESOLVED, RESOLVED, ABANDONED }
 
     private static final String OPENING = "a1r_opening";
+    private static final String JOURNEY_STARTED = "a1r_journey_started";
     private static final String CAMP_DISCOVERED = "a1r_camp_discovered";
     private static final String CAMP_BEDROLL = "a1r_camp_bedroll";
     private static final String CAMP_LIST = "a1r_camp_list";
@@ -37,6 +38,7 @@ public class ActOneReturnState extends Buff {
     private static final String YENDOR_MISSING = "a1r_yendor_missing";
     private static final String CROW_ACTIVE = "a1r_crow_active";
     private static final String CROW_RESOLVED = "a1r_crow_resolved";
+    private static final String CROW_THEFT_PRESENTED = "a1r_crow_theft_presented";
     private static final String SHRINE_DISCOVERED = "a1r_shrine_discovered";
     private static final String INSCRIPTION = "a1r_inscription";
     private static final String YENDOR_RECOVERED = "a1r_yendor_recovered";
@@ -46,6 +48,7 @@ public class ActOneReturnState extends Buff {
     private static final String NORTH_NOTICE = "a1r_north_notice";
 
     public boolean openingShown;
+    public boolean journeyStarted;
     public boolean campDiscovered;
     public boolean campBedrollClueSeen;
     public boolean campListClueSeen;
@@ -60,6 +63,7 @@ public class ActOneReturnState extends Buff {
     public boolean yendorTemporarilyMissing;
     public boolean crowChaseActive;
     public boolean crowChaseResolved;
+    public boolean crowTheftPresented;
     public boolean shrineDiscovered;
     public boolean inscriptionRead;
     public boolean yendorRecovered;
@@ -82,11 +86,19 @@ public class ActOneReturnState extends Buff {
         return Dungeon.hero == null ? null : Dungeon.hero.buff(ActOneReturnState.class);
     }
 
+    /** HUD text is intentionally sparse: only the player's immediate scene-level intent. */
     public String objectiveText() {
         if (crowChaseActive && !yendorRecovered) return "找回 Yendor";
         if (morningcreekHeardOf) return "前往晨溪";
-        if (farmerEventSeen || yendorAnomalyStarted || yendorRecovered) return "沿旧王道向北";
-        return "离开地下城旧址";
+        if (journeyStarted || heroHasLeftExitBasin()) return "沿旧路前行";
+        return "离开地下城，返回地表";
+    }
+
+    /** Crossing the old bridge is the durable boundary between the exit basin and the journey. */
+    public void markJourneyStarted() {
+        if (journeyStarted) return;
+        journeyStarted = true;
+        syncHud();
     }
 
     /** Removes the one formal Amulet from inventory for the crow beat. Idempotent. */
@@ -100,6 +112,11 @@ public class ActOneReturnState extends Buff {
         yendorTemporarilyMissing = true;
         crowChaseActive = true;
         crowChaseResolved = false;
+        syncHud();
+    }
+
+    public void markCrowTheftPresented() {
+        crowTheftPresented = true;
     }
 
     /** Restores exactly one formal Amulet and closes the chase. Idempotent across reloads. */
@@ -111,6 +128,7 @@ public class ActOneReturnState extends Buff {
         yendorRecovered = true;
         crowChaseActive = false;
         crowChaseResolved = true;
+        syncHud();
     }
 
     /** Repairs inventory/story consistency after loading at any chase boundary. */
@@ -124,9 +142,20 @@ public class ActOneReturnState extends Buff {
         }
     }
 
+    private boolean heroHasLeftExitBasin() {
+        if (!(Dungeon.level instanceof ActOneReturnLevel) || Dungeon.hero == null) return false;
+        return Dungeon.hero.pos / Dungeon.level.width() <= 79;
+    }
+
+    public void syncHud() {
+        RegionState region = RegionState.current();
+        if (region != null) region.syncHud();
+    }
+
     @Override
     public boolean act() {
         if (Dungeon.level instanceof ActOneReturnLevel) {
+            if (!journeyStarted && heroHasLeftExitBasin()) markJourneyStarted();
             ensureYendorConsistency();
             ((ActOneReturnLevel) Dungeon.level).tickScene(this);
         }
@@ -138,6 +167,7 @@ public class ActOneReturnState extends Buff {
     public void storeInBundle(Bundle bundle) {
         super.storeInBundle(bundle);
         bundle.put(OPENING, openingShown);
+        bundle.put(JOURNEY_STARTED, journeyStarted);
         bundle.put(CAMP_DISCOVERED, campDiscovered);
         bundle.put(CAMP_BEDROLL, campBedrollClueSeen);
         bundle.put(CAMP_LIST, campListClueSeen);
@@ -152,6 +182,7 @@ public class ActOneReturnState extends Buff {
         bundle.put(YENDOR_MISSING, yendorTemporarilyMissing);
         bundle.put(CROW_ACTIVE, crowChaseActive);
         bundle.put(CROW_RESOLVED, crowChaseResolved);
+        bundle.put(CROW_THEFT_PRESENTED, crowTheftPresented);
         bundle.put(SHRINE_DISCOVERED, shrineDiscovered);
         bundle.put(INSCRIPTION, inscriptionRead);
         bundle.put(YENDOR_RECOVERED, yendorRecovered);
@@ -165,6 +196,7 @@ public class ActOneReturnState extends Buff {
     public void restoreFromBundle(Bundle bundle) {
         super.restoreFromBundle(bundle);
         openingShown = bundle.getBoolean(OPENING);
+        journeyStarted = bundle.getBoolean(JOURNEY_STARTED);
         campDiscovered = bundle.getBoolean(CAMP_DISCOVERED);
         campBedrollClueSeen = bundle.getBoolean(CAMP_BEDROLL);
         campListClueSeen = bundle.getBoolean(CAMP_LIST);
@@ -179,6 +211,7 @@ public class ActOneReturnState extends Buff {
         yendorTemporarilyMissing = bundle.getBoolean(YENDOR_MISSING);
         crowChaseActive = bundle.getBoolean(CROW_ACTIVE);
         crowChaseResolved = bundle.getBoolean(CROW_RESOLVED);
+        crowTheftPresented = bundle.getBoolean(CROW_THEFT_PRESENTED);
         shrineDiscovered = bundle.getBoolean(SHRINE_DISCOVERED);
         inscriptionRead = bundle.getBoolean(INSCRIPTION);
         yendorRecovered = bundle.getBoolean(YENDOR_RECOVERED);
