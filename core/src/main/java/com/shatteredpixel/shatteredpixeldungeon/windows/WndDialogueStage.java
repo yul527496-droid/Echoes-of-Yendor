@@ -25,7 +25,11 @@ public class WndDialogueStage extends Window {
 
     public enum Portrait {
         NONE,
+        /** Legacy neutral alias retained so older story beats remain source-compatible. */
         HERO,
+        HERO_NEUTRAL,
+        HERO_ALERT,
+        HERO_CONCERNED,
         FARMER_NEUTRAL,
         FARMER_WARM,
         FARMER_CONFUSED,
@@ -84,7 +88,7 @@ public class WndDialogueStage extends Window {
         int screenW = PixelScene.uiCamera.width;
         int stageW = Math.min(landscape ? 204 : 124, screenW - 8);
         int portraitW = portrait == Portrait.NONE ? 0 : (landscape ? PORTRAIT_W_L : PORTRAIT_W_P);
-        boolean heroRight = portrait == Portrait.HERO;
+        boolean heroRight = isHero(portrait);
 
         int textLeft = MARGIN + (portraitW > 0 && !heroRight ? portraitW + MARGIN : 0);
         int textRight = stageW - MARGIN - (portraitW > 0 && heroRight ? portraitW + MARGIN : 0);
@@ -156,9 +160,21 @@ public class WndDialogueStage extends Window {
         }
     }
 
+    private static boolean isHero(Portrait portrait) {
+        return portrait == Portrait.HERO || portrait == Portrait.HERO_NEUTRAL
+                || portrait == Portrait.HERO_ALERT || portrait == Portrait.HERO_CONCERNED;
+    }
+
+    private static EchoesDialoguePortraits.HeroExpression heroExpression(Portrait portrait) {
+        if (portrait == Portrait.HERO_ALERT) return EchoesDialoguePortraits.HeroExpression.ALERT;
+        if (portrait == Portrait.HERO_CONCERNED) return EchoesDialoguePortraits.HeroExpression.CONCERNED;
+        return EchoesDialoguePortraits.HeroExpression.NEUTRAL;
+    }
+
     private void addPortrait(Portrait type, boolean right, int stageW, int stageH, int portraitW) {
-        Image image = type == Portrait.HERO
-                ? EchoesDialoguePortraits.hero(Dungeon.hero == null ? null : Dungeon.hero.heroClass)
+        Image image = isHero(type)
+                ? EchoesDialoguePortraits.hero(Dungeon.hero == null ? null : Dungeon.hero.heroClass,
+                        heroExpression(type))
                 : EchoesDialoguePortraits.image(type);
         float target = Math.min(portraitW, stageH - 8);
         float scale = target / Math.max(image.width, image.height);
