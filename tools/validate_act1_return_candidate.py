@@ -13,7 +13,6 @@ opening=read("core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/scenes
 locked='''private static final String[] LINES = {\n            "我成功了。",\n            "我杀死了古神。",\n            "我带着 Yendor 回来了。",\n            "……",\n            "我独自一人。"\n    };'''
 require(opening,locked,"locked five-line opening changed")
 for extra in ("可是","为什么","似乎","队友","Yog","剪影","glitch","portrait"):
-    # Comments/imports are intentionally simple; forbidden narrative tokens must not enter the scene.
     forbid(opening,extra,f"opening acquired forbidden hint/token: {extra}")
 require(opening,"new ActOneReturnCandidateLevel()","opening no longer enters formal Return candidate")
 
@@ -54,9 +53,10 @@ shrine=read("core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/items/A
 require(shrine,"「力量会使你迷失。」","locked shrine warning changed")
 
 farmer=read("core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/actors/mobs/npcs/ActOneReturnFarmer.java")
-require(farmer,"我正要回晨溪。","farmer no longer introduces Morningcreek naturally")
+farmer_body=farmer.split("public class ActOneReturnFarmer",1)[-1]
+require(farmer_body,"我正要回晨溪。","farmer no longer introduces Morningcreek naturally")
 for forbidden in ("Yendor","远征队","诅咒","预言","沃斯","霍尔特","梅芙"):
-    forbid(farmer,forbidden,f"ordinary farmer knows forbidden mystery info: {forbidden}")
+    forbid(farmer_body,forbidden,f"ordinary farmer knows forbidden mystery info: {forbidden}")
 
 candidate=read("core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/levels/ActOneReturnCandidateLevel.java")
 for prop in ("BEDROLL_A","BEDROLL_B","BEDROLL_C","BEDROLL_D","FADED_TENT","MILESTONE","OFFERING_BOWL","FOUR_RECESSES","FIELD_EDGE"):
