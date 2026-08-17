@@ -29,8 +29,8 @@ public class TaskGuidanceToast extends Component {
     private static final float STACK_GAP = 4f;
 
     private static final int ACCENT = 0xA88B5C;
-    private static final int REGION = 0xBCA77D;
-    private static final int OBJECTIVE = 0xE6DDC8;
+    private static final int REGION = 0x9D8D70;
+    private static final int OBJECTIVE = 0xF2E7D2;
     private static final String PIXEL = "interfaces/echoes/minimap_pixel.png";
 
     private static TaskGuidanceToast instance;
@@ -44,8 +44,10 @@ public class TaskGuidanceToast extends Component {
     private TaskGuidanceToast(String text) {
         super();
 
-        width = Math.min(PixelScene.landscape() ? 180 : 116,
-                Math.max(88, PixelScene.uiCamera.width - 20));
+        // Keep the objective card visually tied to the 74px-wide minimap instead of spanning the screen.
+        // Longer objectives wrap naturally to a second line, preserving a compact right-side HUD stack.
+        width = Math.min(PixelScene.landscape() ? 100 : 92,
+                Math.max(80, PixelScene.uiCamera.width - 20));
 
         // Use the same native translucent chrome as the minimap Toast so both read as one HUD family.
         bg = Chrome.get(Chrome.Type.TOAST_TR);
