@@ -20,21 +20,21 @@ This pass does **not** implement Act 1 plot, Evidence instances, World Map, Trav
 | `environment/custom_tiles/echoes_landmarks_v1.png` + `EchoesLandmarkTilemap` | authored one-off landmarks such as gate, blacksmith, shop, Old Crow Inn sign/body, well, notice board | useful for a few hero props, but most building mass remains ordinary `Terrain.WALL`; not composable enough for whole districts |
 | `environment/custom_tiles/echoes_surface_art_v2.png` + `tools/generate_echoes_art_v2.py` | legacy project-owned surface overlay prototype | intentionally retained for compatibility; not extended for town facades |
 | `environment/echoes/ch1_surface/*` + `tools/generate_surface_vertical_slice.py` + `EchoesSurfaceTilemap` | project-owned 16px surface production packs for grass/forest/road/river/camp | strong precedent for deterministic native-scale art, but it covers wilderness rather than civic architecture |
-| `tools/validate_pngs.py` | PNG integrity and dimension checks, with deterministic source generation | will be extended so Morningcreek runtime atlases cannot silently go missing |
+| `tools/validate_pngs.py` | PNG integrity and dimension checks, with deterministic source generation | now also generates and validates the Morningcreek runtime atlases before Gradle packaging |
 
-### Missing town visual language
+### Missing town visual language addressed by this candidate
 
-The v0.1 town pass needs a reusable minimum set rather than more one-off giant landmark PNGs:
+The v0.1 town pass builds a reusable minimum set rather than more one-off giant landmark PNGs:
 
-1. **Building structure modules:** stone, timber, timber/stone mix, plaster/civic wall, roof body/eaves, doors, windows, beams, stone base, chimney, porch/step/corner language.
-2. **Public space modules:** bridge deck edge, parapet, bridgehead pillar, low wall, fence, signpost, well/board, brazier/lantern, bench, planting edge.
-3. **Market / inn props:** stall, canopy, barrels, crates, tables, inn sign, firewood and doorstep clutter.
-4. **Warehouse / river props:** large cargo-door language, sacks, rope coil, cart, loading frame, dock boards, boat/bollard cues.
-5. **Domestic / clinic detail:** herb/vegetable beds, fences, pots, laundry/tool cues and small service structures.
+1. **Building structure modules:** warm timber/plaster, stone, civic slate/stone, tower, warehouse, clinic, stable and blacksmith families with roof/eave/wall/window/door modules.
+2. **Public space modules:** bridge deck, parapet, bridgehead pillar, low wall, fence, signpost, brazier and bench.
+3. **Market / inn props:** stalls, barrels, crates, notice board, well and firewood.
+4. **Warehouse / river props:** sacks, rope coil, cart, loading frame, bollard and small boat.
+5. **Domestic / clinic detail:** herb/flower beds, fence, bench, woodpile and small coop cues.
 
 ## External source review and provenance policy
 
-No third-party binary/pixel is embedded in the first runtime atlas. The sources below are used as **structural/category reference only**. Runtime pixels are deterministically drawn by the Echoes generator and use the existing Echoes/SPD-compatible palette discipline. This keeps the GPL repository simple while still grounding the module taxonomy in legally reusable reference material.
+No third-party binary/pixel is embedded in the v0.1 runtime atlases. The sources below are used as **structural/category reference only**. Runtime pixels are deterministically drawn by the Echoes generator and use the existing Echoes/SPD-compatible palette discipline. This keeps the GPL repository simple while still grounding the module taxonomy in legally reusable reference material.
 
 | Source | Official source page | License verified on source page | Native scale / relevance | v0.1 use | Imported pixels? |
 |---|---|---|---|---|---|
@@ -56,28 +56,30 @@ If a future pass imports actual third-party pixels, it must add the exact source
 - Building silhouettes may vary, but outline weight and shadow depth stay consistent across inn/civic/warehouse/residential styles.
 - Props remain readable at one tile first; decoration never becomes high-frequency texture noise.
 - Exterior buildings remain gameplay `Terrain.WALL` unless explicitly enterable. Visual overlays replace the black-void appearance without changing collision semantics.
+- The structure atlas reserves one transparent 16×16 module. `EchoesTownBuildingTilemap` checks the final level terrain so streets/shortcuts carved through an earlier block rectangle stay visually open.
 
 ## Runtime architecture
 
 The pass adds two deterministic runtime atlases under:
 
-- `core/src/main/assets/environment/echoes/morningcreek/town_structures_v1.png`
-- `core/src/main/assets/environment/echoes/morningcreek/town_props_v1.png`
+- `core/src/main/assets/environment/echoes/morningcreek/town_structures_v1.png` — **256×96**, 16px-aligned; ten building material/style families plus a transparent module.
+- `core/src/main/assets/environment/echoes/morningcreek/town_props_v1.png` — **256×64**, 16px-aligned; bridge/public-space, market, warehouse/river and domestic props.
 
-They are generated by `tools/generate_morningcreek_visual_assets_v1.py` and consumed through small `CustomTilemap` subclasses. Building visuals are composed from modular structure tiles over existing authored wall footprints; they are not one PNG per house. Props remain small reusable placements.
+They are generated by `tools/generate_morningcreek_visual_assets_v1.py` and consumed through:
 
-`tools/validate_pngs.py` is responsible for generating and validating both files before Android/Windows Gradle packaging, including exact atlas dimensions and 16px alignment.
+- `EchoesTownBuildingTilemap` for modular building overlays on authored wall footprints;
+- `EchoesTownPropTilemap` for small reusable public/service props.
 
-## First integration targets
+`tools/validate_pngs.py` runs the generator and validates both files before Android/Windows Gradle packaging, including exact dimensions and 16px alignment. Generated PNGs are runtime build products; the deterministic generator is the source of truth.
 
-Priority order for v0.1 runtime proof:
+## First runtime integration targets
 
-1. **Old Crow Inn** — warm timber/plaster facade, broad roof mass, visible entrance/sign/service-side identity.
-2. **Ravenfeather Registry / Tower** — darker stone/slate civic language, formal windows/doors and distinct massing.
-3. **Morningcreek Stone Bridge** — dedicated deck, parapets and bridgehead stone posts so it is no longer ordinary road over water.
-4. Market — stall/canopy/barrel/crate/board/well cues.
-5. Warehouse riverfront — timber warehouse facades, large doors, cargo and dock cues.
-6. Clinic/herb garden + south transport — lower domestic wall style, fence/herb beds, blacksmith/stable/transport props.
+1. **Old Crow Inn** — warm timber/plaster facade, broad roof mass, visible entrance/sign and separate service-side wing.
+2. **Ravenfeather Registry / Tower** — darker stone/slate civic language across the U-shaped registry and clipped tower footprint.
+3. **Morningcreek Stone Bridge** — dedicated deck tiles, parapets, bridgehead posts and braziers.
+4. Market — two canopy stalls, well, board, barrel/crate and bench cues.
+5. Warehouse riverfront — separate warehouse roofs/facades plus loading frame, cargo, cart, rope/bollards and boat cue.
+6. Clinic/herb garden + south transport — green/low clinic language, herb beds/fence/bench, blacksmith/stable facades and transport clutter.
 
 ## Acceptance for this candidate
 
