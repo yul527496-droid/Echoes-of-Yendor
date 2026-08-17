@@ -135,82 +135,210 @@ public class MorningcreekTownPrototypeLevel extends Level implements RegionAreaL
         setSize(WIDTH, HEIGHT);
         rect(1, 1, WIDTH - 2, HEIGHT - 2, Terrain.GRASS);
 
-        rect(44, 1, 52, 70, Terrain.EMPTY);
-        rect(2, 31, 93, 33, Terrain.EMPTY);
-        rect(2, 40, 93, 42, Terrain.EMPTY);
-
+        // The river remains the strongest east-west anchor. Everything else is authored around it.
         rect(1, 34, 94, 39, Terrain.WATER);
-        rect(44, 33, 52, 40, Terrain.EMPTY_SP);
 
-        rect(32, 47, 63, 62, Terrain.EMPTY_SP);
-        rect(4, 52, 32, 56, Terrain.EMPTY);
-        rect(63, 50, 92, 54, Terrain.EMPTY);
-        rect(57, 42, 60, 67, Terrain.EMPTY);
-        rect(24, 61, 43, 65, Terrain.EMPTY);
-        rect(53, 61, 78, 65, Terrain.EMPTY);
+        buildDistrictMassing();
+        carveRoadHierarchy();
+        buildBridgeAndMicroLoops();
+        buildClinicGarden();
+        buildMarketDetails();
 
-        rect(2, 18, 43, 21, Terrain.EMPTY);
-        rect(19, 8, 43, 11, Terrain.EMPTY);
-        rect(19, 23, 43, 29, Terrain.EMPTY_SP);
-        rect(53, 20, 93, 23, Terrain.EMPTY);
-        rect(53, 26, 93, 29, Terrain.EMPTY);
-
-        block(6, 5, 18, 16);
-        block(21, 10, 37, 21);
-        rect(21, 23, 38, 29, Terrain.EMPTY_SP);
-        block(4, 24, 16, 30);
-        block(34, 3, 42, 15);
-
-        block(62, 11, 79, 24);
-        rect(81, 10, 92, 28, Terrain.GRASS);
-        for (int y = 12; y <= 26; y += 4) rect(82, y, 91, y + 1, Terrain.HIGH_GRASS);
-        rect(85, 10, 86, 28, Terrain.WATER);
-        block(54, 4, 60, 15);
-        block(54, 25, 61, 30);
-
-        block(19, 43, 40, 51);
-        rect(7, 43, 18, 49, Terrain.EMPTY_SP);
-        rect(7, 48, 19, 51, Terrain.EMPTY);
         int innDoor = cell(INN_DOOR_X, INN_DOOR_Y);
         map[innDoor] = Terrain.EXIT;
         transitions.add(new LevelTransition(this, innDoor, LevelTransition.Type.REGULAR_EXIT));
 
-        block(6, 52, 18, 61);
-        block(6, 63, 22, 69);
-        block(25, 64, 31, 69);
+        installVisualFoundation();
+        return true;
+    }
 
-        block(64, 63, 75, 69);
-        block(79, 62, 90, 69);
-        block(64, 44, 75, 49);
-        block(64, 55, 75, 59);
-        block(79, 44, 91, 52);
-        block(79, 55, 91, 59);
-        rect(61, 43, 63, 60, Terrain.EMPTY);
-        rect(76, 43, 78, 60, Terrain.EMPTY);
-        rect(92, 40, 94, 43, Terrain.EMPTY);
+    /**
+     * Breaks the old monolithic obstacle rectangles into authored building clusters.
+     * Interiors are not implemented here; the one- and two-cell gaps are intentional alleys,
+     * service lanes, yards and facade breaks that make the town read as many buildings.
+     */
+    private void buildDistrictMassing() {
+        // Old Crow Inn: one large public-facing body plus a detached service wing.
+        block(25, 44, 40, 51);
+        block(16, 43, 23, 48);
 
-        block(23, 56, 30, 60);
-        block(33, 64, 41, 69);
-        block(54, 64, 61, 69);
+        // South gate / transport quarter: workshops, stables and small street-front rows.
+        block(6, 53, 14, 59);
+        block(16, 54, 22, 60);
+        block(7, 64, 15, 69);
+        block(17, 63, 25, 69);
+        block(28, 64, 34, 69);
+        block(35, 64, 41, 69);
 
+        // South-east residential edge. Small footprints keep the side streets legible.
+        block(55, 63, 62, 69);
+        block(65, 64, 72, 69);
+        block(75, 63, 82, 69);
+        block(85, 63, 91, 69);
+        block(57, 55, 63, 60);
+        block(66, 55, 72, 59);
+        block(75, 55, 82, 60);
+        block(85, 54, 91, 59);
+
+        // River warehouses: narrow sheds with dedicated loading gaps rather than four giant blocks.
+        block(63, 44, 70, 47);
+        block(73, 44, 79, 48);
+        block(82, 44, 88, 47);
+        block(63, 52, 69, 56);
+        block(72, 52, 79, 57);
+        block(82, 51, 88, 56);
+        block(89, 47, 92, 52);
+
+        // Ravenfeather Tower: clipped corners make it read as a singular civic mass.
+        block(8, 8, 17, 16);
+        rect(8, 8, 9, 9, Terrain.GRASS);
+        rect(16, 8, 17, 9, Terrain.GRASS);
+        rect(8, 15, 9, 16, Terrain.GRASS);
+        rect(16, 15, 17, 16, Terrain.GRASS);
+
+        // Registry: a U-shaped civic footprint around a formal inner court.
+        block(23, 10, 29, 19);
+        block(35, 10, 41, 19);
+        block(23, 8, 41, 10);
+        block(5, 24, 11, 29);
+        block(13, 24, 19, 29);
+        block(24, 24, 30, 28);
+        block(34, 24, 40, 29);
+        block(31, 3, 40, 6);
+
+        // East-side clinic/living quarter: lower, smaller masses around the garden.
+        block(61, 11, 70, 18);
+        block(72, 13, 77, 18);
+        block(54, 4, 60, 9);
+        block(71, 4, 77, 9);
+        block(54, 25, 60, 30);
+        block(63, 25, 69, 30);
+        block(72, 25, 78, 30);
+        block(82, 25, 88, 30);
+    }
+
+    /** Establishes a readable 7-cell spine, 3-4 cell district streets and 1-2 cell shortcuts. */
+    private void carveRoadHierarchy() {
+        // South of the river is a busier dirt/road language; north civic streets use stone paving.
+        rect(45, 40, 51, 70, Terrain.EMPTY);
+        rect(45, 1, 51, 33, Terrain.EMPTY_SP);
+
+        // South gate traffic apron and transport cross streets.
+        rect(38, 62, 58, 69, Terrain.EMPTY);
+        rect(3, 60, 27, 62, Terrain.EMPTY);
+        rect(27, 59, 44, 62, Terrain.EMPTY);
+        rect(52, 59, 84, 62, Terrain.EMPTY);
+
+        // Ravenfeather district: older, quieter, more formal stone network.
+        rect(2, 18, 44, 21, Terrain.EMPTY_SP);
+        rect(20, 27, 44, 30, Terrain.EMPTY_SP);
+        rect(2, 31, 44, 33, Terrain.EMPTY_SP);
+        rect(18, 7, 22, 20, Terrain.EMPTY_SP);
+        rect(20, 21, 22, 29, Terrain.EMPTY_SP);
+        rect(28, 2, 30, 17, Terrain.EMPTY_SP);
+
+        // East-side life/clinic streets retain a softer ordinary road language.
+        rect(52, 20, 93, 23, Terrain.EMPTY);
+        rect(52, 27, 93, 30, Terrain.EMPTY);
+        rect(52, 31, 93, 33, Terrain.EMPTY);
+        rect(52, 10, 60, 12, Terrain.EMPTY);
+
+        // Market approach and compact east-west circulation.
+        rect(34, 40, 62, 43, Terrain.EMPTY_SP);
+        rect(28, 52, 44, 55, Terrain.EMPTY);
+        rect(52, 49, 93, 52, Terrain.EMPTY);
+        rect(36, 51, 56, 60, Terrain.EMPTY_SP);
+        rect(33, 54, 59, 58, Terrain.EMPTY_SP);
+
+        // West river path and the east warehouse river path both advertise lateral exploration.
+        rect(2, 40, 33, 42, Terrain.EMPTY);
+        rect(52, 40, 93, 42, Terrain.EMPTY);
+
+        // Warehouse service hierarchy: narrow loading lanes between distinct sheds.
+        rect(60, 43, 62, 58, Terrain.EMPTY);
+        rect(70, 43, 72, 58, Terrain.EMPTY);
+        rect(79, 43, 81, 58, Terrain.EMPTY);
+        rect(89, 42, 91, 58, Terrain.EMPTY);
+        rect(79, 57, 91, 59, Terrain.EMPTY);
+        rect(60, 57, 81, 59, Terrain.EMPTY);
+
+        // Familiarity shortcuts around the market: deliberately only 1-2 cells wide.
+        rect(56, 52, 58, 66, Terrain.EMPTY);
+        rect(31, 55, 33, 65, Terrain.EMPTY);
+
+        // Visible future route mouths. They remain spatial promises, not Travel Skip implementation.
         rect(1, 19, 5, 21, Terrain.EMPTY);
         rect(91, 40, 94, 42, Terrain.EMPTY);
-        rect(64, 1, 70, 5, Terrain.EMPTY);
+        rect(64, 1, 70, 6, Terrain.EMPTY);
+        rect(61, 6, 67, 8, Terrain.EMPTY);
+    }
 
+    private void buildBridgeAndMicroLoops() {
+        // Morningcreek Stone Bridge: seven walkable cells wide, with solid parapets and bridgeheads.
+        rect(45, 34, 51, 39, Terrain.EMPTY_SP);
+        for (int y = 34; y <= 39; y++) {
+            map[cell(44, y)] = Terrain.WALL;
+            map[cell(52, y)] = Terrain.WALL;
+        }
+        rect(42, 31, 54, 33, Terrain.EMPTY_SP);
+        rect(42, 40, 54, 42, Terrain.EMPTY_SP);
+        map[cell(42, 33)] = Terrain.WALL;
+        map[cell(54, 33)] = Terrain.WALL;
+        map[cell(42, 40)] = Terrain.WALL;
+        map[cell(54, 40)] = Terrain.WALL;
+
+        // Micro-loop 1: market -> Inn side alley -> rear service yard -> west river road.
+        rect(23, 49, 24, 58, Terrain.EMPTY);
+        rect(8, 49, 24, 51, Terrain.EMPTY);
+        rect(8, 44, 15, 48, Terrain.EMPTY_SP);
+        rect(8, 43, 10, 49, Terrain.EMPTY);
+
+        // Micro-loop 2: an east river walk wraps behind the warehouses before returning to market.
+        // The lanes are already carved above; this short south return makes the loop obvious on foot.
+        rect(84, 57, 91, 59, Terrain.EMPTY);
+
+        // Micro-loop 3: a completely optional quiet Ravenfeather courtyard.
+        rect(10, 21, 22, 23, Terrain.EMPTY_SP);
+        rect(10, 23, 12, 29, Terrain.EMPTY_SP);
+        rect(10, 29, 22, 31, Terrain.EMPTY_SP);
+
+        // Formal registry forecourt and its inner U-shaped courtyard.
+        rect(30, 11, 34, 19, Terrain.EMPTY_SP);
+        rect(29, 17, 35, 22, Terrain.EMPTY_SP);
+
+        // Tower court lets the civic silhouette be approached from more than one side.
+        rect(5, 17, 18, 20, Terrain.EMPTY_SP);
+
+        // Micro-loop 5: a deliberately unnecessary east-bank dead end near the future landing.
+        rect(87, 31, 93, 33, Terrain.EMPTY);
+    }
+
+    private void buildClinicGarden() {
+        rect(78, 18, 93, 20, Terrain.EMPTY);
+        rect(78, 22, 80, 29, Terrain.EMPTY);
+        rect(81, 11, 92, 12, Terrain.HIGH_GRASS);
+        rect(81, 15, 92, 16, Terrain.HIGH_GRASS);
+        rect(81, 24, 92, 25, Terrain.HIGH_GRASS);
+        rect(81, 27, 92, 28, Terrain.HIGH_GRASS);
+        rect(85, 10, 86, 28, Terrain.WATER);
+        // A small foot crossing prevents the irrigation channel from becoming a hard wall.
+        rect(84, 19, 87, 20, Terrain.EMPTY);
+    }
+
+    private void buildMarketDetails() {
+        // The well is a compact obstruction inside the market rather than the center of a giant crossroad.
         rect(47, 55, 49, 57, Terrain.WATER);
         map[cell(48, 56)] = Terrain.EMPTY_DECO;
 
-        for (int y = 44; y <= 66; y += 7) {
-            map[cell(42, y)] = Terrain.EMPTY_DECO;
-            map[cell(54, y)] = Terrain.EMPTY_DECO;
-        }
-        map[cell(39, 20)] = Terrain.EMPTY_DECO;
-        map[cell(56, 22)] = Terrain.EMPTY_DECO;
+        // Sparse clutter anchors the edge of the square without creating collision-heavy final art.
+        map[cell(36, 52)] = Terrain.EMPTY_DECO;
+        map[cell(55, 52)] = Terrain.EMPTY_DECO;
+        map[cell(35, 58)] = Terrain.EMPTY_DECO;
+        map[cell(56, 58)] = Terrain.EMPTY_DECO;
+        map[cell(42, 61)] = Terrain.EMPTY_DECO;
+        map[cell(54, 61)] = Terrain.EMPTY_DECO;
         map[cell(63, 41)] = Terrain.EMPTY_DECO;
         map[cell(88, 41)] = Terrain.EMPTY_DECO;
-
-        installVisualFoundation();
-        return true;
     }
 
     @Override
