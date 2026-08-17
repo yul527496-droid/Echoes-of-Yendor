@@ -13,6 +13,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.ActOneShrineInscription;
 import com.shatteredpixel.shatteredpixeldungeon.items.ActOneYendorAtShrine;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.ActOneReturnShrineTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.EchoesLandmarkTilemap;
