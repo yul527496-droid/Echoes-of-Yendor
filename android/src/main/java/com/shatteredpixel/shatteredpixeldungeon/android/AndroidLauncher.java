@@ -62,6 +62,9 @@ public class AndroidLauncher extends AndroidApplication {
 	protected void onCreate (Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		//Install this before native/libGDX initialization so startup crashes are captured too.
+		AndroidDiagnostics.install(this);
+
 		try {
 			GdxNativesLoader.load();
 			FreeType.initFreeType();
@@ -146,6 +149,10 @@ public class AndroidLauncher extends AndroidApplication {
 		Button.longClick = ViewConfiguration.getLongPressTimeout()/1000f;
 		
 		initialize(new ShatteredPixelDungeon(support), config);
+
+		//A separate low-priority thread watches both Android's UI looper and libGDX's render loop.
+		AndroidDiagnostics.startWatchdogs();
+		AndroidDiagnostics.showPendingReportIfAny(this);
 		
 	}
 
@@ -160,7 +167,14 @@ public class AndroidLauncher extends AndroidApplication {
 		if (instance != this){
 			finishAndRemoveTask();
 		}
+		AndroidDiagnostics.setForeground(true);
 		super.onResume();
+	}
+
+	@Override
+	protected void onPause() {
+		AndroidDiagnostics.setForeground(false);
+		super.onPause();
 	}
 
 	@SuppressLint("GestureBackNavigation")
