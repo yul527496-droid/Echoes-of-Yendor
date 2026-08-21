@@ -7,6 +7,12 @@ on:
     paths:
       - "Eldrath3D/**"
       - ".github/workflows/eldrath3d-build-windows.yml"
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "Eldrath3D/**"
+      - ".github/workflows/eldrath3d-build-windows.yml"
   workflow_dispatch:
 
 jobs:
@@ -15,7 +21,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Godot 4.7.1 and export templates
         shell: bash
