@@ -1,0 +1,53 @@
+name: Build Eldrath3D Windows Prototype
+
+on:
+  push:
+    branches:
+      - prototype/eldrath-3d-godot
+    paths:
+      - "Eldrath3D/**"
+      - ".github/workflows/eldrath3d-build-windows.yml"
+  workflow_dispatch:
+
+jobs:
+  export-windows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Godot 4.7.1 and export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          GODOT_VERSION="4.7.1-stable"
+          GODOT_TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/4.7.1.stable"
+          wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O /tmp/godot.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          sudo install -m 0755 /tmp/godot/Godot_v${GODOT_VERSION}_linux.x86_64 /usr/local/bin/godot
+          wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz" -O /tmp/templates.tpz
+          mkdir -p "$GODOT_TEMPLATE_DIR"
+          unzip -q /tmp/templates.tpz -d /tmp/templates
+          cp -a /tmp/templates/templates/. "$GODOT_TEMPLATE_DIR/"
+          godot --version
+
+      - name: Import and validate project
+        working-directory: Eldrath3D
+        run: |
+          mkdir -p build
+          godot --headless --editor --quit --path .
+
+      - name: Export Windows release
+        working-directory: Eldrath3D
+        run: |
+          godot --headless --path . --export-release "Windows Desktop" build/Eldrath3D.exe
+          test -f build/Eldrath3D.exe
+
+      - name: Upload playable build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Eldrath3D-Windows-v0.0.1
+          path: Eldrath3D/build/*
+          if-no-files-found: error
+          retention-days: 14
