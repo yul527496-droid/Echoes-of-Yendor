@@ -1,0 +1,48 @@
+name: Build SPD Modifier Delivery
+
+on:
+  push:
+    branches:
+      - spd-modifier-delivery-20260917
+    paths:
+      - 'spd-modifier/**'
+      - '.github/workflows/build-spd-modifier-delivery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build APK
+        working-directory: spd-modifier
+        run: gradle --no-daemon :app:assembleDebug
+
+      - name: Persist delivery files
+        run: |
+          mkdir -p dist
+          cp spd-modifier/app/build/outputs/apk/debug/app-debug.apk SPD-Modifier-0.1.0.apk
+          base64 SPD-Modifier-0.1.0.apk > dist/SPD-Modifier-0.1.0.apk.b64
+          sha256sum SPD-Modifier-0.1.0.apk > dist/SPD-Modifier-0.1.0.sha256
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist/SPD-Modifier-0.1.0.apk.b64 dist/SPD-Modifier-0.1.0.sha256
+          git commit -m "Store SPD Modifier 0.1.0 delivery" || exit 0
+          git push
